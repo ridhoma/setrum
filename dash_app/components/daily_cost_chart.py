@@ -1,0 +1,277 @@
+"""Daily chart with view toggle (£ vs kWh) + BI-style date range filter.
+
+`build_figure(daily_df, view)` is a pure function:
+  * `view="cost"` → stacked bar (Standing Charge + Consumption Usage + VAT)
+  * `view="kwh"`  → single bar of `consumption_kwh` (no VAT/SC breakdown,
+    since kWh is meter-side and not subject to VAT)
+"""
+
+from __future__ import annotations
+
+import dash_bootstrap_components as dbc
+import pandas as pd
+import plotly.graph_objects as go
+from dash import dcc, html
+
+from dash_app.components import date_range_filter, summary_cards
+from dash_app.components.annotation_format import hover_text as _hover_text
+
+COLORS = {
+    "Standing Charge":   "#004dff",
+    "Consumption Usage": "#ff7dff",
+    "VAT":               "#6eaaff",
+}
+ORDER = ["Standing Charge", "Consumption Usage", "VAT"]
+
+
+def _empty_figure(yaxis_title: str) -> go.Figure:
+    fig = go.Figure()
+    fig.update_layout(
+        template="plotly_white",
+        height=360,
+        margin=dict(l=10, r=10, t=30, b=10),
+        xaxis_title="",
+        yaxis_title=yaxis_title,
+    )
+    return fig
+
+
+def _monday_shapes(dates: pd.Series) -> list[dict]:
+    mondays = dates.loc[dates.dt.dayofweek == 0]
+    return [
+        dict(
+            type="line",
+            x0=d, x1=d,
+            xref="x", yref="paper",
+            y0=0, y1=1,
+            line=dict(color="gray", dash="dash", width=1),
+            opacity=0.5,
+        )
+        for d in mondays
+    ]
+
+
+def _annotation_shapes(annotations_df: pd.DataFrame | None) -> list[dict]:
+    if annotations_df is None or annotations_df.empty:
+        return []
+    shapes = []
+    for _, ann in annotations_df.iterrows():
+        color = _first_color(ann.get("tag_colors")) or "#ffd60a"
+        shapes.append(
+            dict(
+                type="rect",
+                xref="x", yref="paper",
+                x0=ann["period_start_utc"],
+                x1=ann["period_end_utc"],
+                y0=0, y1=1,
+                fillcolor=color,
+                opacity=0.18,
+                line_width=0,
+                layer="below",
+            )
+        )
+    return shapes
+
+
+def _first_color(tag_colors: str | None) -> str | None:
+    if not tag_colors:
+        return None
+    parts = [p for p in tag_colors.split("|") if p and p != "None"]
+    return parts[0] if parts else None
+
+
+def _annotation_icon_traces(annotations_df: pd.DataFrame | None, y_at: float) -> list[go.Scatter]:
+    """A clickable 📝 icon at each annotation band's centre. Click → opens
+    the manager modal in edit mode (handler in `annotation_manager.py`).
+    """
+    if annotations_df is None or annotations_df.empty:
+        return []
+    out: list[go.Scatter] = []
+    for _, ann in annotations_df.iterrows():
+        ann_id = int(ann["id"])
+        ps = pd.to_datetime(ann["period_start_utc"])
+        pe = pd.to_datetime(ann["period_end_utc"])
+        x_center = ps + (pe - ps) / 2
+        text = _hover_text(ann)
+        out.append(go.Scatter(
+            x=[x_center],
+            y=[y_at],
+            mode="text",
+            text=["📝"],
+            textfont=dict(size=18),
+            customdata=[ann_id],
+            hovertemplate=text + "<extra></extra>",
+            showlegend=False,
+            name="",
+        ))
+    return out
+
+
+def build_figure(
+    daily_df: pd.DataFrame,
+    view: str = "cost",
+    annotations_df: pd.DataFrame | None = None,
+) -> go.Figure:
+    if view == "kwh":
+        return _build_kwh_figure(daily_df, annotations_df)
+    return _build_cost_figure(daily_df, annotations_df)
+
+
+def _build_cost_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | None = None) -> go.Figure:
+    if daily_df.empty:
+        return _empty_figure("Cost (£)")
+
+    df = daily_df.sort_values("date").copy()
+    df["date"] = pd.to_datetime(df["date"])
+    df["Standing Charge"]   = df["standing_charge_pence_exc_vat"] / 100
+    df["Consumption Usage"] = df["consumption_pence_exc_vat"] / 100
+    df["VAT"]               = df["total_pence_vat"] / 100
+
+    customdata = df["date"].dt.strftime("%a, %d %b %Y")
+    fig = go.Figure()
+    # Stacked area: each scatter trace fills up to the previous in stackgroup.
+    # Points are at midnight UTC of each day — same x as annotation rect bounds,
+    # so selection + overlay alignment stays exact.
+    for component in ORDER:
+        fig.add_scatter(
+            name=component,
+            x=df["date"],
+            y=df[component],
+            mode="lines",
+            line=dict(width=0.5, color=COLORS[component]),
+            fillcolor=COLORS[component],
+            stackgroup="cost",
+            customdata=customdata,
+            hovertemplate=(
+                "<b>%{customdata}</b><br>"
+                f"{component}: £%{{y:.2f}}<extra></extra>"
+            ),
+        )
+
+    fig.update_layout(
+        template="plotly_white",
+        height=360,
+        margin=dict(l=10, r=10, t=30, b=10),
+        xaxis_title="",
+        yaxis_title="Cost (£)",
+        legend=dict(orientation="h", y=1.1, x=0),
+        shapes=_monday_shapes(df["date"]) + _annotation_shapes(annotations_df),
+        hovermode="x unified",
+        dragmode="select",
+        selectdirection="h",
+        clickmode="event+select",
+    )
+    # Hover-catcher traces for the annotation bands. y_max ≈ stacked total max.
+    daily_total = (df["Standing Charge"] + df["Consumption Usage"] + df["VAT"]).max()
+    y_max = float(daily_total or 0) * 1.05 or 1.0
+    for trace in _annotation_icon_traces(annotations_df, y_max):
+        fig.add_trace(trace)
+    return fig
+
+
+def _build_kwh_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | None = None) -> go.Figure:
+    if daily_df.empty:
+        return _empty_figure("kWh")
+
+    df = daily_df.sort_values("date").copy()
+    df["date"] = pd.to_datetime(df["date"])
+    customdata = df["date"].dt.strftime("%a, %d %b %Y")
+
+    fig = go.Figure()
+    fig.add_scatter(
+        name="Consumption",
+        x=df["date"],
+        y=df["consumption_kwh"],
+        mode="lines",
+        line=dict(width=0.5, color=COLORS["Consumption Usage"]),
+        fillcolor=COLORS["Consumption Usage"],
+        fill="tozeroy",
+        customdata=customdata,
+        hovertemplate="<b>%{customdata}</b><br>%{y:.2f} kWh<extra></extra>",
+    )
+    fig.update_layout(
+        template="plotly_white",
+        height=360,
+        margin=dict(l=10, r=10, t=30, b=10),
+        xaxis_title="",
+        yaxis_title="kWh",
+        showlegend=False,
+        shapes=_monday_shapes(df["date"]) + _annotation_shapes(annotations_df),
+        hovermode="x unified",
+        dragmode="select",
+        selectdirection="h",
+        clickmode="event+select",
+    )
+    y_max = float(df["consumption_kwh"].max() or 0) * 1.05 or 1.0
+    for trace in _annotation_icon_traces(annotations_df, y_max):
+        fig.add_trace(trace)
+    return fig
+
+
+def render() -> html.Div:
+    view_toggle = dbc.RadioItems(
+        id="daily-view-toggle",
+        options=[
+            {"label": "£",   "value": "cost"},
+            {"label": "kWh", "value": "kwh"},
+        ],
+        value="cost",
+        class_name="btn-group btn-group-sm",
+        input_class_name="btn-check",
+        label_class_name="btn btn-outline-secondary",
+        label_checked_class_name="active",
+    )
+
+    return html.Div(
+        [
+            html.H3("Daily Cost and Consumption", className="mb-3"),
+            html.Div(
+                [
+                    view_toggle,
+                    html.Div(
+                        date_range_filter.render(
+                            "daily",
+                            presets=[
+                                ("Last 7 days",  7),
+                                ("Last 14 days", 14),
+                                ("Last 30 days", 30),
+                                ("Last 90 days", 90),
+                            ],
+                            default_days=30,
+                        ),
+                        className="ms-2",
+                    ),
+                    html.Div(summary_cards.render(), className="flex-grow-1 ms-3"),
+                ],
+                className="d-flex align-items-stretch mb-3",
+            ),
+            html.Div(
+                [
+                    dcc.Graph(
+                        id="daily-cost-chart",
+                        config={
+                            "displaylogo": False,
+                            "modeBarButtonsToAdd": ["select2d"],
+                        },
+                    ),
+                    html.Div(
+                        [
+                            html.Span(id="daily-readout-text"),
+                            dbc.Button(
+                                "✏️",
+                                id="daily-readout-edit",
+                                color="link",
+                                size="sm",
+                                className="hh-readout-edit p-0 ms-2",
+                                title="Annotate this selection",
+                            ),
+                        ],
+                        id="daily-selection-readout",
+                        className="hh-readout",
+                        style={"display": "none"},
+                    ),
+                ],
+                style={"position": "relative"},
+            ),
+        ]
+    )

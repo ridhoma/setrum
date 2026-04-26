@@ -1,0 +1,68 @@
+# ────────────────────────────────────────────────────────────
+# Secrets — never commit these
+# ────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+
+# ────────────────────────────────────────────────────────────
+# Local data — your meter data, annotations, etc.
+# Anyone who sees setrum.db sees your full electricity history.
+# ────────────────────────────────────────────────────────────
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Dash background-callback diskcache
+.cache/
+.diskcache/
+
+# ────────────────────────────────────────────────────────────
+# Python
+# ────────────────────────────────────────────────────────────
+__pycache__/
+*.py[oc]
+*.egg-info/
+build/
+dist/
+wheels/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# ────────────────────────────────────────────────────────────
+# OS / Editor
+# ────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# ────────────────────────────────────────────────────────────
+# Node (in case any future tooling lands here)
+# ────────────────────────────────────────────────────────────
+node_modules/
+
+# ────────────────────────────────────────────────────────────
+# Log files
+# ────────────────────────────────────────────────────────────
+*.log
+logs/
