@@ -133,8 +133,12 @@ def _build_period(source, from_date, from_hour, from_minute, to_date, to_hour, t
     Input({"type": "ann-edit-btn", "id": ALL},        "n_clicks"),
     Input("ann-mgr-cancel-btn",                       "n_clicks"),
     Input("ann-mgr-save-btn",                         "n_clicks"),
-    Input("hh-chart",                                 "clickData"),
-    Input("daily-cost-chart",                         "clickData"),
+    # Charts only exist on the Consumptions tab; the manager modal lives at
+    # layout level, so these inputs must be optional or Dash refuses to fire
+    # the callback for ANY input (incl. the sticky-note ✏️ pattern-match)
+    # whenever the active tab doesn't mount these components.
+    Input("hh-chart",                                 "clickData", allow_optional=True),
+    Input("daily-cost-chart",                         "clickData", allow_optional=True),
     State("ann-mgr-mode-store",                       "data"),
     State("ann-mgr-source",                           "value"),
     State("ann-mgr-from-date",                        "date"),
@@ -292,18 +296,37 @@ def populate_mgr_tag_options(_av, _dv, search_value, current_value):
 
 
 @callback(
-    Output(stores.ANNOTATIONS_VERSION, "data", allow_duplicate=True),
+    Output("ann-delete-confirm-modal",  "is_open"),
+    Output("ann-pending-delete-id",     "data"),
+    Output(stores.ANNOTATIONS_VERSION,  "data", allow_duplicate=True),
     Input({"type": "ann-delete-btn", "id": ALL}, "n_clicks"),
-    State(stores.ANNOTATIONS_VERSION, "data"),
+    Input("ann-delete-confirm-btn",     "n_clicks"),
+    Input("ann-delete-cancel-btn",      "n_clicks"),
+    State("ann-pending-delete-id",      "data"),
+    State(stores.ANNOTATIONS_VERSION,   "data"),
     prevent_initial_call=True,
 )
-def delete_annotation(n_clicks_list, current_version):
+def manage_delete_modal(delete_clicks, _confirm_n, _cancel_n, pending_id, current_version):
+    """Single-owner state machine: 🗑 → open confirm → confirm/cancel → close.
+
+    Deletion happens only on confirm; ANNOTATIONS_VERSION bumps then so the
+    board, chart overlays, and tag options refresh.
+    """
     triggered = ctx.triggered_id
-    if not isinstance(triggered, dict) or triggered.get("type") != "ann-delete-btn":
-        return no_update
-    # Pattern-match callbacks fire when new sticky notes mount, so guard
-    # on at least one real click.
-    if not any(c for c in (n_clicks_list or []) if c):
-        return no_update
-    annotations_service.delete(int(triggered["id"]))
-    return (current_version or 0) + 1
+
+    # 🗑 on a sticky note → open modal, remember which annotation
+    if isinstance(triggered, dict) and triggered.get("type") == "ann-delete-btn":
+        if not any(c for c in (delete_clicks or []) if c):
+            return no_update, no_update, no_update
+        return True, int(triggered["id"]), no_update
+
+    if triggered == "ann-delete-cancel-btn":
+        return False, None, no_update
+
+    if triggered == "ann-delete-confirm-btn":
+        if pending_id is None:
+            return False, None, no_update
+        annotations_service.delete(int(pending_id))
+        return False, None, (current_version or 0) + 1
+
+    return no_update, no_update, no_update

@@ -160,12 +160,19 @@
     color: #dc3545 !important;
 }
 
-/* Date range filter — compact dropdown, right-aligned. */
+/* Date range filter — compact dropdown, right-aligned. Width fits the
+   custom-mode DatePickerRange (two YYYY-MM-DD inputs + arrow + chevron). */
 .date-range-filter {
-    width: 160px;
+    width: 290px;
 }
 .date-range-filter .date-range-select {
     cursor: pointer;
+}
+/* The DatePickerRange should fill the filter width so the end date and
+   chevron don't get clipped. */
+.date-range-filter .DateRangePicker,
+.date-range-filter .DateRangePickerInput {
+    width: 100%;
 }
 
 /* ──────────────────────────────────────────────────────────────────────

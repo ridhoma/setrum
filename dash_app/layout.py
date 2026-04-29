@@ -8,6 +8,7 @@ from dash import dcc, html
 
 from dash_app import stores
 from dash_app.components import (
+    annotation_delete_confirm,
     annotation_form,
     annotation_manager_form,
     header,
@@ -34,6 +35,7 @@ def render() -> html.Div:
                     # of which tab is active.
                     annotation_form.render(),
                     annotation_manager_form.render(),
+                    annotation_delete_confirm.render(),
                 ],
                 className="setrum-content",
             ),

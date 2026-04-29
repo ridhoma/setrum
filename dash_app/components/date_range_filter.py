@@ -43,12 +43,18 @@ def render(
                 value=str(default_days),
                 size="sm",
                 class_name="date-range-select",
+                # Survive tab swaps within the same browser session so user's
+                # selection isn't reset every time the Consumptions tab remounts.
+                persistence=True,
+                persistence_type="session",
             ),
             html.Div(
                 dcc.DatePickerRange(
                     id=ids["picker"],
                     display_format="YYYY-MM-DD",
                     className="mt-2",
+                    persistence=True,
+                    persistence_type="session",
                 ),
                 id=ids["wrap"],
                 style={"display": "none"},
