@@ -19,14 +19,14 @@ from dash_app.components.annotation_format import hover_text as _hover_text
 
 # Stack roles, ordered bottom → top of the area.
 #
-# Each role uses a (fill, stroke) pair so the area reads as a soft wash
-# while the stroke does the work of marking the trend. Pale fills also
-# stop the stack from feeling like a wall of solid colour at large date
-# ranges, which was the main complaint about the previous palette.
+# Each role uses a (fill, stroke) pair: a saturated fill carries the
+# region weight, with a soft same-family stroke as a lighter cap on top.
+# The lighter stroke acts as a parting line between adjacent stacks
+# without doubling-down on contrast at the boundary.
 COLORS = {
-    "Standing Charge":   (theme.WARNING_SOFT, theme.WARNING),  # gold wash + gold rule
-    "Consumption Usage": (theme.ORANGE_SOFT,  theme.ORANGE),   # peach wash + Claude Orange
-    "VAT":               (theme.INK_200,      theme.INK_300),  # neutral grey wash + rule
+    "Standing Charge":   (theme.WARNING, theme.WARNING_SOFT),  # gold body + gold rule
+    "Consumption Usage": (theme.ORANGE,  theme.ORANGE_SOFT),   # Claude Orange + peach rule
+    "VAT":               (theme.INK_300, theme.INK_200),       # grey body + lighter rule
 }
 ORDER = ["Standing Charge", "Consumption Usage", "VAT"]
 STROKE_WIDTH = 2.0
