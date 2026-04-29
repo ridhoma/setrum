@@ -35,6 +35,5 @@ def render_extent_caption(_data_version: int, account_id: int | None) -> str:
     if not extent.get("hh_max"):
         return "No data yet — click Refresh to sync."
     return (
-        "Powered by Octopus Energy Agile API · "
         f"latest data: {extent['hh_max']} (UTC)"
     )
