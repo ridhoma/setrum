@@ -378,6 +378,76 @@ estimates of mine are just relative effort — say "this is a chunky
 change" or "small change", not "n hours". The actual elapsed time is
 typically 5–30 minutes of dialogue.
 
+### 5.7 Visual verification of UI changes
+
+The agent runs blind by default — it can't see what it ships. Playwright
+is installed as a dev dep (`uv add --dev playwright` + `uvx playwright
+install chromium`) so you can drive a real browser, take screenshots,
+and read them back. **Use this strategically.** Every screenshot you
+`Read` costs tokens (~1.5K for a 1600×900 viewport, ~3–5K for a long
+full-page capture). Don't reach for it on every CSS tweak.
+
+**Decide first** — does the change actually need a browser to verify?
+
+| Change | Verify with Playwright? |
+|---|---|
+| Color/hex/font-weight/padding/margin tweak | No — code-diff is enough |
+| Text or copy edit | No |
+| Class rename, removing unused CSS | No |
+| Backend logic / callback wiring / new service function | No (probe via §5.1 / §5.2 instead) |
+| Layout change (flex/grid/positioning, header, sidebar, modal) | **Yes** |
+| New component or rearrangement | **Yes** |
+| New interaction (click, drag, keyboard, hover) | **Yes — scripted, not just screenshot** |
+| Override of `dcc.*` or Plotly internals | **Yes** — vendor defaults can fight your CSS in ways the diff won't reveal (we hit this with the tab strip rendering bottom-right instead of bottom-left despite `align-items: flex-end`) |
+
+The "verify yes" cases share a property: the rendered DOM has variables
+the code can't predict — vendor markup, browser layout quirks, the
+empty tab-content panel `dcc.Tabs` adds underneath the trigger row, etc.
+
+**Static screenshot** — for "is the layout right" checks. Cheapest mode:
+
+```bash
+# App must be running on :8050. Tight viewport = fewer image tokens.
+uv run playwright screenshot http://127.0.0.1:8050 /tmp/setrum.png \
+    --viewport-size=1600,900 --wait-for-timeout=1500
+# then Read /tmp/setrum.png
+```
+
+Crop to the changed strip with a small height (`--viewport-size=1600,200`
+for the header alone) when you don't need the whole page. Use
+`--full-page` only when you genuinely need everything below the fold.
+
+**Scripted interaction** — for click/drag/keyboard/hover flows. Inline
+via `uv run python -c '…'`, no committed harness needed:
+
+```python
+from playwright.sync_api import sync_playwright
+with sync_playwright() as p:
+    page = p.chromium.launch().new_page()
+    page.on("console", lambda m: print("[js]", m.text))   # surface JS errors
+    page.goto("http://127.0.0.1:8050")
+    page.click("text=Annotations")
+    page.locator("#canvas-sticky-21").click()
+    page.keyboard.down("Shift")
+    page.locator("#canvas-sticky-20").click()
+    page.keyboard.up("Shift")
+    print("selected:", page.locator(".canvas-sticky.selected").count())
+    page.screenshot(path="/tmp/setrum.png")
+```
+
+For drag, use raw `page.mouse.move/down/up` — Playwright's high-level
+`drag_to` doesn't fire `pointermove` the way our canvas JS expects.
+
+**Discipline**:
+- Re-use `/tmp/setrum.png` (single file, overwritten). Same path within
+  5 minutes → prompt-cache hit when you re-`Read` it.
+- One screenshot per iteration is plenty. If you're taking three to
+  compare, you're tweaking too small — step back.
+- A scripted interaction *is* the verification. Don't take a screenshot
+  unless the visual outcome is the point — `count()` and `text_content()`
+  assertions are token-free.
+- `pkill -f run.py` when you're done. Don't leave the server running.
+
 ---
 
 ## 6. Things to NOT do
@@ -446,6 +516,10 @@ typically 5–30 minutes of dialogue.
 - [ ] Does the data flow round-trip end-to-end? (Plant → render → re-render.)
 - [ ] Did you handle pandas NaN where SQL NULL is possible?
 - [ ] Did you verify with a synthetic probe to `_dash-update-component`?
+- [ ] If the change touched layout, positioning, or interactions: did you
+      visually verify with Playwright? (Not "did the code compile" —
+      *did the pixels look right*, *did the click do what you wanted*.)
+      See §5.7 for when this is and isn't worth it.
 - [ ] Did you stop the test server (`pkill -f run.py`)?
 - [ ] Did you clean up test data (annotations, tags) you planted?
 - [ ] Are timestamps tz-aware UTC end-to-end?
