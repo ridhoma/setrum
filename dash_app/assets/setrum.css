@@ -306,24 +306,25 @@ body {
     background: var(--setrum-accent);
 }
 
-/* In-chart selection readout: top-left of the HH chart. Sits above the bars,
-   semi-transparent so the chart stays readable. The container itself blocks
-   hover only over the badge area; that's fine since users brush, not hover. */
+/* In-chart selection readout: top-left of the chart, paper-tinted with a
+   token-driven shadow so it sits over the bars without competing. */
 .hh-readout {
     position: absolute;
     top: 12px;
     left: 60px;                  /* clear of plotly's y-axis labels */
     padding: 6px 12px;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #2c3e50;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid var(--setrum-rule);
+    border-radius: var(--setrum-radius-md);
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-small);
+    font-weight: 500;
+    color: var(--setrum-ink-900);
+    box-shadow: var(--setrum-shadow-data);
     z-index: 10;
     display: inline-flex;
     align-items: center;
+    backdrop-filter: blur(2px);
 }
 
 /* Edit (annotate) icon inside the readout. */
@@ -335,30 +336,230 @@ body {
 }
 .hh-readout-edit:hover {
     transform: scale(1.15);
-    transition: transform 0.1s ease-out;
+    transition: transform var(--setrum-dur-fast) var(--setrum-ease);
 }
 
-/* Floating annotation form. Fixed to the viewport so it works the same
-   regardless of which chart triggered it (HH or daily). */
+/* Floating annotation form — fixed to the viewport, paper card with the
+   modal-tier shadow so it floats clearly over the chart and KPI grid. */
 .ann-form-card {
     position: fixed;
-    top: 80px;
-    right: 32px;
-    width: 360px;
+    top: 84px;
+    right: var(--setrum-space-8);
+    width: 380px;
     max-width: calc(100vw - 64px);
     z-index: 1050;               /* above bootstrap modals' default backdrop */
-    background: white;
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-ink-100);
+    border-radius: var(--setrum-radius-lg);
+    box-shadow: var(--setrum-shadow-modal);
+    overflow: hidden;
+}
+.ann-form-card .card-header {
+    background: var(--setrum-bg-surface-alt);
+    border-bottom: 1px solid var(--setrum-ink-100);
+    padding: var(--setrum-space-3) var(--setrum-space-4);
+    font-family: var(--setrum-font-display);
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--setrum-ink-900);
+    letter-spacing: -0.005em;
+}
+.ann-form-card .card-body {
+    padding: var(--setrum-space-4) !important;
 }
 
-/* Close icon in the form header. */
+/* Close (✕) icon in the form header. */
 .ann-close-btn {
     text-decoration: none !important;
-    color: #6c757d !important;
+    color: var(--setrum-ink-500) !important;
     font-size: 1.1rem;
     line-height: 1;
+    transition: color var(--setrum-dur-fast) var(--setrum-ease);
 }
 .ann-close-btn:hover {
-    color: #dc3545 !important;
+    color: var(--setrum-ink-900) !important;
+}
+
+/* ── Annotation form internals — labels, period display, save button ── */
+.ann-form-card .form-label,
+#ann-mgr-modal .form-label {
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-small);
+    font-weight: 500;
+    color: var(--setrum-ink-700);
+    margin-bottom: var(--setrum-space-2);
+}
+.ann-form-card #ann-period-display,
+.ann-form-card #ann-kwh-display,
+.ann-form-card #ann-cost-display {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-small);
+    color: var(--setrum-ink-900);
+    font-feature-settings: "tnum" 1;
+}
+.ann-form-card .text-muted {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--setrum-ink-500) !important;
+}
+
+/* Primary "Save" inside the floating form uses action accent. */
+.ann-form-card .btn-primary {
+    background: var(--setrum-accent);
+    border-color: var(--setrum-accent);
+    color: #fff;
+    border-radius: var(--setrum-radius-md);
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-small);
+    font-weight: 500;
+    padding: 8px 14px;
+}
+.ann-form-card .btn-primary:hover:not(:disabled),
+.ann-form-card .btn-primary:focus:not(:disabled) {
+    background: var(--setrum-accent-hover);
+    border-color: var(--setrum-accent-hover);
+    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
+}
+.ann-form-card .btn-primary:disabled {
+    background: var(--setrum-ink-200);
+    border-color: var(--setrum-ink-200);
+    color: var(--setrum-ink-500);
+    opacity: 1;
+}
+
+/* ── Modal styling (manager + delete-confirm). dbc.Modal renders a
+   .modal-content panel inside .modal-dialog inside .modal. ─────────── */
+.modal-backdrop.show {
+    background: var(--setrum-ink-900);
+    opacity: 0.32;
+}
+.modal-content {
+    border: 1px solid var(--setrum-ink-100);
+    border-radius: var(--setrum-radius-lg);
+    box-shadow: var(--setrum-shadow-modal);
+    background: var(--setrum-bg-surface);
+}
+.modal-header {
+    border-bottom: 1px solid var(--setrum-ink-100);
+    padding: var(--setrum-space-4) var(--setrum-space-5);
+}
+.modal-title {
+    font-family: var(--setrum-font-display);
+    font-size: var(--setrum-text-h2);
+    line-height: var(--setrum-lh-h2);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: var(--setrum-ink-900);
+    font-variation-settings: "SOFT" 30, "WONK" 0;
+}
+.modal-body {
+    padding: var(--setrum-space-5);
+    color: var(--setrum-ink-700);
+}
+.modal-footer {
+    border-top: 1px solid var(--setrum-ink-100);
+    padding: var(--setrum-space-4) var(--setrum-space-5);
+    gap: var(--setrum-space-2);
+}
+
+/* Modal buttons (manager save/cancel, delete confirm/cancel). */
+.modal-footer .btn-primary {
+    background: var(--setrum-accent);
+    border-color: var(--setrum-accent);
+    border-radius: var(--setrum-radius-md);
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-small);
+    font-weight: 500;
+    padding: 8px 16px;
+}
+.modal-footer .btn-primary:hover,
+.modal-footer .btn-primary:focus {
+    background: var(--setrum-accent-hover);
+    border-color: var(--setrum-accent-hover);
+    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
+}
+
+.modal-footer .btn-danger {
+    /* Destructive confirm — explicit "this is permanent" red, not the
+       muted action accent. */
+    background: #c44b4b;
+    border-color: #c44b4b;
+    border-radius: var(--setrum-radius-md);
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-small);
+    font-weight: 500;
+    padding: 8px 16px;
+}
+.modal-footer .btn-danger:hover,
+.modal-footer .btn-danger:focus {
+    background: #a93939;
+    border-color: #a93939;
+    box-shadow: 0 0 0 3px rgba(196, 75, 75, 0.18);
+}
+
+.modal-footer .btn-secondary,
+.modal-footer .btn-outline-secondary {
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-ink-200);
+    color: var(--setrum-ink-700);
+    border-radius: var(--setrum-radius-md);
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-small);
+    font-weight: 500;
+    padding: 8px 16px;
+}
+.modal-footer .btn-secondary:hover,
+.modal-footer .btn-outline-secondary:hover {
+    background: var(--setrum-bg-surface-alt);
+    border-color: var(--setrum-ink-300);
+    color: var(--setrum-ink-900);
+}
+
+/* Form labels + radio buttons inside modals. */
+#ann-mgr-modal .form-check-label {
+    font-family: var(--setrum-font-sans);
+    color: var(--setrum-ink-700);
+}
+#ann-mgr-modal .form-control,
+#ann-mgr-modal .form-select,
+.ann-form-card .form-control,
+.ann-form-card .form-select {
+    border: 1px solid var(--setrum-ink-200);
+    border-radius: var(--setrum-radius-md);
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-body);
+    color: var(--setrum-ink-900);
+    background: var(--setrum-bg-surface);
+}
+#ann-mgr-modal .form-control:focus,
+#ann-mgr-modal .form-select:focus,
+.ann-form-card .form-control:focus,
+.ann-form-card .form-select:focus {
+    border-color: var(--setrum-accent);
+    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
+}
+#ann-mgr-error,
+.ann-form-card .text-danger {
+    color: var(--setrum-accent) !important;
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+}
+
+/* Tag dropdown (dcc.Dropdown multi) tweaks */
+.ann-form-card .Select-control,
+#ann-mgr-modal .Select-control {
+    border-radius: var(--setrum-radius-md);
+    border: 1px solid var(--setrum-ink-200);
+}
+.ann-form-card .Select-value,
+#ann-mgr-modal .Select-value {
+    background: var(--setrum-orange-soft);
+    border: 1px solid var(--setrum-orange);
+    color: var(--setrum-ink-900);
+    border-radius: var(--setrum-radius-pill);
+    font-size: var(--setrum-text-caption);
 }
 
 /* The full date-range-filter rule lives in the data-UI block lower in
