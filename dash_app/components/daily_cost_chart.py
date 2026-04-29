@@ -13,42 +13,30 @@ import pandas as pd
 import plotly.graph_objects as go
 from dash import dcc, html
 
+from dash_app.charts import theme
 from dash_app.components import date_range_filter, summary_cards
 from dash_app.components.annotation_format import hover_text as _hover_text
 
+# Stack roles, ordered bottom → top of the area.
 COLORS = {
-    "Standing Charge":   "#004dff",
-    "Consumption Usage": "#ff7dff",
-    "VAT":               "#6eaaff",
+    "Standing Charge":   theme.DATA_SECONDARY,  # cool teal — supporting cost
+    "Consumption Usage": theme.DATA_PRIMARY,    # Claude Orange — the data hero
+    "VAT":               theme.DATA_TERTIARY,   # orange-soft — visually tied to consumption
 }
 ORDER = ["Standing Charge", "Consumption Usage", "VAT"]
 
 
 def _empty_figure(yaxis_title: str) -> go.Figure:
     fig = go.Figure()
-    fig.update_layout(
-        template="plotly_white",
-        height=360,
-        margin=dict(l=10, r=10, t=30, b=10),
-        xaxis_title="",
-        yaxis_title=yaxis_title,
-    )
+    fig.update_layout(**theme.base_layout(height=360, xaxis_title="", yaxis_title=yaxis_title))
+    fig.update_xaxes(**theme.xaxis_style())
+    fig.update_yaxes(**theme.yaxis_style())
     return fig
 
 
 def _monday_shapes(dates: pd.Series) -> list[dict]:
     mondays = dates.loc[dates.dt.dayofweek == 0]
-    return [
-        dict(
-            type="line",
-            x0=d, x1=d,
-            xref="x", yref="paper",
-            y0=0, y1=1,
-            line=dict(color="gray", dash="dash", width=1),
-            opacity=0.5,
-        )
-        for d in mondays
-    ]
+    return [theme.day_separator_shape(d) for d in mondays]
 
 
 def _annotation_shapes(annotations_df: pd.DataFrame | None) -> list[dict]:
@@ -56,7 +44,7 @@ def _annotation_shapes(annotations_df: pd.DataFrame | None) -> list[dict]:
         return []
     shapes = []
     for _, ann in annotations_df.iterrows():
-        color = _first_color(ann.get("tag_colors")) or "#ffd60a"
+        color = _first_color(ann.get("tag_colors")) or theme.ANNOTATION_DEFAULT_FILL
         shapes.append(
             dict(
                 type="rect",
@@ -65,7 +53,7 @@ def _annotation_shapes(annotations_df: pd.DataFrame | None) -> list[dict]:
                 x1=ann["period_end_utc"],
                 y0=0, y1=1,
                 fillcolor=color,
-                opacity=0.18,
+                opacity=theme.ANNOTATION_FILL_OPACITY,
                 line_width=0,
                 layer="below",
             )
@@ -148,19 +136,17 @@ def _build_cost_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | No
             ),
         )
 
-    fig.update_layout(
-        template="plotly_white",
+    fig.update_layout(**theme.base_layout(
         height=360,
-        margin=dict(l=10, r=10, t=30, b=10),
-        xaxis_title="",
-        yaxis_title="Cost (£)",
-        legend=dict(orientation="h", y=1.1, x=0),
+        xaxis_title="", yaxis_title="Cost (£)",
         shapes=_monday_shapes(df["date"]) + _annotation_shapes(annotations_df),
         hovermode="x unified",
         dragmode="select",
         selectdirection="h",
         clickmode="event+select",
-    )
+    ))
+    fig.update_xaxes(**theme.xaxis_style(tickformat="%b %d"))
+    fig.update_yaxes(**theme.yaxis_style(tickprefix="£"))
     # Hover-catcher traces for the annotation bands. y_max ≈ stacked total max.
     daily_total = (df["Standing Charge"] + df["Consumption Usage"] + df["VAT"]).max()
     y_max = float(daily_total or 0) * 1.05 or 1.0
@@ -189,19 +175,18 @@ def _build_kwh_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | Non
         customdata=customdata,
         hovertemplate="<b>%{customdata}</b><br>%{y:.2f} kWh<extra></extra>",
     )
-    fig.update_layout(
-        template="plotly_white",
+    fig.update_layout(**theme.base_layout(
         height=360,
-        margin=dict(l=10, r=10, t=30, b=10),
-        xaxis_title="",
-        yaxis_title="kWh",
+        xaxis_title="", yaxis_title="kWh",
         showlegend=False,
         shapes=_monday_shapes(df["date"]) + _annotation_shapes(annotations_df),
         hovermode="x unified",
         dragmode="select",
         selectdirection="h",
         clickmode="event+select",
-    )
+    ))
+    fig.update_xaxes(**theme.xaxis_style(tickformat="%b %d"))
+    fig.update_yaxes(**theme.yaxis_style())
     y_max = float(df["consumption_kwh"].max() or 0) * 1.05 or 1.0
     for trace in _annotation_icon_traces(annotations_df, y_max):
         fig.add_trace(trace)
