@@ -96,7 +96,6 @@ def render_status_pill(_dv: int, account_id: int | None):
     yields data ending yesterday — the pill must distinguish 'I just synced'
     from 'the data is up to date'.
     """
-    import dash_bootstrap_components as dbc
     from dash import html
 
     from core.services import consumption as consumption_service
@@ -109,33 +108,43 @@ def render_status_pill(_dv: int, account_id: int | None):
     extent = consumption_service.get_data_extent(account_id=account_id)
     latest = extent.get("hh_max")
 
+    def _pill(text: str, variant: str) -> html.Span:
+        return html.Span(text, className=f"setrum-pill setrum-pill--{variant}")
+
     if s == "RUNNING":
-        return dbc.Badge("🔄 Syncing…", color="info", className="me-2")
+        return _pill("Syncing", "cool")
 
     if s == "ERROR":
-        return dbc.Badge(
-            f"❌ Sync failed: {err or 'unknown'} (last try {_humanize_delta(last_run)})",
-            color="danger",
-            className="me-2",
+        return html.Div(
+            [
+                _pill("Sync failed", "accent"),
+                html.Small(
+                    f"{err or 'unknown'} · last try {_humanize_delta(last_run)}",
+                    className="text-muted d-block mt-1",
+                ),
+            ]
         )
 
     if s in (None, "NEVER_RUN"):
-        return dbc.Badge("⚠️ Never synced — click Refresh", color="warning", className="me-2")
+        return _pill("Never synced", "warning")
 
-    # Successful (or at least non-error) sync. Decide colour by staleness.
+    # Successful (or at least non-error) sync. Variant depends on staleness.
     is_stale = bool(status.get("is_stale"))
-    color = "warning" if is_stale else "success"
-    icon = "⚠️" if is_stale else "✅"
-    latest_label = latest if latest else "no data yet"
-    last_run_label = _humanize_delta(last_run)
+    variant = "warning" if is_stale else "positive"
+    label = "Stale" if is_stale else "Up to date"
+    if not latest:
+        label, variant = "No data", "neutral"
 
-    return html.Span(
+    sub_lines = []
+    if latest:
+        sub_lines.append(f"Latest {latest}")
+    sub_lines.append(f"Synced {_humanize_delta(last_run)}")
+    return html.Div(
         [
-            dbc.Badge(
-                f"{icon} Latest data: {latest_label}",
-                color=color,
-                className="me-2",
+            _pill(label, variant),
+            html.Small(
+                " · ".join(sub_lines),
+                className="text-muted d-block mt-1",
             ),
-            html.Small(f"Synced {last_run_label}", className="text-muted"),
         ]
     )

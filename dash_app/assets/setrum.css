@@ -110,6 +110,17 @@
    App shell — header on top, sidebar on left, main on the right
    ────────────────────────────────────────────────────────────────────── */
 
+/* Apply system-wide base styles to the document. */
+body {
+    background: var(--setrum-bg-paper);
+    color: var(--setrum-ink-900);
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-body);
+    line-height: var(--setrum-lh-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 .setrum-shell {
     min-height: 100vh;
 }
@@ -120,23 +131,32 @@
     height: var(--setrum-header-height);
     display: flex;
     align-items: center;
-    gap: 2rem;
-    padding: 0 1.25rem;
-    background: #fff;
-    border-bottom: 1px solid #e5e9ef;
+    gap: var(--setrum-space-8);
+    padding: 0 var(--setrum-space-6);
+    background: var(--setrum-bg-surface);
+    border-bottom: 1px solid var(--setrum-rule);
     z-index: 200;
 }
 
 .setrum-brand {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    gap: var(--setrum-space-2);
     min-width: var(--setrum-sidebar-width);
 }
-.setrum-brand-bolt { font-size: 1.4rem; color: #ffaf00; }
-.setrum-brand-name { font-size: 1.05rem; color: #2c3e50; }
+.setrum-brand-bolt {
+    font-size: 1.4rem;
+    color: var(--setrum-warning);          /* amber bolt — brand mark, distinct from data accent */
+    line-height: 1;
+}
+.setrum-brand-name {
+    font-family: var(--setrum-font-display);
+    font-size: 1.125rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--setrum-ink-900);
+    font-variation-settings: "SOFT" 30, "WONK" 0;
+}
 
 .setrum-tabs-wrap {
     flex: 1;
@@ -146,7 +166,6 @@
     height: 100%;
     border-bottom: none !important;
 }
-/* dcc.Tabs renders an outer div + inner tabs container — flatten its styles. */
 .setrum-tabs .tab-container,
 .setrum-tabs > div {
     height: 100%;
@@ -155,21 +174,28 @@
 .setrum-tab {
     border: none !important;
     background: transparent !important;
-    color: #6c757d !important;
+    color: var(--setrum-ink-500) !important;
+    font-family: var(--setrum-font-sans) !important;
+    font-size: var(--setrum-text-small) !important;
     font-weight: 500 !important;
-    padding: 0.6rem 1rem !important;
-    margin: 0 0.25rem !important;
-    border-radius: 8px !important;
+    letter-spacing: 0 !important;
+    padding: 8px 14px !important;
+    margin: 0 2px !important;
+    border-radius: var(--setrum-radius-md) !important;
+    transition: background var(--setrum-dur-fast) var(--setrum-ease),
+                color      var(--setrum-dur-fast) var(--setrum-ease);
 }
 .setrum-tab:hover {
-    background: #f1f3f5 !important;
-    color: #2c3e50 !important;
+    background: var(--setrum-ink-100) !important;
+    color: var(--setrum-ink-900) !important;
 }
+/* Active state: tinted-paper pill, dark ink, no color shift — the
+   tab nav is structural; we don't burn an accent color on it. */
 .setrum-tab--active {
-    background: #e7f0ff !important;
-    color: #004dff !important;
+    background: var(--setrum-bg-surface-alt) !important;
+    color: var(--setrum-ink-900) !important;
+    font-weight: 600 !important;
     border: none !important;
-    font-weight: 700 !important;
 }
 
 .setrum-body {
@@ -183,16 +209,17 @@
     left: 0;
     width: var(--setrum-sidebar-width);
     height: calc(100vh - var(--setrum-header-height));
-    padding: 1.5rem 1.25rem;
-    background: #f8f9fa;
-    border-right: 1px solid #dee2e6;
+    padding: var(--setrum-space-6) var(--setrum-space-5);
+    background: var(--setrum-bg-surface-alt);
+    border-right: 1px solid var(--setrum-rule);
     overflow-y: auto;
     z-index: 100;
+    color: var(--setrum-ink-700);
 }
 
 .setrum-content {
     margin-left: var(--setrum-sidebar-width);
-    padding: 1.5rem 2rem;
+    padding: var(--setrum-space-6) var(--setrum-space-8);
     min-width: 0;
 }
 
@@ -203,9 +230,80 @@
         width: 100%;
         height: auto;
         border-right: none;
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid var(--setrum-rule);
     }
-    .setrum-content { margin-left: 0; padding: 1rem; }
+    .setrum-content { margin-left: 0; padding: var(--setrum-space-4); }
+}
+
+/* Sidebar internal typography — captions in mono, hairline divider in ink-100. */
+.setrum-sidebar .text-muted { color: var(--setrum-ink-500) !important; }
+.setrum-sidebar hr {
+    border-top: 1px solid var(--setrum-ink-100);
+    opacity: 1;
+}
+.setrum-sidebar .text-uppercase {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    letter-spacing: 0.1em;
+    color: var(--setrum-ink-500) !important;
+}
+
+/* ── Status pill — token-driven, scoped to the sidebar.
+   Reuses the shape from the styleguide; one rule per state. ────────── */
+.setrum-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: var(--setrum-radius-pill);
+    border: 1px solid transparent;
+    line-height: 1;
+}
+.setrum-pill::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+.setrum-pill--positive { background: var(--setrum-positive-soft); color: var(--setrum-positive); border-color: rgba(26,138,110,0.20); }
+.setrum-pill--cool     { background: var(--setrum-cool-soft);     color: var(--setrum-cool);     border-color: rgba(13,118,128,0.20); }
+.setrum-pill--warning  { background: var(--setrum-warning-soft);  color: var(--setrum-warning);  border-color: rgba(182,141,0,0.25); }
+.setrum-pill--accent   { background: var(--setrum-accent-soft);   color: var(--setrum-accent);   border-color: rgba(153,15,61,0.20); }
+.setrum-pill--neutral  { background: var(--setrum-ink-100);       color: var(--setrum-ink-700);  border-color: var(--setrum-ink-200); }
+
+/* ── Refresh button (bootstrap btn-primary override). The Refresh action
+   is the one moment the user actively pulls fresh data — it deserves
+   the action accent (claret), not the data accent (orange). ────────── */
+.setrum-sidebar .btn-primary {
+    background: var(--setrum-accent);
+    border-color: var(--setrum-accent);
+    color: #fff;
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-small);
+    font-weight: 500;
+    border-radius: var(--setrum-radius-md);
+    padding: 8px 14px;
+    transition: background var(--setrum-dur-fast) var(--setrum-ease);
+}
+.setrum-sidebar .btn-primary:hover,
+.setrum-sidebar .btn-primary:focus {
+    background: var(--setrum-accent-hover);
+    border-color: var(--setrum-accent-hover);
+    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
+}
+
+/* Sidebar progress bar — subtle, in the action accent so it ties to Refresh. */
+.setrum-sidebar .progress {
+    background: var(--setrum-ink-100);
+    height: 6px;
+    border-radius: var(--setrum-radius-pill);
+}
+.setrum-sidebar .progress-bar {
+    background: var(--setrum-accent);
 }
 
 /* In-chart selection readout: top-left of the HH chart. Sits above the bars,
