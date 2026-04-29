@@ -34,6 +34,14 @@ POSITIVE      = "#1A8A6E"
 WARNING       = "#B68D00"
 WARNING_SOFT  = "#F2E6BF"
 
+# Sticky-note pastels (mirror of CSS --setrum-sticky-*). Reusable in
+# charts that want a pastel wash without inventing new tokens.
+PEACH         = "#FBE4D2"
+MINT          = "#D8EAD8"
+SKY           = "#D4E4EC"
+LILAC         = "#E2D8E8"
+CREAM         = "#F7E8C7"
+
 FONT_SANS = "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
 FONT_MONO = "JetBrains Mono, SF Mono, Menlo, monospace"
 
@@ -92,6 +100,18 @@ def yaxis_style(**extra) -> dict:
     )
     base.update(extra)
     return base
+
+
+def with_alpha(hex_color: str, alpha: float) -> str:
+    """Return ``rgba(R,G,B,alpha)`` for a ``#RRGGBB`` token.
+
+    Plotly's ``fillcolor`` has no separate opacity prop — alpha has to live
+    inside the colour string. Use this when you want a fill to let the
+    underlying gridlines show through.
+    """
+    h = hex_color.lstrip("#")
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"
 
 
 def day_separator_shape(x) -> dict:

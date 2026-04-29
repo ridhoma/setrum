@@ -19,17 +19,18 @@ from dash_app.components.annotation_format import hover_text as _hover_text
 
 # Stack roles, ordered bottom → top of the area.
 #
-# Each role uses a (fill, stroke) pair: a saturated fill carries the
-# region weight, with a soft same-family stroke as a lighter cap on top.
-# The lighter stroke acts as a parting line between adjacent stacks
-# without doubling-down on contrast at the boundary.
+# Each role uses one colour: a solid stroke on top, with the same colour
+# washed back to FILL_OPACITY for the area underneath. The translucent
+# fill lets the y-axis gridlines bleed through, so the chart still reads
+# as data on a measured plane rather than as opaque painted regions.
 COLORS = {
-    "Standing Charge":   (theme.WARNING, theme.WARNING_SOFT),  # gold body + gold rule
-    "Consumption Usage": (theme.ORANGE,  theme.ORANGE_SOFT),   # Claude Orange + peach rule
-    "VAT":               (theme.INK_300, theme.INK_200),       # grey body + lighter rule
+    "Standing Charge":   theme.PEACH,    # peach
+    "Consumption Usage": theme.ORANGE,   # Claude Orange — data hero
+    "VAT":               theme.INK_300,  # neutral grey
 }
 ORDER = ["Standing Charge", "Consumption Usage", "VAT"]
 STROKE_WIDTH = 2.0
+FILL_OPACITY = 0.6
 
 
 def _empty_figure(yaxis_title: str) -> go.Figure:
@@ -67,12 +68,12 @@ def _annotation_shapes(annotations_df: pd.DataFrame | None) -> list[dict]:
     return shapes
 
 
-def _fill(component: str) -> str:
-    return COLORS[component][0]
-
-
 def _stroke(component: str) -> str:
-    return COLORS[component][1]
+    return COLORS[component]
+
+
+def _fill(component: str) -> str:
+    return theme.with_alpha(COLORS[component], FILL_OPACITY)
 
 
 def _first_color(tag_colors: str | None) -> str | None:
