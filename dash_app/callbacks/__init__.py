@@ -9,6 +9,7 @@ from dash_app.callbacks import (  # noqa: F401
     canvas,
     charts,
     date_filters,
+    router,
     selection,
     summary,
     sync,

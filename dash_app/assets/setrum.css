@@ -1,11 +1,107 @@
 /* ──────────────────────────────────────────────────────────────────────
-   App shell — header on top, sidebar on left, main on the right
+   Fonts — Inter (UI), Fraunces (display), JetBrains Mono (numerics)
    ────────────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght,SOFT,WONK@9..144,400..800,30..100,0..1&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
+/* ──────────────────────────────────────────────────────────────────────
+   Design tokens — single source of truth for the new design system.
+   Existing rules below (.setrum-header, .sticky-note, …) still use
+   hardcoded values for now; they will migrate to these tokens once the
+   /styleguide direction is signed off.
+   ────────────────────────────────────────────────────────────────────── */
 :root {
+    /* Layout (existing) */
     --setrum-header-height: 64px;
     --setrum-sidebar-width: 240px;
+
+    /* Typography */
+    --setrum-font-sans:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --setrum-font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --setrum-font-mono:    'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+
+    /* Type scale (rems, with -h-* line-height pairs) */
+    --setrum-text-display-1: 3rem;     --setrum-lh-display-1: 1.05;
+    --setrum-text-display-2: 2.25rem;  --setrum-lh-display-2: 1.10;
+    --setrum-text-h1:        1.75rem;  --setrum-lh-h1:        1.20;
+    --setrum-text-h2:        1.375rem; --setrum-lh-h2:        1.30;
+    --setrum-text-h3:        1.125rem; --setrum-lh-h3:        1.40;
+    --setrum-text-body:      0.9375rem;--setrum-lh-body:      1.55;
+    --setrum-text-small:     0.8125rem;--setrum-lh-small:     1.50;
+    --setrum-text-caption:   0.6875rem;--setrum-lh-caption:   1.40;
+    --setrum-text-numeric-l: 2rem;     --setrum-lh-numeric-l: 1.10;
+    --setrum-text-numeric-m: 1.25rem;  --setrum-lh-numeric-m: 1.20;
+
+    /* Surfaces — warm-tinted paper, never pure white on the canvas */
+    --setrum-bg-paper:       #FCFAF6;
+    --setrum-bg-surface:     #FFFFFF;
+    --setrum-bg-surface-alt: #F6F1E8;
+    --setrum-bg-corkboard:   #F0E6D4;
+    --setrum-bg-overlay:     rgba(26, 23, 20, 0.32);
+
+    /* Ink — warm grayscale */
+    --setrum-ink-900: #1A1714;
+    --setrum-ink-700: #4A433D;
+    --setrum-ink-500: #847A6F;
+    --setrum-ink-400: #A89E92;
+    --setrum-ink-300: #C9C0B5;
+    --setrum-ink-200: #DCD4C8;
+    --setrum-ink-100: #EFE9DE;
+    --setrum-rule:    #E8DFD0;
+
+    /* Signal colors — used sparingly, FT-borrowed */
+    --setrum-accent:         #990F3D;
+    --setrum-accent-hover:   #7A0B30;
+    --setrum-accent-soft:    #F4D9E1;
+    --setrum-positive:       #1A8A6E;
+    --setrum-positive-soft:  #D6EBE2;
+    --setrum-cool:           #0D7680;
+    --setrum-cool-soft:      #D2E5E7;
+    --setrum-warning:        #B68D00;
+    --setrum-warning-soft:   #F2E6BF;
+
+    /* Sticky-note pastels — FigJam, slightly desaturated */
+    --setrum-sticky-peach:  #FBE4D2;
+    --setrum-sticky-mint:   #D8EAD8;
+    --setrum-sticky-sky:    #D4E4EC;
+    --setrum-sticky-lilac:  #E2D8E8;
+    --setrum-sticky-cream:  #F7E8C7;
+
+    /* Radii — generous on the corkboard, restrained on data UI */
+    --setrum-radius-xs:    4px;
+    --setrum-radius-sm:    6px;
+    --setrum-radius-md:    10px;
+    --setrum-radius-lg:    16px;
+    --setrum-radius-xl:    22px;
+    --setrum-radius-pill:  999px;
+
+    /* Shadows — data subtle, paper tactile */
+    --setrum-shadow-data:   0 1px 2px rgba(26,23,20,0.04), 0 1px 3px rgba(26,23,20,0.06);
+    --setrum-shadow-data-h: 0 2px 4px rgba(26,23,20,0.06), 0 4px 10px rgba(26,23,20,0.08);
+    --setrum-shadow-paper:  0 6px 18px rgba(26,23,20,0.10), 0 1px 3px rgba(26,23,20,0.08);
+    --setrum-shadow-modal:  0 20px 50px rgba(26,23,20,0.20), 0 4px 12px rgba(26,23,20,0.10);
+
+    /* Spacing scale (4px base, Tailwind-ish names) */
+    --setrum-space-1:  4px;
+    --setrum-space-2:  8px;
+    --setrum-space-3:  12px;
+    --setrum-space-4:  16px;
+    --setrum-space-5:  20px;
+    --setrum-space-6:  24px;
+    --setrum-space-8:  32px;
+    --setrum-space-10: 40px;
+    --setrum-space-12: 48px;
+    --setrum-space-16: 64px;
+
+    /* Motion */
+    --setrum-ease:      cubic-bezier(0.2, 0.8, 0.2, 1);
+    --setrum-dur-fast:  120ms;
+    --setrum-dur-base:  200ms;
+    --setrum-dur-slow:  320ms;
 }
+
+/* ──────────────────────────────────────────────────────────────────────
+   App shell — header on top, sidebar on left, main on the right
+   ────────────────────────────────────────────────────────────────────── */
 
 .setrum-shell {
     min-height: 100vh;
@@ -349,4 +445,508 @@
 .summary-label {
     letter-spacing: 0.04em;
     font-size: 0.7rem;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   STYLEGUIDE — preview surface for the new design system. Scoped to the
+   `.sg-page` root; does not affect anything outside the /styleguide route.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.sg-page {
+    background: var(--setrum-bg-paper);
+    color: var(--setrum-ink-900);
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-body);
+    line-height: var(--setrum-lh-body);
+    min-height: 100vh;
+    padding: var(--setrum-space-12) var(--setrum-space-10);
+}
+
+.sg-page * {
+    box-sizing: border-box;
+}
+
+.sg-container {
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+.sg-page-header {
+    border-bottom: 1px solid var(--setrum-rule);
+    padding-bottom: var(--setrum-space-8);
+    margin-bottom: var(--setrum-space-12);
+}
+.sg-page-eyebrow {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--setrum-ink-500);
+    margin-bottom: var(--setrum-space-2);
+}
+.sg-page-title {
+    font-family: var(--setrum-font-display);
+    font-size: var(--setrum-text-display-1);
+    line-height: var(--setrum-lh-display-1);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin: 0 0 var(--setrum-space-3);
+    font-variation-settings: "SOFT" 30, "WONK" 0;
+}
+.sg-page-subtitle {
+    color: var(--setrum-ink-500);
+    font-size: 1.0625rem;
+    max-width: 60ch;
+}
+
+.sg-section {
+    margin-bottom: var(--setrum-space-16);
+}
+.sg-section-header {
+    display: flex;
+    align-items: baseline;
+    gap: var(--setrum-space-4);
+    margin-bottom: var(--setrum-space-6);
+    border-bottom: 1px solid var(--setrum-ink-100);
+    padding-bottom: var(--setrum-space-3);
+}
+.sg-section-num {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-small);
+    color: var(--setrum-ink-400);
+    letter-spacing: 0.08em;
+}
+.sg-section-title {
+    font-family: var(--setrum-font-display);
+    font-size: var(--setrum-text-h1);
+    line-height: var(--setrum-lh-h1);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin: 0;
+    flex: 1;
+    font-variation-settings: "SOFT" 50, "WONK" 0;
+}
+.sg-section-blurb {
+    color: var(--setrum-ink-500);
+    margin: 0 0 var(--setrum-space-6);
+    max-width: 70ch;
+}
+
+.sg-subsection-title {
+    font-size: var(--setrum-text-small);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--setrum-ink-700);
+    margin: var(--setrum-space-8) 0 var(--setrum-space-3);
+}
+
+/* ── Typography ramp ───────────────────────────────────── */
+.sg-type-row {
+    display: grid;
+    grid-template-columns: 180px 1fr 200px;
+    align-items: baseline;
+    gap: var(--setrum-space-6);
+    padding: var(--setrum-space-4) 0;
+    border-bottom: 1px dashed var(--setrum-ink-100);
+}
+.sg-type-row:last-child { border-bottom: none; }
+.sg-type-name {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-small);
+    color: var(--setrum-ink-500);
+    letter-spacing: 0.04em;
+}
+.sg-type-meta {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    color: var(--setrum-ink-400);
+    text-align: right;
+}
+.sg-type-display-1 {
+    font-family: var(--setrum-font-display);
+    font-size: var(--setrum-text-display-1);
+    line-height: var(--setrum-lh-display-1);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    font-variation-settings: "SOFT" 30, "WONK" 0;
+    margin: 0;
+}
+.sg-type-display-2 {
+    font-family: var(--setrum-font-display);
+    font-size: var(--setrum-text-display-2);
+    line-height: var(--setrum-lh-display-2);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    font-variation-settings: "SOFT" 50, "WONK" 0;
+    margin: 0;
+}
+.sg-type-h1 {
+    font-family: var(--setrum-font-display);
+    font-size: var(--setrum-text-h1);
+    line-height: var(--setrum-lh-h1);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin: 0;
+}
+.sg-type-h2 {
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-h2);
+    line-height: var(--setrum-lh-h2);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    margin: 0;
+}
+.sg-type-h3 {
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-h3);
+    line-height: var(--setrum-lh-h3);
+    font-weight: 600;
+    margin: 0;
+}
+.sg-type-body {
+    font-size: var(--setrum-text-body);
+    line-height: var(--setrum-lh-body);
+    margin: 0;
+}
+.sg-type-small {
+    font-size: var(--setrum-text-small);
+    line-height: var(--setrum-lh-small);
+    color: var(--setrum-ink-700);
+    margin: 0;
+}
+.sg-type-caption {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    line-height: var(--setrum-lh-caption);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--setrum-ink-500);
+    margin: 0;
+}
+.sg-type-numeric-l {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-numeric-l);
+    line-height: var(--setrum-lh-numeric-l);
+    font-weight: 500;
+    font-feature-settings: "tnum" 1;
+    margin: 0;
+}
+.sg-type-mono {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-small);
+    margin: 0;
+}
+
+/* ── Color swatches ────────────────────────────────────── */
+.sg-swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--setrum-space-3);
+}
+.sg-swatch-card {
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-ink-100);
+    border-radius: var(--setrum-radius-md);
+    overflow: hidden;
+    transition: border-color var(--setrum-dur-fast) var(--setrum-ease);
+}
+.sg-swatch-card:hover { border-color: var(--setrum-ink-300); }
+.sg-swatch-chip {
+    height: 70px;
+    border-bottom: 1px solid var(--setrum-ink-100);
+}
+.sg-swatch-meta {
+    padding: var(--setrum-space-3);
+}
+.sg-swatch-name {
+    font-size: var(--setrum-text-small);
+    font-weight: 500;
+    color: var(--setrum-ink-900);
+    margin-bottom: 2px;
+}
+.sg-swatch-token {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    color: var(--setrum-ink-500);
+    word-break: break-all;
+}
+.sg-swatch-hex {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    color: var(--setrum-ink-700);
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+/* ── Radius / shadow / spacing demos ───────────────────── */
+.sg-demo-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--setrum-space-4);
+    align-items: flex-end;
+}
+.sg-radius-tile, .sg-shadow-tile {
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-ink-100);
+    width: 110px;
+    height: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.sg-shadow-tile { border: none; }
+.sg-tile-label {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    color: var(--setrum-ink-500);
+}
+.sg-tile-value {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    color: var(--setrum-ink-900);
+}
+.sg-spacing-bar {
+    background: var(--setrum-accent);
+    height: 18px;
+    border-radius: 2px;
+}
+.sg-spacing-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 60px;
+    gap: var(--setrum-space-3);
+    align-items: center;
+    padding: var(--setrum-space-2) 0;
+}
+
+/* ── Buttons ───────────────────────────────────────────── */
+.sg-btn {
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-small);
+    font-weight: 500;
+    line-height: 1;
+    padding: 10px 18px;
+    border-radius: var(--setrum-radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background var(--setrum-dur-fast) var(--setrum-ease),
+                border-color var(--setrum-dur-fast) var(--setrum-ease),
+                transform var(--setrum-dur-fast) var(--setrum-ease);
+}
+.sg-btn:active { transform: translateY(1px); }
+.sg-btn-primary {
+    background: var(--setrum-accent);
+    color: #fff;
+}
+.sg-btn-primary:hover { background: var(--setrum-accent-hover); }
+.sg-btn-secondary {
+    background: var(--setrum-bg-surface);
+    color: var(--setrum-ink-900);
+    border-color: var(--setrum-ink-200);
+}
+.sg-btn-secondary:hover { border-color: var(--setrum-ink-400); background: var(--setrum-bg-surface-alt); }
+.sg-btn-danger {
+    background: transparent;
+    color: var(--setrum-accent);
+    border-color: var(--setrum-accent-soft);
+}
+.sg-btn-danger:hover { background: var(--setrum-accent-soft); }
+.sg-btn-ghost {
+    background: transparent;
+    color: var(--setrum-ink-700);
+}
+.sg-btn-ghost:hover { background: var(--setrum-ink-100); color: var(--setrum-ink-900); }
+
+/* ── Inputs ────────────────────────────────────────────── */
+.sg-input, .sg-select {
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-body);
+    color: var(--setrum-ink-900);
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-ink-200);
+    border-radius: var(--setrum-radius-md);
+    padding: 10px 14px;
+    width: 100%;
+    transition: border-color var(--setrum-dur-fast) var(--setrum-ease),
+                box-shadow var(--setrum-dur-fast) var(--setrum-ease);
+}
+.sg-input:focus, .sg-select:focus {
+    outline: none;
+    border-color: var(--setrum-accent);
+    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
+}
+.sg-input-label {
+    display: block;
+    font-size: var(--setrum-text-small);
+    font-weight: 500;
+    color: var(--setrum-ink-700);
+    margin-bottom: var(--setrum-space-2);
+}
+.sg-input-field { margin-bottom: var(--setrum-space-4); }
+
+/* ── KPI card ──────────────────────────────────────────── */
+.sg-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--setrum-space-4);
+}
+.sg-kpi-card {
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-ink-100);
+    border-radius: var(--setrum-radius-md);
+    padding: var(--setrum-space-5);
+    box-shadow: var(--setrum-shadow-data);
+}
+.sg-kpi-label {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--setrum-ink-500);
+    margin-bottom: var(--setrum-space-3);
+}
+.sg-kpi-value {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-numeric-l);
+    line-height: var(--setrum-lh-numeric-l);
+    font-weight: 500;
+    color: var(--setrum-ink-900);
+    font-feature-settings: "tnum" 1;
+    margin-bottom: var(--setrum-space-2);
+}
+.sg-kpi-delta {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    color: var(--setrum-ink-500);
+}
+.sg-kpi-delta.up   { color: var(--setrum-positive); }
+.sg-kpi-delta.down { color: var(--setrum-accent); }
+
+/* ── Status pill ───────────────────────────────────────── */
+.sg-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: var(--setrum-radius-pill);
+    border: 1px solid transparent;
+}
+.sg-pill::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+.sg-pill-positive { background: var(--setrum-positive-soft); color: var(--setrum-positive); border-color: rgba(26,138,110,0.20); }
+.sg-pill-cool     { background: var(--setrum-cool-soft);     color: var(--setrum-cool);     border-color: rgba(13,118,128,0.20); }
+.sg-pill-warning  { background: var(--setrum-warning-soft);  color: var(--setrum-warning);  border-color: rgba(182,141,0,0.25); }
+.sg-pill-accent   { background: var(--setrum-accent-soft);   color: var(--setrum-accent);   border-color: rgba(153,15,61,0.20); }
+.sg-pill-neutral  { background: var(--setrum-ink-100);       color: var(--setrum-ink-700);  border-color: var(--setrum-ink-200); }
+
+/* ── Sticky note ───────────────────────────────────────── */
+.sg-board {
+    background: var(--setrum-bg-corkboard);
+    background-image:
+        radial-gradient(circle at 22% 30%, rgba(26,23,20,0.05) 1px, transparent 1px),
+        radial-gradient(circle at 70% 80%, rgba(26,23,20,0.04) 1px, transparent 1px);
+    background-size: 36px 36px, 56px 56px;
+    border-radius: var(--setrum-radius-lg);
+    padding: var(--setrum-space-8);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--setrum-space-6);
+    border: 1px solid #d4cab2;
+}
+.sg-sticky {
+    width: 220px;
+    min-height: 170px;
+    padding: var(--setrum-space-4);
+    border-radius: var(--setrum-radius-sm);
+    box-shadow: var(--setrum-shadow-paper);
+    display: flex;
+    flex-direction: column;
+    gap: var(--setrum-space-2);
+    color: var(--setrum-ink-900);
+    transition: transform var(--setrum-dur-base) var(--setrum-ease),
+                box-shadow var(--setrum-dur-base) var(--setrum-ease);
+    position: relative;
+}
+.sg-sticky:hover {
+    transform: rotate(0deg) translateY(-3px);
+    box-shadow: 0 12px 28px rgba(26,23,20,0.16), 0 1px 3px rgba(26,23,20,0.10);
+    z-index: 2;
+}
+.sg-sticky.peach { background: var(--setrum-sticky-peach); transform: rotate(-1.2deg); }
+.sg-sticky.mint  { background: var(--setrum-sticky-mint);  transform: rotate( 0.8deg); }
+.sg-sticky.sky   { background: var(--setrum-sticky-sky);   transform: rotate(-0.4deg); }
+.sg-sticky.lilac { background: var(--setrum-sticky-lilac); transform: rotate( 1.4deg); }
+.sg-sticky.cream { background: var(--setrum-sticky-cream); transform: rotate(-0.9deg); }
+.sg-sticky-source {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--setrum-ink-700);
+    align-self: flex-start;
+    background: rgba(26,23,20,0.06);
+    padding: 2px 8px;
+    border-radius: var(--setrum-radius-xs);
+}
+.sg-sticky-period {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--setrum-ink-700);
+}
+.sg-sticky-comment {
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-body);
+    line-height: 1.4;
+    flex-grow: 1;
+}
+.sg-sticky-stats {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-small);
+    font-weight: 500;
+    color: var(--setrum-ink-700);
+    font-feature-settings: "tnum" 1;
+}
+.sg-sticky-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.sg-sticky-tag {
+    font-size: var(--setrum-text-caption);
+    padding: 2px 8px;
+    background: rgba(26,23,20,0.10);
+    border-radius: var(--setrum-radius-pill);
+}
+
+/* ── Chart container ───────────────────────────────────── */
+.sg-chart-frame {
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-ink-100);
+    border-radius: var(--setrum-radius-md);
+    padding: var(--setrum-space-5);
+    box-shadow: var(--setrum-shadow-data);
+}
+.sg-chart-title {
+    font-family: var(--setrum-font-display);
+    font-size: var(--setrum-text-h2);
+    line-height: var(--setrum-lh-h2);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    margin: 0;
+}
+.sg-chart-meta {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    color: var(--setrum-ink-500);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 2px;
 }
