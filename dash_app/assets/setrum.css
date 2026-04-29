@@ -48,7 +48,14 @@
     --setrum-ink-100: #EFE9DE;
     --setrum-rule:    #E8DFD0;
 
-    /* Signal colors — used sparingly, FT-borrowed */
+    /* Signal colors — used sparingly, FT-borrowed.
+       Roles: orange = "this is the data" (primary data series, hero KPI).
+              accent = "this is the action" (primary buttons, links).
+              cool   = secondary data series (standing charge, VAT).
+              positive/warning = status only (deltas, sync state). */
+    --setrum-orange:         #CC785C;   /* Claude Orange — primary data accent */
+    --setrum-orange-hover:   #B36247;
+    --setrum-orange-soft:    #F1D9CA;
     --setrum-accent:         #990F3D;
     --setrum-accent-hover:   #7A0B30;
     --setrum-accent-soft:    #F4D9E1;
