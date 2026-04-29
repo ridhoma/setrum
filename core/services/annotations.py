@@ -206,6 +206,43 @@ def set_position(
             _do(c)
 
 
+def set_positions(
+    records,
+    conn: sqlite3.Connection | None = None,
+) -> int:
+    """Persist canvas (x, y) for many sticky notes in a single transaction.
+
+    Each record is a mapping with 'id' and 'x' / 'y'. Used by multi-drag,
+    where dragging a multi-selection ends with one batched update so the
+    moved notes commit atomically.
+    """
+    def _do(c: sqlite3.Connection) -> int:
+        n = 0
+        for r in records:
+            try:
+                ann_id = int(r["id"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            x = r.get("x")
+            y = r.get("y")
+            c.execute(
+                "UPDATE annotations SET position_x = ?, position_y = ? WHERE id = ?",
+                (
+                    int(x) if x is not None else None,
+                    int(y) if y is not None else None,
+                    ann_id,
+                ),
+            )
+            n += 1
+        return n
+
+    if conn is not None:
+        return _do(conn)
+    with _conn(None) as c:
+        with c:
+            return _do(c)
+
+
 def delete(annotation_id: int, conn: sqlite3.Connection | None = None) -> None:
     """Delete an annotation; cascade removes its annotation_tags rows."""
     def _do(c: sqlite3.Connection) -> None:

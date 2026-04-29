@@ -722,6 +722,30 @@ body {
     transition: none;
 }
 
+/* Selection outline — accent claret, sits clear of the sticky's shadow.
+   `outline` instead of `border` so the sticky's own dimensions don't shift. */
+.canvas-sticky.selected,
+.canvas-sticky.selected:hover {
+    outline: 2px solid var(--setrum-accent);
+    outline-offset: 3px;
+    z-index: 8;
+}
+.canvas-sticky.selected.dragging {
+    outline-color: var(--setrum-accent-hover);
+}
+
+/* Marquee rectangle — viewport-positioned, drawn in screen-space so it
+   doesn't scale with the canvas zoom. */
+.canvas-marquee {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(153, 15, 61, 0.06);
+    border: 1px dashed var(--setrum-accent);
+    border-radius: var(--setrum-radius-xs);
+    z-index: 55;
+    display: none;
+}
+
 /* Five rotating pastel/tilt combos via :nth-child. Tilts are smaller
    than before (±1.4° max) so the board reads as a workspace, not a
    yard-sale. Pastels come from --setrum-sticky-* tokens. */

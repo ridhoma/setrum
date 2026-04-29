@@ -31,8 +31,9 @@ def render() -> html.Div:
                 [
                     html.H3("Annotations", className="mb-0 me-3"),
                     html.Small(
-                        "Drag to move notes. Scroll to pan, ⌘+scroll to zoom, "
-                        "or hold space to pan with the mouse.",
+                        "Click to select, ⇧+click to multi-select, drag empty "
+                        "space for box-select. Scroll to pan, ⌘+scroll to zoom, "
+                        "space-drag for mouse pan.",
                         className="text-muted me-auto",
                     ),
                     dbc.Button(

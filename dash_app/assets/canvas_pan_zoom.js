@@ -182,15 +182,14 @@
         }
     }
 
-    /* ── Canvas pan: middle-mouse, space+drag, or primary-button on empty ── */
+    /* ── Canvas pan: middle-mouse or space+drag ──
+       Primary-button on empty canvas is owned by canvas_drag.js (marquee
+       select). The trackpad / wheel gestures still pan via onWheel. */
     function shouldStartCanvasPan(e) {
         if (e.button === 1) return true;             // middle mouse
         if (e.button !== 0 && e.button !== undefined) return false;
         if (state.spaceHeld) return true;            // space + any primary
-        // Primary button on empty canvas (not on a sticky, not on the toolbar).
-        if (e.target.closest(STICKY_SELECTOR)) return false;
-        if (e.target.closest(CONTROLS_SELECTOR)) return false;
-        return true;
+        return false;
     }
 
     function onPointerDown(e) {
