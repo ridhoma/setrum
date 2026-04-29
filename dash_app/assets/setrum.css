@@ -361,20 +361,8 @@ body {
     color: #dc3545 !important;
 }
 
-/* Date range filter — compact dropdown, right-aligned. Width fits the
-   custom-mode DatePickerRange (two YYYY-MM-DD inputs + arrow + chevron). */
-.date-range-filter {
-    width: 290px;
-}
-.date-range-filter .date-range-select {
-    cursor: pointer;
-}
-/* The DatePickerRange should fill the filter width so the end date and
-   chevron don't get clipped. */
-.date-range-filter .DateRangePicker,
-.date-range-filter .DateRangePickerInput {
-    width: 100%;
-}
+/* The full date-range-filter rule lives in the data-UI block lower in
+   this file (search for "Date range filter — token-driven"). */
 
 /* ──────────────────────────────────────────────────────────────────────
    Annotations canvas — drag-positionable corkboard with sticky notes
@@ -540,16 +528,176 @@ body {
     transform: scale(1.2);
 }
 
-/* Headline KPI cards — flat, bordered, no shadow (matches BI dashboard look). */
+/* Headline KPI cards — paper surface, mono numerics, hairline border. */
 .summary-card {
-    border: 1px solid #e0e4ea;
-    border-radius: 6px;
-    background: #fff;
+    border: 1px solid var(--setrum-ink-100);
+    border-radius: var(--setrum-radius-md);
+    background: var(--setrum-bg-surface);
+    box-shadow: var(--setrum-shadow-data);
     height: 100%;
+    transition: border-color var(--setrum-dur-fast) var(--setrum-ease),
+                box-shadow   var(--setrum-dur-fast) var(--setrum-ease);
+}
+.summary-card:hover {
+    border-color: var(--setrum-ink-200);
+    box-shadow: var(--setrum-shadow-data-h);
+}
+.summary-card .card-body {
+    padding: var(--setrum-space-4) var(--setrum-space-5) !important;
 }
 .summary-label {
-    letter-spacing: 0.04em;
-    font-size: 0.7rem;
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--setrum-ink-500) !important;
+    margin-bottom: var(--setrum-space-2);
+    /* Don't use Bootstrap's .small that shrinks again; the token sets size. */
+}
+.summary-card h5 {
+    /* Slightly tighter than --setrum-text-numeric-m so 4-up KPI rows
+       fit values like "24.1p / kWh" without wrapping. */
+    font-family: var(--setrum-font-mono);
+    font-size: 1.0625rem;
+    line-height: 1.25;
+    font-weight: 500;
+    color: var(--setrum-ink-900);
+    font-feature-settings: "tnum" 1;
+    letter-spacing: -0.01em;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Section titles for chart cards (Daily Cost, Half-Hourly Depth) ── */
+.setrum-content h3 {
+    font-family: var(--setrum-font-display);
+    font-size: var(--setrum-text-h1);
+    line-height: var(--setrum-lh-h1);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--setrum-ink-900);
+    font-variation-settings: "SOFT" 30, "WONK" 0;
+    margin-bottom: var(--setrum-space-4);
+}
+.setrum-content h4 {
+    font-family: var(--setrum-font-display);
+    font-size: var(--setrum-text-h2);
+    line-height: var(--setrum-lh-h2);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: var(--setrum-ink-900);
+    font-variation-settings: "SOFT" 50, "WONK" 0;
+    margin: 0;
+}
+.setrum-content small.text-muted {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--setrum-ink-500) !important;
+}
+
+/* ── £ / kWh view toggle on the daily chart ─────────────────────────── */
+.setrum-content .btn-group .btn-outline-secondary {
+    border: 1px solid var(--setrum-ink-200);
+    color: var(--setrum-ink-700);
+    background: var(--setrum-bg-surface);
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-small);
+    font-weight: 500;
+    padding: 6px 14px;
+    transition: background var(--setrum-dur-fast) var(--setrum-ease),
+                border-color var(--setrum-dur-fast) var(--setrum-ease);
+}
+.setrum-content .btn-group .btn-outline-secondary:hover {
+    background: var(--setrum-ink-100);
+    border-color: var(--setrum-ink-300);
+    color: var(--setrum-ink-900);
+}
+.setrum-content .btn-group .btn-outline-secondary.active {
+    background: var(--setrum-ink-900);
+    border-color: var(--setrum-ink-900);
+    color: var(--setrum-bg-paper);
+}
+.setrum-content .btn-group .btn-outline-secondary:focus {
+    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
+}
+
+/* ── Date range filter — token-driven ───────────────────────────────── */
+.date-range-filter {
+    width: 290px;
+}
+.date-range-filter .date-range-select {
+    cursor: pointer;
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-small);
+    color: var(--setrum-ink-900);
+    background-color: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-ink-200);
+    border-radius: var(--setrum-radius-md);
+    transition: border-color var(--setrum-dur-fast) var(--setrum-ease),
+                box-shadow var(--setrum-dur-fast) var(--setrum-ease);
+}
+.date-range-filter .date-range-select:focus {
+    border-color: var(--setrum-accent);
+    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
+}
+.date-range-filter .DateInput_input,
+.date-range-filter .DateRangePickerInput {
+    font-family: var(--setrum-font-mono) !important;
+    font-size: var(--setrum-text-small) !important;
+    color: var(--setrum-ink-900) !important;
+    background: var(--setrum-bg-surface) !important;
+}
+.date-range-filter .DateRangePickerInput {
+    border: 1px solid var(--setrum-ink-200);
+    border-radius: var(--setrum-radius-md);
+    overflow: hidden;
+}
+.date-range-filter .DateRangePickerInput__withBorder {
+    border: 1px solid var(--setrum-ink-200);
+    border-radius: var(--setrum-radius-md);
+}
+.date-range-filter .DateInput_input__focused {
+    border-bottom: 2px solid var(--setrum-accent) !important;
+}
+.date-range-filter .DateRangePickerInput_arrow_svg {
+    fill: var(--setrum-ink-400);
+}
+/* Calendar popup — also tokens. */
+.CalendarMonth_caption,
+.CalendarDay__default {
+    font-family: var(--setrum-font-sans) !important;
+    color: var(--setrum-ink-900) !important;
+}
+.CalendarDay__default {
+    border-color: var(--setrum-ink-100) !important;
+}
+.CalendarDay__selected,
+.CalendarDay__selected:active,
+.CalendarDay__selected:hover {
+    background: var(--setrum-accent) !important;
+    border-color: var(--setrum-accent) !important;
+    color: #fff !important;
+}
+.CalendarDay__selected_span,
+.CalendarDay__hovered_span {
+    background: var(--setrum-accent-soft) !important;
+    border-color: var(--setrum-accent-soft) !important;
+    color: var(--setrum-accent) !important;
+}
+.DateRangePicker_picker {
+    box-shadow: var(--setrum-shadow-paper);
+    border-radius: var(--setrum-radius-md);
+}
+
+/* The DatePickerRange should fill the filter width so the end date and
+   chevron don't get clipped. */
+.date-range-filter .DateRangePicker,
+.date-range-filter .DateRangePickerInput {
+    width: 100%;
 }
 
 /* ════════════════════════════════════════════════════════════════════════
