@@ -65,10 +65,9 @@
             drag.moved = true;
         }
         if (drag.moved) {
-            const left = Math.max(0, drag.startLeft + dx);
-            const top  = Math.max(0, drag.startTop  + dy);
-            drag.sticky.style.left = left + "px";
-            drag.sticky.style.top  = top  + "px";
+            // No clamp — the canvas is infinite, notes can live at any coord.
+            drag.sticky.style.left = (drag.startLeft + dx) + "px";
+            drag.sticky.style.top  = (drag.startTop  + dy) + "px";
         }
     }
 

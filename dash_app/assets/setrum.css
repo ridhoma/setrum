@@ -576,7 +576,14 @@ body {
     overflow: hidden;                     /* pan/zoom replaces native scrolling */
     border-radius: var(--setrum-radius-lg);
     border: 1px solid #D4CAB2;
-    background: var(--setrum-bg-corkboard);
+    /* Infinite dot-pattern paper: tiles the entire viewport. JS drives
+       background-position from (tx, ty) and background-size from scale, so
+       the dots feel pinned to canvas space and the canvas reads as endless. */
+    background:
+        radial-gradient(circle, rgba(26,23,20,0.05) 1px, transparent 1px),
+        radial-gradient(circle, rgba(26,23,20,0.04) 1px, transparent 1px),
+        var(--setrum-bg-corkboard);
+    background-size: 36px 36px, 56px 56px;
     /* Trackpad gestures: stop the browser from interpreting two-finger swipes
        as page back/forward or vertical scroll while we own this surface. */
     overscroll-behavior: contain;
@@ -594,18 +601,14 @@ body {
 }
 
 .annotations-canvas {
+    /* Pure positioning context for absolutely-placed sticky notes. The dot
+       pattern lives at the viewport level so the surface feels infinite —
+       this div has no visual treatment of its own. The 4000×3000 size is
+       a soft anchor for default-position layout; notes can be dragged
+       anywhere, including beyond these bounds or into negative coords. */
     position: relative;
     width: 4000px;
     height: 3000px;
-    /* Dot pattern lives on the canvas itself so it pans/zooms with the notes
-       and gives the board visible bounds; outside is plain corkboard. */
-    background:
-        radial-gradient(circle at 22% 30%, rgba(26,23,20,0.05) 1px, transparent 1px),
-        radial-gradient(circle at 70% 80%, rgba(26,23,20,0.04) 1px, transparent 1px),
-        var(--setrum-bg-corkboard);
-    background-size: 36px 36px, 56px 56px;
-    /* Faint outer hairline so the canvas reads as a defined area when panned. */
-    box-shadow: 0 0 0 1px rgba(26,23,20,0.06);
 }
 
 /* Cursor states owned by the pan/zoom JS. */

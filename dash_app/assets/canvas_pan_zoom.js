@@ -58,11 +58,29 @@
 
     function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
 
+    // Base cell sizes for the two stacked dot layers (must match
+    // `.annotations-canvas-viewport` background-size in setrum.css).
+    const DOT_CELL_A = 36;
+    const DOT_CELL_B = 56;
+
     function applyTransform() {
         const content = getContent();
         if (!content) return;
         content.style.transform =
             `translate(${state.tx}px, ${state.ty}px) scale(${state.scale})`;
+
+        // Tile the dot pattern across the viewport, anchored to canvas
+        // (0,0) so dots feel pinned to canvas space and the surface reads
+        // as endless. Both size and position track the transform.
+        const viewport = getViewport();
+        if (viewport) {
+            const a = DOT_CELL_A * state.scale;
+            const b = DOT_CELL_B * state.scale;
+            viewport.style.backgroundSize = `${a}px ${a}px, ${b}px ${b}px`;
+            viewport.style.backgroundPosition =
+                `${state.tx}px ${state.ty}px, ${state.tx}px ${state.ty}px`;
+        }
+
         const readout = document.querySelector(`${CONTROLS_SELECTOR} .zoom-readout`);
         if (readout) readout.textContent = `${Math.round(state.scale * 100)}%`;
     }
