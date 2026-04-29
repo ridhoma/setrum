@@ -130,7 +130,7 @@ body {
     top: 0; left: 0; right: 0;
     height: var(--setrum-header-height);
     display: flex;
-    align-items: center;
+    align-items: stretch;          /* children manage their own vertical placement */
     gap: var(--setrum-space-8);
     padding: 0 var(--setrum-space-6);
     background: var(--setrum-bg-surface);
@@ -140,7 +140,7 @@ body {
 
 .setrum-brand {
     display: flex;
-    align-items: center;
+    align-items: center;           /* brand stays vertically centered */
     gap: var(--setrum-space-2);
     min-width: var(--setrum-sidebar-width);
 }
@@ -158,44 +158,73 @@ body {
     font-variation-settings: "SOFT" 30, "WONK" 0;
 }
 
+/* Tab folder — anchored to bottom-left of the header. Inactive tabs sit
+   flush with the header's bottom rule (looking like they're "behind");
+   the active tab uses the body's paper bg and pokes 1px below the rule
+   so it visually merges into the content area, popping forward. The
+   metaphor is a stack of paper folders — the active one is in front.
+
+   Absolute positioning rather than flex alignment: dcc.Tabs renders
+   an empty tab-content panel under the tab row whose layout fights
+   `align-items: flex-end` and `justify-content: flex-start` on a flex
+   parent. Pinning the wrap directly removes the ambiguity. */
 .setrum-tabs-wrap {
-    flex: 1;
-    height: 100%;
+    position: absolute;
+    left: calc(var(--setrum-sidebar-width) + var(--setrum-space-2));  /* aligns with body content left edge */
+    bottom: 0;
+    display: flex;
+    align-items: flex-end;
 }
 .setrum-tabs {
-    height: 100%;
+    height: auto !important;
     border-bottom: none !important;
 }
 .setrum-tabs .tab-container,
 .setrum-tabs > div {
-    height: 100%;
+    height: auto !important;
     border-bottom: none !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    gap: 0 !important;             /* tabs touch; -1px overlap on neighbours */
+}
+.setrum-tabs .tab-container > *,
+.setrum-tabs > div > * {
+    flex: 0 0 auto !important;
 }
 .setrum-tab {
-    border: none !important;
-    background: transparent !important;
+    position: relative;
+    border: 1px solid var(--setrum-rule) !important;
+    border-bottom: none !important;
+    background: var(--setrum-ink-100) !important;
     color: var(--setrum-ink-500) !important;
     font-family: var(--setrum-font-sans) !important;
     font-size: var(--setrum-text-small) !important;
     font-weight: 500 !important;
     letter-spacing: 0 !important;
-    padding: 8px 14px !important;
-    margin: 0 2px !important;
-    border-radius: var(--setrum-radius-md) !important;
+    padding: 7px 14px !important;
+    margin: 0 0 0 -1px !important;  /* overlap left border with previous tab */
+    border-radius: var(--setrum-radius-md) var(--setrum-radius-md) 0 0 !important;
+    line-height: 1.4 !important;
+    bottom: 0;
     transition: background var(--setrum-dur-fast) var(--setrum-ease),
                 color      var(--setrum-dur-fast) var(--setrum-ease);
 }
 .setrum-tab:hover {
-    background: var(--setrum-ink-100) !important;
-    color: var(--setrum-ink-900) !important;
+    background: var(--setrum-bg-surface) !important;
+    color: var(--setrum-ink-700) !important;
+    z-index: 1 !important;          /* hover comes forward of siblings */
 }
-/* Active state: tinted-paper pill, dark ink, no color shift — the
-   tab nav is structural; we don't burn an accent color on it. */
-.setrum-tab--active {
-    background: var(--setrum-bg-surface-alt) !important;
+/* Active = the document on top. Paper bg matches the content area below;
+   bottom: -1px makes the tab cover the header's hairline rule, so the
+   tab and the page underneath read as one continuous surface. */
+.setrum-tab--active,
+.setrum-tab--active:hover {
+    background: var(--setrum-bg-paper) !important;
     color: var(--setrum-ink-900) !important;
     font-weight: 600 !important;
-    border: none !important;
+    padding: 9px 16px 8px !important;   /* slightly raised */
+    bottom: -1px !important;            /* overlap header bottom rule */
+    z-index: 2 !important;
 }
 
 .setrum-body {
