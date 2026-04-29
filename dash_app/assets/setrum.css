@@ -573,22 +573,104 @@ body {
     position: relative;
     height: calc(100vh - var(--setrum-header-height) - 9rem);
     min-height: 480px;
-    overflow: auto;
+    overflow: hidden;                     /* pan/zoom replaces native scrolling */
     border-radius: var(--setrum-radius-lg);
     border: 1px solid #D4CAB2;
-    /* Two soft dot-pattern overlays on the corkboard color — gives the
-       board a paper-grain feel without going overboard. */
-    background:
-        radial-gradient(circle at 22% 30%, rgba(26,23,20,0.05) 1px, transparent 1px),
-        radial-gradient(circle at 70% 80%, rgba(26,23,20,0.04) 1px, transparent 1px),
-        var(--setrum-bg-corkboard);
-    background-size: 36px 36px, 56px 56px;
+    background: var(--setrum-bg-corkboard);
+    /* Trackpad gestures: stop the browser from interpreting two-finger swipes
+       as page back/forward or vertical scroll while we own this surface. */
+    overscroll-behavior: contain;
+    touch-action: none;
+}
+
+/* Pan/zoom stage — JS sets `transform: translate(tx, ty) scale(s)` here.
+   transform-origin must be top-left so cursor-anchored zoom math works. */
+.annotations-canvas-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    will-change: transform;
 }
 
 .annotations-canvas {
     position: relative;
     width: 4000px;
     height: 3000px;
+    /* Dot pattern lives on the canvas itself so it pans/zooms with the notes
+       and gives the board visible bounds; outside is plain corkboard. */
+    background:
+        radial-gradient(circle at 22% 30%, rgba(26,23,20,0.05) 1px, transparent 1px),
+        radial-gradient(circle at 70% 80%, rgba(26,23,20,0.04) 1px, transparent 1px),
+        var(--setrum-bg-corkboard);
+    background-size: 36px 36px, 56px 56px;
+    /* Faint outer hairline so the canvas reads as a defined area when panned. */
+    box-shadow: 0 0 0 1px rgba(26,23,20,0.06);
+}
+
+/* Cursor states owned by the pan/zoom JS. */
+.annotations-canvas-viewport.is-space-panning,
+.annotations-canvas-viewport.is-space-panning .canvas-sticky { cursor: grab; }
+.annotations-canvas-viewport.is-panning,
+.annotations-canvas-viewport.is-panning .canvas-sticky { cursor: grabbing !important; }
+
+/* Bottom-right floating control pill. Lives outside the transformed layer
+   so it stays a fixed size regardless of zoom. */
+.canvas-zoom-controls {
+    position: absolute;
+    right: var(--setrum-space-4);
+    bottom: var(--setrum-space-4);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-rule);
+    border-radius: var(--setrum-radius-pill);
+    box-shadow: var(--setrum-shadow-data-h);
+    z-index: 60;
+    user-select: none;
+}
+
+.canvas-zoom-controls .zoom-btn {
+    background: transparent;
+    border: none;
+    color: var(--setrum-ink-700);
+    font-family: var(--setrum-font-sans);
+    font-size: var(--setrum-text-small);
+    font-weight: 500;
+    line-height: 1;
+    height: 28px;
+    min-width: 28px;
+    padding: 0 8px;
+    border-radius: var(--setrum-radius-pill);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--setrum-dur-fast) var(--setrum-ease),
+                color      var(--setrum-dur-fast) var(--setrum-ease);
+}
+.canvas-zoom-controls .zoom-btn:hover {
+    background: var(--setrum-ink-100);
+    color: var(--setrum-ink-900);
+}
+.canvas-zoom-controls .zoom-readout {
+    font-family: var(--setrum-font-mono);
+    font-size: var(--setrum-text-caption);
+    min-width: 52px;
+    color: var(--setrum-ink-900);
+    font-feature-settings: "tnum" 1;
+}
+.canvas-zoom-controls .zoom-btn-text {
+    padding: 0 12px;
+    font-family: var(--setrum-font-sans);
+}
+.canvas-zoom-controls .zoom-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--setrum-rule);
+    margin: 0 4px;
 }
 
 .canvas-empty {

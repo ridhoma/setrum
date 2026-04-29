@@ -22,6 +22,10 @@
 
     function onPointerDown(e) {
         if (e.button !== 0 && e.button !== undefined) return;   // left mouse only
+        // Yield to canvas pan/zoom: space-held = pan-mode, or pan already active.
+        const cv = window.__setrumCanvas;
+        if (cv && (cv.spaceHeld || cv.panning)) return;
+        if (e.defaultPrevented) return;                         // pan handler claimed it
         const sticky = e.target.closest(STICKY_SELECTOR);
         if (!sticky) return;
         if (e.target.closest(ACTION_SELECTOR)) return;          // let buttons handle clicks
@@ -50,9 +54,14 @@
 
     function onPointerMove(e) {
         if (!drag) return;
-        const dx = e.clientX - drag.startX;
-        const dy = e.clientY - drag.startY;
-        if (!drag.moved && Math.hypot(dx, dy) > MOVE_THRESHOLD_PX) {
+        const cv = window.__setrumCanvas;
+        // Convert screen-space pointer delta to canvas-local pixels, otherwise
+        // at scale=2 the note travels twice as far as the cursor.
+        const scale = (cv && typeof cv.getScale === "function") ? cv.getScale() : 1;
+        const safeScale = scale > 0 ? scale : 1;
+        const dx = (e.clientX - drag.startX) / safeScale;
+        const dy = (e.clientY - drag.startY) / safeScale;
+        if (!drag.moved && Math.hypot(dx, dy) * safeScale > MOVE_THRESHOLD_PX) {
             drag.moved = true;
         }
         if (drag.moved) {
