@@ -201,10 +201,13 @@ body {
     font-size: var(--setrum-text-small) !important;
     font-weight: 500 !important;
     letter-spacing: 0 !important;
-    padding: 7px 14px !important;
+    padding: 8px 20px !important;
     margin: 0 0 0 -1px !important;  /* overlap left border with previous tab */
     border-radius: var(--setrum-radius-md) var(--setrum-radius-md) 0 0 !important;
     line-height: 1.4 !important;
+    width: auto !important;          /* defeat dcc.Tabs' equal-width default */
+    max-width: none !important;
+    white-space: nowrap !important;
     bottom: 0;
     transition: background var(--setrum-dur-fast) var(--setrum-ease),
                 color      var(--setrum-dur-fast) var(--setrum-ease);
@@ -222,7 +225,7 @@ body {
     background: var(--setrum-bg-paper) !important;
     color: var(--setrum-ink-900) !important;
     font-weight: 600 !important;
-    padding: 9px 16px 8px !important;   /* slightly raised */
+    padding: 10px 22px 9px !important;  /* slightly raised + a touch wider */
     bottom: -1px !important;            /* overlap header bottom rule */
     z-index: 2 !important;
 }
