@@ -18,12 +18,18 @@ from dash_app.components import date_range_filter, summary_cards
 from dash_app.components.annotation_format import hover_text as _hover_text
 
 # Stack roles, ordered bottom → top of the area.
+#
+# Each role uses a (fill, stroke) pair so the area reads as a soft wash
+# while the stroke does the work of marking the trend. Pale fills also
+# stop the stack from feeling like a wall of solid colour at large date
+# ranges, which was the main complaint about the previous palette.
 COLORS = {
-    "Standing Charge":   theme.DATA_SECONDARY,  # cool teal — supporting cost
-    "Consumption Usage": theme.DATA_PRIMARY,    # Claude Orange — the data hero
-    "VAT":               theme.DATA_TERTIARY,   # orange-soft — visually tied to consumption
+    "Standing Charge":   (theme.WARNING_SOFT, theme.WARNING),  # gold wash + gold rule
+    "Consumption Usage": (theme.ORANGE_SOFT,  theme.ORANGE),   # peach wash + Claude Orange
+    "VAT":               (theme.INK_200,      theme.INK_300),  # neutral grey wash + rule
 }
 ORDER = ["Standing Charge", "Consumption Usage", "VAT"]
+STROKE_WIDTH = 2.0
 
 
 def _empty_figure(yaxis_title: str) -> go.Figure:
@@ -59,6 +65,14 @@ def _annotation_shapes(annotations_df: pd.DataFrame | None) -> list[dict]:
             )
         )
     return shapes
+
+
+def _fill(component: str) -> str:
+    return COLORS[component][0]
+
+
+def _stroke(component: str) -> str:
+    return COLORS[component][1]
 
 
 def _first_color(tag_colors: str | None) -> str | None:
@@ -120,14 +134,19 @@ def _build_cost_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | No
     # Stacked area: each scatter trace fills up to the previous in stackgroup.
     # Points are at midnight UTC of each day — same x as annotation rect bounds,
     # so selection + overlay alignment stays exact.
+    #
+    # Each layer is a pale fill capped with a bolder stroke at the top edge —
+    # so the eye reads the colour as a region but tracks the trend along the
+    # stroke. `line.shape="spline"` would over-soften the daily cadence; we
+    # keep the linear interpolation so day-to-day jumps stay visible.
     for component in ORDER:
         fig.add_scatter(
             name=component,
             x=df["date"],
             y=df[component],
             mode="lines",
-            line=dict(width=0.5, color=COLORS[component]),
-            fillcolor=COLORS[component],
+            line=dict(width=STROKE_WIDTH, color=_stroke(component)),
+            fillcolor=_fill(component),
             stackgroup="cost",
             customdata=customdata,
             hovertemplate=(
@@ -169,8 +188,8 @@ def _build_kwh_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | Non
         x=df["date"],
         y=df["consumption_kwh"],
         mode="lines",
-        line=dict(width=0.5, color=COLORS["Consumption Usage"]),
-        fillcolor=COLORS["Consumption Usage"],
+        line=dict(width=STROKE_WIDTH, color=_stroke("Consumption Usage")),
+        fillcolor=_fill("Consumption Usage"),
         fill="tozeroy",
         customdata=customdata,
         hovertemplate="<b>%{customdata}</b><br>%{y:.2f} kWh<extra></extra>",
