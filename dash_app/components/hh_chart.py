@@ -134,23 +134,20 @@ def _first_color(tag_colors: str | None) -> str | None:
 def render() -> html.Div:
     return html.Div(
         [
-            dbc.Row(
+            html.Div(
                 [
-                    dbc.Col(html.H4("Half-Hourly Depth Profile"), md=6),
-                    dbc.Col(
-                        date_range_filter.render(
-                            "hh",
-                            presets=[
-                                ("Last 3 days", 3),
-                                ("Last 7 days", 7),
-                                ("Last 14 days", 14),
-                            ],
-                            default_days=3,
-                        ),
-                        md=6,
+                    html.H4("Half-Hourly Depth Profile", className="mb-0 flex-grow-1"),
+                    date_range_filter.render(
+                        "hh",
+                        presets=[
+                            ("Last 3 days", 3),
+                            ("Last 7 days", 7),
+                            ("Last 14 days", 14),
+                        ],
+                        default_days=3,
                     ),
                 ],
-                className="align-items-center mb-2",
+                className="d-flex align-items-center gap-2 mb-2",
             ),
             html.Small("Half-Hourly Consumption (kWh)", className="text-muted"),
             html.Div(

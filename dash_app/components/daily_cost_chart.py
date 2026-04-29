@@ -194,24 +194,27 @@ def _build_kwh_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | Non
 
 
 def render() -> html.Div:
-    view_toggle = dbc.RadioItems(
-        id="daily-view-toggle",
-        options=[
-            {"label": "£",   "value": "cost"},
-            {"label": "kWh", "value": "kwh"},
-        ],
-        value="cost",
-        class_name="btn-group btn-group-sm",
-        input_class_name="btn-check",
-        label_class_name="btn btn-outline-secondary",
-        label_checked_class_name="active",
+    view_toggle = html.Div(
+        dbc.RadioItems(
+            id="daily-view-toggle",
+            options=[
+                {"label": "£",   "value": "cost"},
+                {"label": "kWh", "value": "kwh"},
+            ],
+            value="cost",
+            class_name="btn-group btn-group-sm",
+            input_class_name="btn-check",
+            label_class_name="btn btn-outline-secondary",
+            label_checked_class_name="active",
+        ),
+        className="setrum-toggle",
     )
 
     return html.Div(
         [
-            html.H3("Daily Cost and Consumption", className="mb-3"),
             html.Div(
                 [
+                    html.H3("Daily Cost and Consumption", className="mb-0 flex-grow-1"),
                     view_toggle,
                     html.Div(
                         date_range_filter.render(
@@ -224,12 +227,12 @@ def render() -> html.Div:
                             ],
                             default_days=30,
                         ),
-                        className="ms-2",
+                        className="ms-3",
                     ),
-                    html.Div(summary_cards.render(), className="flex-grow-1 ms-3"),
                 ],
-                className="d-flex align-items-stretch mb-3",
+                className="d-flex align-items-center gap-2 mb-3",
             ),
+            html.Div(summary_cards.render(), className="mb-3"),
             html.Div(
                 [
                     dcc.Graph(

@@ -37,7 +37,9 @@ def _resolve(preset: str, custom_start: str | None, custom_end: str | None, acco
                 "start_date": custom_start or daily_min.isoformat(),
                 "end_date":   custom_end   or daily_max.isoformat(),
             },
-            {"display": "block", "marginTop": "0.5rem"},
+            # Parent .date-range-filter is inline-flex so the picker sits
+            # beside the preset select rather than under it.
+            {"display": "block"},
         )
 
     try:

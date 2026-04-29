@@ -857,46 +857,86 @@ body {
     color: var(--setrum-ink-500) !important;
 }
 
-/* ── £ / kWh view toggle on the daily chart ─────────────────────────── */
-.setrum-content .btn-group .btn-outline-secondary {
+/* ── £ / kWh view toggle — segmented pill with a sliding "thumb" ──────
+   The whole control is one pill-shaped track in a soft ink wash. The
+   active label sits on a paper-surface thumb (rounded, soft-shadowed) and
+   uses Claude Orange for emphasis — the data-hero color. The inactive
+   label is muted and rides on the track itself. The result reads as a
+   single object that swaps state, not two adjacent buttons. */
+.setrum-toggle .btn-group {
+    background: var(--setrum-ink-100);
     border: 1px solid var(--setrum-ink-200);
-    color: var(--setrum-ink-700);
-    background: var(--setrum-bg-surface);
+    border-radius: var(--setrum-radius-pill);
+    padding: 3px;
+    gap: 2px;
+}
+.setrum-toggle .btn-group .btn-outline-secondary {
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    color: var(--setrum-ink-500) !important;
     font-family: var(--setrum-font-sans);
     font-size: var(--setrum-text-small);
     font-weight: 500;
-    padding: 6px 14px;
-    transition: background var(--setrum-dur-fast) var(--setrum-ease),
-                border-color var(--setrum-dur-fast) var(--setrum-ease);
+    padding: 4px 14px !important;
+    border-radius: var(--setrum-radius-pill) !important;
+    box-shadow: none !important;
+    /* Bootstrap's .btn-group merges adjacent borders with margin-left: -1px;
+       override so the gap on the track is honoured. */
+    margin-left: 0 !important;
+    transition: color var(--setrum-dur-fast) var(--setrum-ease),
+                background var(--setrum-dur-fast) var(--setrum-ease),
+                box-shadow var(--setrum-dur-fast) var(--setrum-ease);
 }
-.setrum-content .btn-group .btn-outline-secondary:hover {
-    background: var(--setrum-ink-100);
-    border-color: var(--setrum-ink-300);
-    color: var(--setrum-ink-900);
+/* The £ glyph gets the display serif so it reads as a typographic mark
+   rather than just a generic letter — small touch, big personality. */
+.setrum-toggle .btn-group .btn-outline-secondary:first-of-type {
+    font-family: var(--setrum-font-display);
+    font-size: 1rem;
+    font-variation-settings: "SOFT" 50, "WONK" 0;
+    line-height: 1;
 }
-.setrum-content .btn-group .btn-outline-secondary.active {
-    background: var(--setrum-ink-900);
-    border-color: var(--setrum-ink-900);
-    color: var(--setrum-bg-paper);
+.setrum-toggle .btn-group .btn-outline-secondary:hover {
+    color: var(--setrum-ink-900) !important;
+    background: transparent !important;
 }
-.setrum-content .btn-group .btn-outline-secondary:focus {
-    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
+.setrum-toggle .btn-group .btn-outline-secondary.active {
+    background: var(--setrum-bg-surface) !important;
+    color: var(--setrum-orange) !important;
+    box-shadow: var(--setrum-shadow-data) !important;
+}
+.setrum-toggle .btn-group .btn-outline-secondary:focus-visible {
+    outline: none;
+    box-shadow: var(--setrum-shadow-data),
+                0 0 0 3px var(--setrum-orange-soft) !important;
 }
 
-/* ── Date range filter — token-driven ───────────────────────────────── */
+/* ── Date range filter — Google-Trends-style pill ────────────────────────
+   The filter is an inline-flex track holding the preset select, and — only
+   when "Custom" is picked — a date picker beside it. Width auto-fits, so a
+   simple "Last 30 days ▾" stays compact and doesn't drown the chart header.
+*/
 .date-range-filter {
-    width: 290px;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--setrum-space-2);
+    width: auto;
 }
 .date-range-filter .date-range-select {
     cursor: pointer;
+    width: auto;
+    min-width: 132px;
+    padding-right: 32px;       /* room for native chevron */
+    border-radius: var(--setrum-radius-pill);
     font-family: var(--setrum-font-sans);
     font-size: var(--setrum-text-small);
     color: var(--setrum-ink-900);
     background-color: var(--setrum-bg-surface);
     border: 1px solid var(--setrum-ink-200);
-    border-radius: var(--setrum-radius-md);
     transition: border-color var(--setrum-dur-fast) var(--setrum-ease),
                 box-shadow var(--setrum-dur-fast) var(--setrum-ease);
+}
+.date-range-filter .date-range-select:hover {
+    border-color: var(--setrum-ink-300);
 }
 .date-range-filter .date-range-select:focus {
     border-color: var(--setrum-accent);
@@ -909,14 +949,23 @@ body {
     color: var(--setrum-ink-900) !important;
     background: var(--setrum-bg-surface) !important;
 }
+.date-range-filter .DateInput_input {
+    padding: 6px 8px !important;
+    line-height: 1.2 !important;
+}
 .date-range-filter .DateRangePickerInput {
     border: 1px solid var(--setrum-ink-200);
-    border-radius: var(--setrum-radius-md);
+    border-radius: var(--setrum-radius-pill);
     overflow: hidden;
 }
 .date-range-filter .DateRangePickerInput__withBorder {
     border: 1px solid var(--setrum-ink-200);
-    border-radius: var(--setrum-radius-md);
+    border-radius: var(--setrum-radius-pill);
+}
+/* DateInput is a fixed 130px by default — too wide for the inline pill.
+   Trim it so the two date boxes fit comfortably beside the preset. */
+.date-range-filter .DateInput {
+    width: 100px !important;
 }
 .date-range-filter .DateInput_input__focused {
     border-bottom: 2px solid var(--setrum-accent) !important;
@@ -951,11 +1000,15 @@ body {
     border-radius: var(--setrum-radius-md);
 }
 
-/* The DatePickerRange should fill the filter width so the end date and
-   chevron don't get clipped. */
+/* In the inline-flex track, the picker should size to its content (two
+   ~100px date inputs + an arrow), not stretch to fill. */
 .date-range-filter .DateRangePicker,
 .date-range-filter .DateRangePickerInput {
-    width: 100%;
+    width: auto;
+}
+.date-range-filter .date-range-custom-wrap {
+    display: flex;
+    align-items: center;
 }
 
 /* ════════════════════════════════════════════════════════════════════════

@@ -35,6 +35,10 @@ def render(
     options = [{"label": label, "value": str(days)} for label, days in presets]
     options.append({"label": "Custom", "value": "custom"})
 
+    # Pill layout (Google-Trends-ish): preset select sits inline with the
+    # custom-range picker. The picker only materialises when "Custom" is
+    # picked — the preset alone keeps the control narrow when it doesn't
+    # need to be wide.
     return html.Div(
         [
             dbc.Select(
@@ -52,11 +56,11 @@ def render(
                 dcc.DatePickerRange(
                     id=ids["picker"],
                     display_format="YYYY-MM-DD",
-                    className="mt-2",
                     persistence=True,
                     persistence_type="session",
                 ),
                 id=ids["wrap"],
+                className="date-range-custom-wrap",
                 style={"display": "none"},
             ),
             dcc.Store(id=ids["resolved"]),
