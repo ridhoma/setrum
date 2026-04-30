@@ -9,7 +9,7 @@ matches the source.
 from __future__ import annotations
 
 import pandas as pd
-from dash import Input, Output, State, callback, ctx
+from dash import Input, Output, State, callback, clientside_callback, ctx
 
 from core.services import consumption as consumption_service
 from core.services import tags as tags_service
@@ -156,7 +156,41 @@ def prefill_annotation_form(rng: dict | None, account_id: int | None):
     return period_label, kwh_label, cost_label, "", hidden, readout_text, {}
 
 
-@callback(
+# Form visibility + position: clientside so we can read the triggering
+# readout's bounding rect and pin the form next to it (instead of always
+# top-right of the page). Same trigger semantics as the previous Python
+# callback — edit click opens, close/save/range-clear closes.
+clientside_callback(
+    """
+    function(_hh, _daily, _close, _av, rng) {
+        const ctx = window.dash_clientside.callback_context;
+        if (!ctx.triggered || !ctx.triggered.length) return {display: 'none'};
+        const id = ctx.triggered[0].prop_id.split('.')[0];
+        if ((id === 'hh-readout-edit' || id === 'daily-readout-edit') && rng) {
+            const readoutId = id === 'hh-readout-edit' ? 'hh-selection-readout' : 'daily-selection-readout';
+            const readout = document.getElementById(readoutId);
+            if (!readout) return {display: 'block'};
+            const r = readout.getBoundingClientRect();
+            const formW = 380, gap = 12;
+            // Default: to the right of the readout, top-aligned.
+            let left = r.right + gap;
+            let top  = r.top;
+            // If that overflows the right edge, fall back to placing
+            // the form below the readout, left-aligned with it.
+            if (left + formW > window.innerWidth - gap) {
+                left = Math.max(gap, r.left);
+                top  = r.bottom + gap;
+            }
+            return {
+                display: 'block',
+                top:  top  + 'px',
+                left: left + 'px',
+                right: 'auto',
+            };
+        }
+        return {display: 'none'};
+    }
+    """,
     Output("ann-form-card", "style"),
     Input("hh-readout-edit",          "n_clicks"),
     Input("daily-readout-edit",       "n_clicks"),
@@ -165,18 +199,6 @@ def prefill_annotation_form(rng: dict | None, account_id: int | None):
     Input(stores.SELECTED_RANGE,      "data"),
     prevent_initial_call=True,
 )
-def toggle_annotation_form(_hh_edit, _daily_edit, _close, _av, rng):
-    """Single owner of the form's visibility.
-
-      * Edit icon (hh OR daily) clicked → open
-      * Close (✕) clicked              → close
-      * Save (ANNOTATIONS_VERSION bumps) → close
-      * Selection cleared              → close
-    """
-    triggered = ctx.triggered_id
-    if triggered in ("hh-readout-edit", "daily-readout-edit") and rng:
-        return {"display": "block"}
-    return {"display": "none"}
 
 
 @callback(

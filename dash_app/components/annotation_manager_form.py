@@ -14,50 +14,45 @@ from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-HOUR_OPTIONS = [{"label": f"{h:02d}", "value": h} for h in range(24)]
-MINUTE_OPTIONS = [{"label": "00", "value": 0}, {"label": "30", "value": 30}]
+# Values are strings — dbc.Select treats int 0 as falsy and renders an
+# empty box. Callers parse with int(...) which handles either type.
+HOUR_OPTIONS = [{"label": f"{h:02d}", "value": str(h)} for h in range(24)]
+MINUTE_OPTIONS = [{"label": "00", "value": "0"}, {"label": "30", "value": "30"}]
 
 
-def _datetime_picker(prefix: str, label: str) -> dbc.Row:
-    """`prefix` is 'from' or 'to'."""
-    return dbc.Row(
+def _datetime_picker(prefix: str, label: str) -> html.Div:
+    """`prefix` is 'from' or 'to'. Stacks vertically — fits in the compact modal."""
+    return html.Div(
         [
-            dbc.Col(html.Small(label, className="text-muted"), md=2,
-                    className="d-flex align-items-center"),
-            dbc.Col(
-                dcc.DatePickerSingle(
-                    id=f"ann-mgr-{prefix}-date",
-                    display_format="YYYY-MM-DD",
-                    placeholder="Pick a date",
-                    className="w-100",
-                ),
-                md=5,
+            html.Small(label, className="text-muted d-block mb-1"),
+            dcc.DatePickerSingle(
+                id=f"ann-mgr-{prefix}-date",
+                display_format="YYYY-MM-DD",
+                placeholder="Pick a date",
+                className="w-100 mb-2",
             ),
-            dbc.Col(
-                html.Div(
-                    [
-                        dbc.Select(
-                            id=f"ann-mgr-{prefix}-hour",
-                            options=HOUR_OPTIONS,
-                            value=0,
-                            size="sm",
-                            class_name="me-1",
-                        ),
-                        html.Span(":", className="me-1"),
-                        dbc.Select(
-                            id=f"ann-mgr-{prefix}-minute",
-                            options=MINUTE_OPTIONS,
-                            value=0,
-                            size="sm",
-                        ),
-                    ],
-                    id=f"ann-mgr-{prefix}-time-wrap",
-                    className="d-flex align-items-center",
-                ),
-                md=5,
+            html.Div(
+                [
+                    dbc.Select(
+                        id=f"ann-mgr-{prefix}-hour",
+                        options=HOUR_OPTIONS,
+                        value="0",
+                        size="sm",
+                        class_name="me-1",
+                    ),
+                    html.Span(":", className="me-1"),
+                    dbc.Select(
+                        id=f"ann-mgr-{prefix}-minute",
+                        options=MINUTE_OPTIONS,
+                        value="0",
+                        size="sm",
+                    ),
+                ],
+                id=f"ann-mgr-{prefix}-time-wrap",
+                className="d-flex align-items-center",
             ),
         ],
-        className="mb-2 align-items-center",
+        className="mb-3",
     )
 
 
@@ -113,5 +108,4 @@ def render() -> dbc.Modal:
         ],
         id="ann-mgr-modal",
         is_open=False,
-        size="lg",
     )

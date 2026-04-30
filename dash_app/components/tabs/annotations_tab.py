@@ -31,10 +31,11 @@ def render() -> html.Div:
                 [
                     html.H3("Annotations", className="mb-0 me-3"),
                     dbc.Button(
-                        ["+ New"],
+                        "+",
                         id="ann-mgr-new-btn",
                         color="primary",
-                        size="sm",
+                        className="ann-mgr-new-btn-circle",
+                        title="New annotation",
                     ),
                 ],
                 className="d-flex align-items-center mb-3",

@@ -54,12 +54,12 @@ def _open_for_edit(ann_id: int):
         from_d = ps.date().isoformat()
         # period_end is exclusive next midnight; show last *included* day.
         to_d = (pe - pd.Timedelta(days=1)).date().isoformat()
-        from_h, from_m, to_h, to_m = 0, 0, 0, 0
+        from_h, from_m, to_h, to_m = "0", "0", "0", "0"
     else:
         from_d = ps.date().isoformat()
         to_d   = pe.date().isoformat()
-        from_h, from_m = int(ps.hour), int(ps.minute)
-        to_h,   to_m   = int(pe.hour), int(pe.minute)
+        from_h, from_m = str(ps.hour), str(ps.minute)
+        to_h,   to_m   = str(pe.hour), str(pe.minute)
 
     return (
         True,
@@ -177,8 +177,8 @@ def manage_modal(
             {"mode": "create", "annotation_id": None},
             "New annotation",
             "half-hourly",
-            None, 0, 0,
-            None, 0, 0,
+            None, "0", "0",
+            None, "0", "0",
             [],
             "",
             "",

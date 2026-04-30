@@ -491,6 +491,27 @@ body {
 
 /* ── Annotation form internals — labels, period display, save button ── */
 .ann-form-card .form-label,
+/* Manager modal width: matches the in-chart annotation form (~380px)
+   so the create/edit experience feels consistent across both surfaces. */
+#ann-mgr-modal .modal-dialog {
+    max-width: 400px;
+}
+
+/* Circular "+" button on the Annotations tab — replaces the "+ New" text
+   button. Same primary accent as before, but icon-only so the visual
+   weight stays minimal next to the section title. */
+.ann-mgr-new-btn-circle {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.15rem !important;
+    line-height: 1 !important;
+}
+
 #ann-mgr-modal .form-label {
     font-family: var(--setrum-font-sans);
     font-size: var(--setrum-text-small);
