@@ -139,7 +139,7 @@ def get_summary_metrics(
     """Sum daily totals over `[start_date, end_date]` (both inclusive).
 
     The four KPIs come straight from the daily fact: total kWh, total cost
-    incl. VAT, volume-weighted average unit price excl. VAT, and the mean
+    incl. VAT, volume-weighted average unit price incl. VAT, and the mean
     standing charge per day.
     """
     extra, extra_params = _account_clause(account_id)
@@ -149,7 +149,7 @@ def get_summary_metrics(
             SELECT
                 COALESCE(SUM(consumption_kwh), 0)               AS total_kwh,
                 COALESCE(SUM(total_pence_inc_vat), 0)           AS total_pence_inc_vat,
-                COALESCE(SUM(consumption_pence_exc_vat), 0)     AS total_consumption_pence_exc_vat,
+                COALESCE(SUM(consumption_pence_inc_vat), 0)     AS total_consumption_pence_inc_vat,
                 COALESCE(AVG(standing_charge_pence_inc_vat), 0) AS avg_standing_pence_inc_vat
             FROM analytics_fct_consumptions_daily
             WHERE date >= ? AND date <= ? {extra}
@@ -159,8 +159,8 @@ def get_summary_metrics(
 
     total_kwh = float(agg["total_kwh"] or 0.0)
     total_cost = float(agg["total_pence_inc_vat"] or 0.0) / 100.0
-    avg_price_exc = (
-        float(agg["total_consumption_pence_exc_vat"] or 0.0) / total_kwh
+    avg_price_inc = (
+        float(agg["total_consumption_pence_inc_vat"] or 0.0) / total_kwh
         if total_kwh > 0
         else 0.0
     )
@@ -168,7 +168,7 @@ def get_summary_metrics(
     return {
         "total_kwh": total_kwh,
         "total_cost_inc_vat": total_cost,
-        "avg_price_exc_vat": avg_price_exc,
+        "avg_price_inc_vat": avg_price_inc,
         "avg_standing_charge": avg_standing,
         "window_from": start_date,
         "window_to": end_date,

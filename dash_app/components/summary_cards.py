@@ -27,7 +27,7 @@ def render() -> dbc.Row:
         [
             dbc.Col(_card("Total Consumption",       "summary-kwh"),     md=3),
             dbc.Col(_card("Total Cost (incl. VAT)",  "summary-cost"),    md=3),
-            dbc.Col(_card("Avg Price (excl. VAT)",   "summary-price"),   md=3),
+            dbc.Col(_card("Avg Price (incl. VAT)",   "summary-price"),   md=3),
             dbc.Col(_card("Avg Standing Charge",     "summary-standing"), md=3),
         ],
         className="g-2",

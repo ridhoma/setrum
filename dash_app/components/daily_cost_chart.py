@@ -24,9 +24,9 @@ from dash_app.components.annotation_format import hover_text as _hover_text
 # fill lets the y-axis gridlines bleed through, so the chart still reads
 # as data on a measured plane rather than as opaque painted regions.
 COLORS = {
-    "Standing Charge":   theme.PEACH,    # peach
-    "Consumption Usage": theme.ORANGE,   # Claude Orange — data hero
-    "VAT":               theme.INK_300,  # neutral grey
+    "Standing Charge":   theme.INK_300,    # neutral grey
+    "Consumption Usage": theme.ORANGE,     # Claude Orange
+    "VAT":               theme.PEACH,      # peach
 }
 ORDER = ["Standing Charge", "Consumption Usage", "VAT"]
 STROKE_WIDTH = 2.0
@@ -129,18 +129,34 @@ def _build_cost_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | No
     df["Standing Charge"]   = df["standing_charge_pence_exc_vat"] / 100
     df["Consumption Usage"] = df["consumption_pence_exc_vat"] / 100
     df["VAT"]               = df["total_pence_vat"] / 100
+    df["Total"]             = df["Standing Charge"] + df["Consumption Usage"] + df["VAT"]
 
-    customdata = df["date"].dt.strftime("%a, %d %b %Y")
     fig = go.Figure()
     # Stacked area: each scatter trace fills up to the previous in stackgroup.
-    # Points are at midnight UTC of each day — same x as annotation rect bounds,
-    # so selection + overlay alignment stays exact.
-    #
-    # Each layer is a pale fill capped with a bolder stroke at the top edge —
-    # so the eye reads the colour as a region but tracks the trend along the
-    # stroke. `line.shape="spline"` would over-soften the daily cadence; we
-    # keep the linear interpolation so day-to-day jumps stay visible.
+    # Hover strategy: a single tooltip rendered from the topmost trace (VAT)
+    # carries the whole breakdown via customdata. Lower stack traces use
+    # `hoverinfo="skip"` so they don't contribute. We use `hovermode="x"`
+    # rather than `"x unified"` because unified mode renders a colour square
+    # for every contributing trace and there's no clean way to hide it; with
+    # plain `"x"`, only the VAT trace's tooltip fires and it's text-only.
+    top = ORDER[-1]   # the one trace that owns the hover
+    customdata = list(zip(
+        df["Standing Charge"], df["Consumption Usage"], df["Total"],
+    ))
     for component in ORDER:
+        is_top = component == top
+        kwargs: dict = {}
+        if is_top:
+            kwargs["customdata"] = customdata
+            kwargs["hovertemplate"] = (
+                "<b>%{x|%a, %d %b %Y}</b><br>"
+                "Total: £%{customdata[2]:.2f}<br>"
+                "Standing Charge: £%{customdata[0]:.2f}<br>"
+                "Consumption: £%{customdata[1]:.2f}<br>"
+                "VAT: £%{y:.2f}<extra></extra>"
+            )
+        else:
+            kwargs["hoverinfo"] = "skip"
         fig.add_scatter(
             name=component,
             x=df["date"],
@@ -149,18 +165,14 @@ def _build_cost_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | No
             line=dict(width=STROKE_WIDTH, color=_stroke(component)),
             fillcolor=_fill(component),
             stackgroup="cost",
-            customdata=customdata,
-            hovertemplate=(
-                "<b>%{customdata}</b><br>"
-                f"{component}: £%{{y:.2f}}<extra></extra>"
-            ),
+            **kwargs,
         )
 
     fig.update_layout(**theme.base_layout(
         height=360,
         xaxis_title="", yaxis_title="Cost (£)",
         shapes=_monday_shapes(df["date"]) + _annotation_shapes(annotations_df),
-        hovermode="x unified",
+        hovermode="x",
         dragmode="select",
         selectdirection="h",
         clickmode="event+select",
@@ -181,7 +193,6 @@ def _build_kwh_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | Non
 
     df = daily_df.sort_values("date").copy()
     df["date"] = pd.to_datetime(df["date"])
-    customdata = df["date"].dt.strftime("%a, %d %b %Y")
 
     fig = go.Figure()
     fig.add_scatter(
@@ -192,15 +203,17 @@ def _build_kwh_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | Non
         line=dict(width=STROKE_WIDTH, color=_stroke("Consumption Usage")),
         fillcolor=_fill("Consumption Usage"),
         fill="tozeroy",
-        customdata=customdata,
-        hovertemplate="<b>%{customdata}</b><br>%{y:.2f} kWh<extra></extra>",
+        hovertemplate=(
+            "<b>%{x|%a, %d %b %Y}</b><br>"
+            "Consumption: %{y:.2f} kWh<extra></extra>"
+        ),
     )
     fig.update_layout(**theme.base_layout(
         height=360,
         xaxis_title="", yaxis_title="kWh",
         showlegend=False,
         shapes=_monday_shapes(df["date"]) + _annotation_shapes(annotations_df),
-        hovermode="x unified",
+        hovermode="x",
         dragmode="select",
         selectdirection="h",
         clickmode="event+select",

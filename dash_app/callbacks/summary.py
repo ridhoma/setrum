@@ -32,6 +32,6 @@ def render_summary(_data_version, resolved, account_id):
     return (
         f"{m['total_kwh']:.1f} kWh",
         f"£{m['total_cost_inc_vat']:.2f}",
-        f"{m['avg_price_exc_vat']:.1f}p / kWh",
+        f"{m['avg_price_inc_vat']:.1f}p / kWh",
         f"£{m['avg_standing_charge']:.2f} / day",
     )
