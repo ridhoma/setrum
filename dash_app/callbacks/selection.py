@@ -172,6 +172,12 @@ clientside_callback(
             if (!readout) return {display: 'block'};
             const r = readout.getBoundingClientRect();
             const formW = 380, gap = 12;
+            // Conservative form-height estimate. The form is hidden via
+            // display:none before this callback fires, so offsetHeight is 0
+            // and we can't measure live; 480 covers the typical content
+            // (period + aggregates + tags + comment + save button).
+            const formH = 480;
+
             // Default: to the right of the readout, top-aligned.
             let left = r.right + gap;
             let top  = r.top;
@@ -181,6 +187,13 @@ clientside_callback(
                 left = Math.max(gap, r.left);
                 top  = r.bottom + gap;
             }
+            // Clamp vertically so the form's full height (incl. Save button)
+            // sits inside the viewport. Without this, the HH chart's readout
+            // — which sits low on the page — pushes the form off the bottom
+            // edge and the Save button gets clipped.
+            const maxTop = window.innerHeight - formH - gap;
+            top = Math.max(gap, Math.min(top, maxTop));
+
             return {
                 display: 'block',
                 top:  top  + 'px',

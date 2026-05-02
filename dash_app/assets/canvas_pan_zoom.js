@@ -272,6 +272,66 @@
         else if (action === "fit")      fitToContent();
     }
 
+    /* ── Mount / re-mount handling ──
+       Switching off the Annotations tab unmounts `.annotations-canvas-content`
+       from the DOM; switching back creates a fresh element without any inline
+       transform. Our `state` object lives in the JS module closure, so it
+       survives tab switches — but we have to push it onto the new DOM node,
+       otherwise the canvas reads as 100% until the user nudges zoom (at which
+       point the state-driven scale snaps back, the "non-smooth jump" bug).
+
+       First time the canvas appears in a session (incl. fresh load / refresh),
+       default to fit-to-content rather than scale=1 so the user starts with
+       all their notes in view. */
+    let hasAppliedInitialFit = false;
+
+    function onCanvasMount() {
+        if (!getContent()) return;
+        if (hasAppliedInitialFit) {
+            // Re-mount within session: push the persisted transform onto the
+            // fresh DOM node so it matches what the user had.
+            applyTransform();
+            return;
+        }
+        // First mount: fit to content. Sticky notes are rendered by Dash and
+        // may not be in the DOM yet on the same tick the container appears,
+        // so retry up to ~20 frames (~330ms). fitToContent() handles the
+        // empty-board case (no notes) by falling back to resetView().
+        let attempts = 0;
+        const tryFit = () => {
+            if (document.querySelectorAll(STICKY_SELECTOR).length === 0 && attempts < 20) {
+                attempts++;
+                requestAnimationFrame(tryFit);
+                return;
+            }
+            fitToContent();
+            hasAppliedInitialFit = true;
+        };
+        tryFit();
+    }
+
+    function watchForCanvasMount() {
+        if (typeof MutationObserver === "undefined") return;
+        const obs = new MutationObserver((mutations) => {
+            for (const m of mutations) {
+                for (const node of m.addedNodes) {
+                    if (node.nodeType !== 1) continue;
+                    // Match the content container itself or anything that
+                    // contains it (Dash sometimes wraps tab content in
+                    // additional nodes during route transitions).
+                    if (
+                        (node.matches && node.matches(CONTENT_SELECTOR)) ||
+                        (node.querySelector && node.querySelector(CONTENT_SELECTOR))
+                    ) {
+                        onCanvasMount();
+                        return;
+                    }
+                }
+            }
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+    }
+
     function init() {
         // Wheel needs passive:false to call preventDefault.
         document.body.addEventListener("wheel", onWheel, { passive: false, capture: true });
@@ -287,8 +347,11 @@
         // Toolbar (delegated; controls live inside the viewport).
         document.body.addEventListener("click", onControlsClick);
 
-        // The first time the canvas gets mounted, sync the readout.
-        applyTransform();
+        // Catch every mount/re-mount of the canvas content node. If the
+        // Annotations tab is the initial active tab, the node may already
+        // be present at init time — handle that case explicitly.
+        watchForCanvasMount();
+        if (getContent()) onCanvasMount();
     }
 
     if (document.readyState === "loading") {
