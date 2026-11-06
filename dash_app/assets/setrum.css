@@ -85,6 +85,13 @@
 }
 
 /* Base Document */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
 body {
     background-color: var(--setrum-bg-paper);
     color: var(--setrum-ink-900);
@@ -93,13 +100,14 @@ body {
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    min-height: 100vh;
 }
 
 .setrum-shell {
-    min-height: 100vh;
+    height: 100vh;
+    max-height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 /* ── Editorial Masthead Header ────────────────────────────────────── */
@@ -418,7 +426,10 @@ body {
     display: grid;
     grid-template-columns: 1fr 340px;
     flex: 1;
-    min-height: calc(100vh - var(--setrum-header-height));
+    height: calc(100vh - var(--setrum-header-height));
+    max-height: calc(100vh - var(--setrum-header-height));
+    min-height: 0;
+    overflow: hidden;
     transition: grid-template-columns 220ms ease;
     background: var(--setrum-bg-paper);
 }
@@ -431,9 +442,26 @@ body {
 .setrum-content,
 .main-stage {
     padding: 28px 32px 60px;
+    height: 100%;
     overflow-y: auto;
+    overflow-x: hidden;
     max-width: 100%;
     min-width: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--setrum-border-strong) transparent;
+}
+
+.setrum-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.setrum-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.setrum-content::-webkit-scrollbar-thumb {
+    background-color: var(--setrum-border-strong);
+    border-radius: 4px;
 }
 
 /* ── Collapsible Right Field-Notes Rail ────────────────────────────── */
@@ -443,12 +471,28 @@ body {
     background-size: 18px 18px;
     border-left: 1px solid var(--setrum-border-strong);
     padding: 22px 18px;
+    height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: 14px;
     width: 340px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--setrum-border-strong) transparent;
+}
+
+.field-notes-rail::-webkit-scrollbar {
+    width: 8px;
+}
+
+.field-notes-rail::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.field-notes-rail::-webkit-scrollbar-thumb {
+    background-color: var(--setrum-border-strong);
+    border-radius: 4px;
 }
 
 .setrum-workbench.rail-collapsed .field-notes-rail,
@@ -465,6 +509,9 @@ body {
     padding: 10px 12px;
     border-radius: var(--setrum-radius-sm);
     border: 1px solid var(--setrum-border-strong);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .rail-toolbar {
@@ -1291,9 +1338,27 @@ body {
 
 /* ── Responsive adjustments ──────────────────────────────────────── */
 @media (max-width: 992px) {
+    html,
+    body {
+        height: auto;
+        overflow: auto;
+    }
+    .setrum-shell {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+    }
     .setrum-workbench,
     .workbench {
         grid-template-columns: 1fr;
+        height: auto;
+        max-height: none;
+        overflow: visible;
+    }
+    .setrum-content,
+    .main-stage {
+        height: auto;
+        overflow-y: visible;
     }
     .field-notes-rail {
         display: none;
