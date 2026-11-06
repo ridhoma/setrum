@@ -11,10 +11,36 @@ would kick off a full Octopus sync.
 
 from __future__ import annotations
 
-from dash import Input, Output, State, callback
+from dash import Input, Output, State, callback, no_update
 
 from core.services import sync as sync_service
 from dash_app import stores
+
+
+@callback(
+    Output("refresh-btn", "n_clicks"),
+    Output(stores.DATA_VERSION, "data", allow_duplicate=True),
+    Input("auto-sync-interval", "n_intervals"),
+    State("refresh-btn", "n_clicks"),
+    State(stores.DATA_VERSION, "data"),
+    prevent_initial_call="initial_duplicate",
+)
+def auto_sync_on_open_or_interval(
+    n_intervals: int | None,
+    current_clicks: int | None,
+    current_version: int | None,
+):
+    """Automatically trigger a sync on page open if data is stale (>6h or never run),
+    and every 6 hours while the page stays open.
+    """
+    status = sync_service.get_sync_status()
+    if status.get("is_stale") and status.get("status") != "RUNNING":
+        return (current_clicks or 0) + 1, no_update
+    if (n_intervals or 0) > 0:
+        # Even if the backend daemon thread already synced recently, bump
+        # DATA_VERSION on interval ticks so open browser tabs refresh charts.
+        return no_update, (current_version or 0) + 1
+    return no_update, no_update
 
 
 @callback(

@@ -100,6 +100,14 @@ def render_main() -> html.Div:
         className="setrum-workbench",
     )
     return html.Div(
-        [header.render(), workbench],
+        [
+            dcc.Interval(
+                id="auto-sync-interval",
+                interval=6 * 3600 * 1000,  # 6 hours in ms
+                n_intervals=0,
+            ),
+            header.render(),
+            workbench,
+        ],
         className="setrum-shell",
     )

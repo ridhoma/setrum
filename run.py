@@ -11,13 +11,15 @@ import argparse
 import os
 
 from core.database import init_db
+from core.services.sync import start_background_scheduler
 from dash_app import callbacks  # noqa: F401  -- registers all @callback decorators
 from dash_app.app import app, server
 from dash_app.layout import render as render_layout
 
-# Initialize database schema and layout
+# Initialize database schema, layout, and background sync scheduler
 init_db()
 app.layout = render_layout()
+start_background_scheduler()
 
 
 @server.route("/health")
