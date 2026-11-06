@@ -13,6 +13,7 @@ import plotly.graph_objects as go
 from dash import dcc, html
 
 from dash_app.charts import theme
+from dash_app.components import date_range_filter
 from dash_app.components.annotation_format import hover_text as _hover_text
 
 # Colors matching Option 1 palette
@@ -232,6 +233,22 @@ def legend_items(view: str = "cost", show_pins: bool = True) -> list:
 
 
 def render() -> html.Div:
+    view_toggle = html.Div(
+        dbc.RadioItems(
+            id="daily-view-toggle",
+            options=[
+                {"label": "£ Sterling", "value": "cost"},
+                {"label": "kWh Energy", "value": "kwh"},
+            ],
+            value="cost",
+            class_name="segmented-group",
+            input_class_name="btn-check",
+            label_class_name="seg-btn",
+            label_checked_class_name="active",
+        ),
+        className="setrum-toggle",
+    )
+
     return html.Div(
         [
             html.Div(
@@ -244,12 +261,23 @@ def render() -> html.Div:
                         className="chart-title-wrap flex-grow-1",
                     ),
                     html.Div(
-                        legend_items("cost"),
-                        id="daily-legend",
-                        className="chart-legend",
+                        [
+                            view_toggle,
+                            date_range_filter.render(
+                                "daily",
+                                presets=[
+                                    ("7D", 7),
+                                    ("14D", 14),
+                                    ("30D", 30),
+                                    ("90D", 90),
+                                ],
+                                default_days=30,
+                            ),
+                        ],
+                        className="control-cluster",
                     ),
                 ],
-                className="chart-card-header",
+                className="chart-card-header daily-chart-card-header",
             ),
             html.Div(
                 [
@@ -278,6 +306,11 @@ def render() -> html.Div:
                     ),
                 ],
                 style={"position": "relative"},
+            ),
+            html.Div(
+                legend_items("cost"),
+                id="daily-legend",
+                className="chart-legend chart-legend--bottom-left",
             ),
         ],
         className="chart-card",
