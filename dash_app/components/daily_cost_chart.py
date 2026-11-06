@@ -86,19 +86,82 @@ def _annotation_icon_traces(annotations_df: pd.DataFrame | None, y_at: float) ->
 def build_figure(
     daily_df: pd.DataFrame,
     view: str = "cost",
+    granularity: str = "daily",
     annotations_df: pd.DataFrame | None = None,
 ) -> go.Figure:
     if view == "kwh":
-        return _build_kwh_figure(daily_df, annotations_df)
-    return _build_cost_figure(daily_df, annotations_df)
+        return _build_kwh_figure(daily_df, granularity, annotations_df)
+    return _build_cost_figure(daily_df, granularity, annotations_df)
 
 
-def _build_cost_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | None = None) -> go.Figure:
+def _build_cost_figure(
+    daily_df: pd.DataFrame,
+    granularity: str = "daily",
+    annotations_df: pd.DataFrame | None = None,
+) -> go.Figure:
     if daily_df.empty:
         return _empty_figure("Cost (£)")
 
     df = daily_df.sort_values("date").copy()
     df["date"] = pd.to_datetime(df["date"])
+
+    if granularity == "monthly":
+        date_series = df["date"].dt.tz_localize(None) if df["date"].dt.tz is not None else df["date"]
+        df["month"] = date_series.dt.to_period("M").dt.to_timestamp()
+        m_df = df.groupby("month", as_index=False).agg({
+            "standing_charge_pence_exc_vat": "sum",
+            "consumption_pence_exc_vat": "sum",
+            "total_pence_vat": "sum",
+        })
+        m_df["Standing Charge"]   = m_df["standing_charge_pence_exc_vat"] / 100
+        m_df["Consumption Usage"] = m_df["consumption_pence_exc_vat"] / 100
+        m_df["VAT"]               = m_df["total_pence_vat"] / 100
+        m_df["Total"]             = m_df["Standing Charge"] + m_df["Consumption Usage"] + m_df["VAT"]
+
+        fig = go.Figure()
+        month_ms = 24 * 86400 * 1000
+        offset_ms = 3 * 86400 * 1000
+        for component in ORDER:
+            fig.add_bar(
+                name=component,
+                x=m_df["month"],
+                y=m_df[component],
+                offset=offset_ms,
+                width=month_ms,
+                marker=dict(
+                    color=COLORS[component],
+                    cornerradius=2,
+                    line=dict(width=0),
+                ),
+                customdata=m_df["Total"],
+                hovertemplate=(
+                    f"<b>%{{x|%B %Y}}</b><br>"
+                    f"{component}: £%{{y:.2f}}<br>"
+                    f"Total Cost: £%{{customdata:.2f}}<extra></extra>"
+                ),
+            )
+
+        fig.update_layout(**theme.base_layout(
+            height=320,
+            xaxis_title="", yaxis_title="Cost (£)",
+            barmode="stack",
+            bargap=0.18,
+            showlegend=False,
+            shapes=_annotation_shapes(annotations_df),
+            hovermode="closest",
+            dragmode="select",
+            selectdirection="h",
+            clickmode="event+select",
+        ))
+        fig.update_xaxes(**theme.xaxis_style(tickformat="%b %Y"))
+        fig.update_yaxes(**theme.yaxis_style(tickprefix="£"))
+
+        total_max = m_df["Total"].max()
+        y_max = float(total_max or 0) * 1.05 or 1.0
+        for trace in _annotation_icon_traces(annotations_df, y_max):
+            fig.add_trace(trace)
+        return fig
+
     df["Standing Charge"]   = df["standing_charge_pence_exc_vat"] / 100
     df["Consumption Usage"] = df["consumption_pence_exc_vat"] / 100
     df["VAT"]               = df["total_pence_vat"] / 100
@@ -152,12 +215,58 @@ def _build_cost_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | No
     return fig
 
 
-def _build_kwh_figure(daily_df: pd.DataFrame, annotations_df: pd.DataFrame | None = None) -> go.Figure:
+def _build_kwh_figure(
+    daily_df: pd.DataFrame,
+    granularity: str = "daily",
+    annotations_df: pd.DataFrame | None = None,
+) -> go.Figure:
     if daily_df.empty:
         return _empty_figure("kWh")
 
     df = daily_df.sort_values("date").copy()
     df["date"] = pd.to_datetime(df["date"])
+
+    if granularity == "monthly":
+        date_series = df["date"].dt.tz_localize(None) if df["date"].dt.tz is not None else df["date"]
+        df["month"] = date_series.dt.to_period("M").dt.to_timestamp()
+        m_df = df.groupby("month", as_index=False).agg({"consumption_kwh": "sum"})
+
+        month_ms = 24 * 86400 * 1000
+        offset_ms = 3 * 86400 * 1000
+        fig = go.Figure()
+        fig.add_bar(
+            name="Consumption",
+            x=m_df["month"],
+            y=m_df["consumption_kwh"],
+            offset=offset_ms,
+            width=month_ms,
+            marker=dict(
+                color=theme.DATA_PRIMARY,
+                cornerradius=2,
+                line=dict(width=0),
+            ),
+            hovertemplate=(
+                "<b>%{x|%B %Y}</b><br>"
+                "Consumption: %{y:.2f} kWh<extra></extra>"
+            ),
+        )
+        fig.update_layout(**theme.base_layout(
+            height=320,
+            xaxis_title="", yaxis_title="kWh",
+            bargap=0.18,
+            showlegend=False,
+            shapes=_annotation_shapes(annotations_df),
+            hovermode="closest",
+            dragmode="select",
+            selectdirection="h",
+            clickmode="event+select",
+        ))
+        fig.update_xaxes(**theme.xaxis_style(tickformat="%b %Y"))
+        fig.update_yaxes(**theme.yaxis_style())
+        y_max = float(m_df["consumption_kwh"].max() or 0) * 1.05 or 1.0
+        for trace in _annotation_icon_traces(annotations_df, y_max):
+            fig.add_trace(trace)
+        return fig
 
     day_ms = 86400 * 1000
     fig = go.Figure()
@@ -237,10 +346,26 @@ def render() -> html.Div:
         dbc.RadioItems(
             id="daily-view-toggle",
             options=[
-                {"label": "£ Sterling", "value": "cost"},
-                {"label": "kWh Energy", "value": "kwh"},
+                {"label": "£", "value": "cost"},
+                {"label": "kWh", "value": "kwh"},
             ],
             value="cost",
+            class_name="segmented-group",
+            input_class_name="btn-check",
+            label_class_name="seg-btn",
+            label_checked_class_name="active",
+        ),
+        className="setrum-toggle",
+    )
+
+    granularity_toggle = html.Div(
+        dbc.RadioItems(
+            id="daily-granularity-toggle",
+            options=[
+                {"label": "Daily", "value": "daily"},
+                {"label": "Monthly", "value": "monthly"},
+            ],
+            value="daily",
             class_name="segmented-group",
             input_class_name="btn-check",
             label_class_name="seg-btn",
@@ -255,7 +380,7 @@ def render() -> html.Div:
                 [
                     html.Div(
                         [
-                            html.H3("Daily Cost Stacked Breakdown (£)", id="daily-chart-title", className="mb-0"),
+                            html.H3("Cost & Consumption Over Time", id="daily-chart-title", className="mb-0"),
                             html.P("Track day-to-day bill drivers and weekend vs. weekday patterns — drag across any multi-day anomaly to total its cost and pin a note", className="text-muted small mb-0"),
                         ],
                         className="chart-title-wrap flex-grow-1",
@@ -263,6 +388,7 @@ def render() -> html.Div:
                     html.Div(
                         [
                             view_toggle,
+                            granularity_toggle,
                             date_range_filter.render(
                                 "daily",
                                 presets=[

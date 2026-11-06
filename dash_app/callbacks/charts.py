@@ -34,18 +34,29 @@ def _hh_window(start_date: str, end_date: str) -> tuple[str, str]:
     Input(stores.ANNOTATIONS_VERSION, "data"),
     Input("daily-resolved-range",     "data"),
     Input("daily-view-toggle",        "value"),
+    Input("daily-granularity-toggle", "value"),
     Input(stores.ACTIVE_ACCOUNT_ID,   "data"),
     Input(stores.SHOW_PINS,           "data"),
 )
-def render_daily_cost(_dv: int, _av: int, resolved: dict | None, view: str | None, account_id: int | None, show_pins: bool | None = True):
+def render_daily_cost(
+    _dv: int,
+    _av: int,
+    resolved: dict | None,
+    view: str | None,
+    granularity: str | None,
+    account_id: int | None,
+    show_pins: bool | None = True,
+):
     view_mode = view or "cost"
+    granularity_mode = granularity or "daily"
     is_pins_visible = True if show_pins is None else show_pins
-    title = "Daily Electricity Consumption (kWh)" if view_mode == "kwh" else "Daily Cost Stacked Breakdown (£)"
+    title = "Cost & Consumption Over Time"
     legend_content = daily_cost_chart.legend_items(view_mode, show_pins=is_pins_visible)
     if not resolved or not resolved.get("start_date") or not resolved.get("end_date"):
         fig = daily_cost_chart.build_figure(
             consumption_service.get_daily_summary("1900-01-01", "1900-01-02"),
             view=view_mode,
+            granularity=granularity_mode,
         )
         return fig, title, legend_content
     df = consumption_service.get_daily_summary(
@@ -62,7 +73,12 @@ def render_daily_cost(_dv: int, _av: int, resolved: dict | None, view: str | Non
         )
     else:
         overlays = None
-    fig = daily_cost_chart.build_figure(df, view=view_mode, annotations_df=overlays)
+    fig = daily_cost_chart.build_figure(
+        df,
+        view=view_mode,
+        granularity=granularity_mode,
+        annotations_df=overlays,
+    )
     return fig, title, legend_content
 
 

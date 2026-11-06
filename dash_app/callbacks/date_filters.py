@@ -14,8 +14,9 @@ for the half-hourly chart (prefix `hh`). Each pair contains:
 from __future__ import annotations
 
 import datetime
+from dateutil.relativedelta import relativedelta
 
-from dash import Input, Output, callback, no_update
+from dash import Input, Output, State, callback, no_update
 
 from core.services import consumption as consumption_service
 from dash_app import stores
@@ -40,6 +41,17 @@ def _resolve(preset: str, custom_start: str | None, custom_end: str | None, acco
             # Parent .date-range-filter is inline-flex so the picker sits
             # beside the preset select rather than under it.
             {"display": "block"},
+        )
+
+    if isinstance(preset, str) and preset.endswith("M"):
+        try:
+            months = int(preset[:-1])
+            start = max(daily_max.replace(day=1) - relativedelta(months=months - 1), daily_min)
+        except Exception:
+            start = max(daily_max - datetime.timedelta(days=90), daily_min)
+        return (
+            {"start_date": start.isoformat(), "end_date": daily_max.isoformat()},
+            {"display": "none"},
         )
 
     try:
@@ -67,16 +79,25 @@ def _preset_range(preset: str | None, account_id: int | None):
     inputs / no data extent — callers use that to leave the picker alone."""
     if preset is None or preset == "custom":
         return no_update, no_update
-    try:
-        days = int(preset)
-    except (TypeError, ValueError):
-        return no_update, no_update
     extent = consumption_service.get_data_extent(account_id=account_id)
     daily_min, daily_max = extent.get("daily_min"), extent.get("daily_max")
     if not daily_min or not daily_max:
         return no_update, no_update
     daily_min_d = datetime.date.fromisoformat(daily_min)
     daily_max_d = datetime.date.fromisoformat(daily_max)
+
+    if isinstance(preset, str) and preset.endswith("M"):
+        try:
+            months = int(preset[:-1])
+            start = max(daily_max_d.replace(day=1) - relativedelta(months=months - 1), daily_min_d)
+            return start.isoformat(), daily_max_d.isoformat()
+        except Exception:
+            return no_update, no_update
+
+    try:
+        days = int(preset)
+    except (TypeError, ValueError):
+        return no_update, no_update
     start = max(daily_max_d - datetime.timedelta(days=days - 1), daily_min_d)
     return start.isoformat(), daily_max_d.isoformat()
 
@@ -115,6 +136,40 @@ def init_daily_picker_bounds(_dv: int, account_id: int | None):
 )
 def sync_daily_picker_to_preset(preset, _dv, account_id):
     return _preset_range(preset, account_id)
+
+
+DAILY_PRESETS = [
+    {"label": "7D", "value": "7"},
+    {"label": "14D", "value": "14"},
+    {"label": "30D", "value": "30"},
+    {"label": "90D", "value": "90"},
+    {"label": "Custom", "value": "custom"},
+]
+
+MONTHLY_PRESETS = [
+    {"label": "3M", "value": "3M"},
+    {"label": "6M", "value": "6M"},
+    {"label": "12M", "value": "12M"},
+    {"label": "24M", "value": "24M"},
+    {"label": "Custom", "value": "custom"},
+]
+
+
+@callback(
+    Output(_daily["preset"], "options"),
+    Output(_daily["preset"], "value"),
+    Input("daily-granularity-toggle", "value"),
+    State(_daily["preset"], "value"),
+    prevent_initial_call=True,
+)
+def switch_daily_granularity_presets(granularity: str | None, current_preset: str | None):
+    if granularity == "monthly":
+        valid = ["3M", "6M", "12M", "24M", "custom"]
+        val = current_preset if current_preset in valid else "12M"
+        return MONTHLY_PRESETS, val
+    valid = ["7", "14", "30", "90", "custom"]
+    val = current_preset if current_preset in valid else "30"
+    return DAILY_PRESETS, val
 
 
 @callback(
