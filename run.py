@@ -30,7 +30,7 @@ def health_check() -> tuple[dict[str, str], int]:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8050")))
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8051")))
     parser.add_argument("--host", default=os.environ.get("HOST", "0.0.0.0"))
     parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
