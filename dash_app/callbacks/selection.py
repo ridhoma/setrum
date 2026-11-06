@@ -117,6 +117,7 @@ def _fmt_day(ts_iso: str) -> str:
     Output("daily-selection-readout", "style"),
     Input(stores.SELECTED_RANGE,    "data"),
     State(stores.ACTIVE_ACCOUNT_ID, "data"),
+    prevent_initial_call=True,
 )
 def prefill_annotation_form(rng: dict | None, account_id: int | None):
     """Populate the form fields and exactly one readout (the source chart).
