@@ -1,4 +1,11 @@
-"""Data Health tab: telemetry availability tile heatmap, table audit, and chunked backfill."""
+"""Data Health tab — Option A: Editorial Ledger & Responsive Coverage Matrix.
+
+Features:
+- 5-cell Editorial KPI Strip
+- Full-width CSS-Grid 52-week Coverage Matrix with interactive single-tile and
+  range-of-tiles selection + direct 1-click backfill from the matrix inspector bar
+- 2-column bottom split: SQLite Storage & Pipeline Ledger + Historical Backfill Workbench
+"""
 
 from __future__ import annotations
 
@@ -11,7 +18,10 @@ from core.services import data_health as health_service
 
 def render() -> html.Div:
     accounts = health_service.get_accounts()
-    active_account = next((a for a in accounts if a["is_active"]), accounts[0] if accounts else None)
+    active_account = next(
+        (a for a in accounts if a["is_active"]),
+        accounts[0] if accounts else None,
+    )
     active_id = active_account["account_id"] if active_account else None
 
     account_options = [
@@ -24,242 +34,283 @@ def render() -> html.Div:
 
     return html.Div(
         [
+            # Store for tile / tile-range selection on the coverage matrix
+            dcc.Store(id="health-tile-selection", data=None),
+
             # Editorial Section Header
             html.Div(
                 [
                     html.Div(
                         [
-                            html.Div("IV. Telemetry Audit & Backfill", className="editorial-kicker"),
-                            html.H1("Smart Meter Coverage & SQLite Health", className="editorial-h1"),
+                            html.Div(
+                                "IV. Telemetry Audit & Historical Backfill",
+                                className="editorial-kicker",
+                            ),
+                            html.H1(
+                                "Smart Meter Coverage & SQLite Health",
+                                className="editorial-h1",
+                            ),
                         ]
                     ),
                     html.Div(
                         [
-                            html.Span("Property:", className="me-2 small text-muted font-monospace text-uppercase"),
+                            html.Span("PROPERTY:", className="dh-prop-label"),
                             dcc.Dropdown(
                                 id="health-account-select",
                                 options=account_options,
                                 value=active_id,
                                 clearable=False,
-                                className="setrum-dropdown",
-                                style={"minWidth": "300px"},
+                                className="dh-prop-dropdown",
                             ),
                         ],
-                        className="d-flex align-items-center mt-2 mt-md-0",
+                        className="dh-property-pill",
                     ),
                 ],
                 className="editorial-section-head",
             ),
 
-            # KPI Summary Row
-            html.Div(id="health-kpi-container", className="mb-4"),
+            # 5-Column Editorial KPI Strip
+            html.Div(id="health-kpi-container"),
 
-            # GitHub-Style Availability Calendar Heatmap Card
+            # Full-Width Daily Settlement Coverage Matrix Card
             html.Div(
                 [
                     html.Div(
                         [
                             html.Div(
                                 [
-                                    html.H5("Data Availability Heatmap", className="mb-1"),
-                                    html.Small(
-                                        "Daily interval coverage (green = 48/48 half-hour slots, yellow = partial, gray = missing)",
-                                        className="text-muted",
+                                    html.H3(
+                                        "Daily Settlement Coverage Matrix",
+                                        className="mb-0",
                                     ),
-                                ]
+                                    html.P(
+                                        "Click any day tile to inspect its 48 half-hour slots, or click a start tile then an end tile to select a date range and backfill directly",
+                                        className="text-muted small mb-0",
+                                    ),
+                                ],
+                                className="chart-title-wrap flex-grow-1",
                             ),
                             html.Div(
                                 [
                                     dbc.RadioItems(
+                                        id="health-table-select",
+                                        options=[
+                                            {"label": "⚡ Consumption", "value": "source_consumptions"},
+                                            {"label": "💷 Unit Rates", "value": "source_electricity_standard_unit_rates"},
+                                            {"label": "🔌 Standing Charge", "value": "source_electricity_standing_charges"},
+                                            {"label": "📊 Daily Mart", "value": "analytics_fct_consumptions_daily"},
+                                        ],
+                                        value="source_consumptions",
+                                        class_name="segmented-group",
+                                        input_class_name="btn-check",
+                                        label_class_name="seg-btn",
+                                        label_checked_class_name="active",
+                                    ),
+                                    dbc.RadioItems(
                                         id="health-window-select",
                                         options=[
-                                            {"label": "3 Months", "value": 90},
-                                            {"label": "6 Months", "value": 180},
-                                            {"label": "1 Year", "value": 365},
+                                            {"label": "3M", "value": 90},
+                                            {"label": "6M", "value": 180},
+                                            {"label": "1Y", "value": 365},
                                         ],
                                         value=365,
-                                        inline=True,
-                                        className="btn-group",
-                                        inputClassName="btn-check",
-                                        labelClassName="btn btn-outline-secondary btn-sm health-pill-btn",
-                                        labelCheckedClassName="active",
+                                        class_name="segmented-group",
+                                        input_class_name="btn-check",
+                                        label_class_name="seg-btn",
+                                        label_checked_class_name="active",
                                     ),
                                 ],
-                                className="mt-2 mt-sm-0",
+                                className="dh-controls-row",
                             ),
                         ],
-                        className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-3",
+                        className="chart-card-header daily-chart-card-header",
                     ),
 
-                    # Stream selector pills
+                    # Heatmap Box (Grid + Interactive Selection & Backfill Inspector Bar)
                     html.Div(
                         [
-                            html.Span("Target Stream:", className="small text-muted me-2 font-monospace text-uppercase"),
-                            dbc.RadioItems(
-                                id="health-table-select",
-                                options=[
-                                    {"label": "⚡ Half-Hourly Consumption", "value": "source_consumptions"},
-                                    {"label": "💷 Standard Unit Rates", "value": "source_electricity_standard_unit_rates"},
-                                    {"label": "🔌 Standing Charges", "value": "source_electricity_standing_charges"},
-                                    {"label": "📊 Daily Analytics Mart", "value": "analytics_fct_consumptions_daily"},
-                                ],
-                                value="source_consumptions",
-                                inline=True,
-                                className="btn-group flex-wrap",
-                                inputClassName="btn-check",
-                                labelClassName="btn btn-outline-primary btn-sm health-pill-btn mb-1",
-                                labelCheckedClassName="active",
-                            ),
-                        ],
-                        className="d-flex align-items-center flex-wrap mb-3",
-                    ),
-
-                    # The Tile Grid host
-                    html.Div(id="health-calendar-grid", className="mb-3"),
-
-                    # Heatmap Legend
-                    html.Div(
-                        [
+                            html.Div(id="health-calendar-grid"),
                             html.Div(
                                 [
-                                    html.Span("Legend:", className="me-2 text-muted"),
-                                    html.Div(className="health-tile health-tile--missing me-1", title="Missing (0 slots)"),
-                                    html.Span("Missing (0)", className="me-3"),
-                                    html.Div(className="health-tile health-tile--partial me-1", title="Partial (1–47 slots)"),
-                                    html.Span("Partial (1–47)", className="me-3"),
-                                    html.Div(className="health-tile health-tile--complete me-1", title="Complete (48/48 slots)"),
-                                    html.Span("Complete (48)"),
+                                    html.Div(
+                                        [
+                                            html.Span(
+                                                [
+                                                    html.I(className="dh-legend-dot dh-dot-missing"),
+                                                    "Pre-Move-In / Missing (0/48)",
+                                                ],
+                                                className="dh-legend-item",
+                                            ),
+                                            html.Span(
+                                                [
+                                                    html.I(className="dh-legend-dot dh-dot-partial"),
+                                                    "Partial (1–47 slots)",
+                                                ],
+                                                className="dh-legend-item",
+                                            ),
+                                            html.Span(
+                                                [
+                                                    html.I(className="dh-legend-dot dh-dot-complete"),
+                                                    "Complete (48/48 slots)",
+                                                ],
+                                                className="dh-legend-item",
+                                            ),
+                                        ],
+                                        className="dh-legend-group",
+                                    ),
+                                    html.Div(
+                                        [
+                                            html.Span(
+                                                id="health-selection-summary",
+                                                className="dh-inspector-summary",
+                                            ),
+                                            html.Div(
+                                                id="health-selection-strip",
+                                                className="dh-mini-slot-strip",
+                                            ),
+                                            dbc.Button(
+                                                "↻ Backfill Selection",
+                                                id="matrix-backfill-btn",
+                                                color="link",
+                                                size="sm",
+                                                className="dh-matrix-backfill-btn",
+                                                title="Immediately fetch & rebuild analytics for the selected tile(s)",
+                                            ),
+                                            dbc.Button(
+                                                "✕",
+                                                id="matrix-clear-btn",
+                                                color="link",
+                                                size="sm",
+                                                className="dh-matrix-clear-btn",
+                                                title="Clear tile selection",
+                                            ),
+                                        ],
+                                        id="health-inspector-pill",
+                                        className="dh-inspector-pill",
+                                    ),
                                 ],
-                                className="health-legend",
-                            ),
-                            html.Small(
-                                "Hover over any tile for date details. Click a date to inspect.",
-                                className="text-muted ms-auto mt-1 mt-sm-0",
+                                className="dh-day-inspector-bar",
                             ),
                         ],
-                        className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between pt-2 border-top",
+                        className="dh-heatmap-box",
                     ),
                 ],
-                className="health-calendar-container mb-4",
+                className="chart-card",
             ),
 
-            # Row with Raw Tables Overview & Historical Backfill Orchestrator
-            dbc.Row(
+            # Bottom 2-Column Split: SQLite Storage Ledger + Historical Backfill Workbench
+            html.Div(
                 [
-                    # Raw Tables Overview
-                    dbc.Col(
+                    # Left: SQLite Storage & Pipeline Ledger
+                    html.Div(
                         [
                             html.Div(
                                 [
                                     html.Div(
                                         [
-                                            html.H5("Raw Ingestion Tables Audit", className="mb-1"),
-                                            html.Small("State of local SQLite ingestion storage", className="text-muted"),
-                                        ],
-                                        className="p-3 border-bottom",
-                                    ),
-                                    html.Div(id="health-tables-overview-container", className="p-0"),
-                                ],
-                                className="health-table-card h-100",
-                            ),
-                        ],
-                        width=12,
-                        lg=6,
-                        className="mb-4 mb-lg-0",
-                    ),
-
-                    # Historical Backfill Control Card
-                    dbc.Col(
-                        [
-                            html.Div(
-                                [
-                                    html.Div(
-                                        [
-                                            html.H5("Historical Backfill Orchestrator", className="mb-1"),
-                                            html.Small(
-                                                "Fetch historical smart meter & tariff data in chunked batches",
-                                                className="text-muted",
-                                            ),
-                                        ],
-                                        className="p-3 border-bottom",
-                                    ),
-                                    html.Div(
-                                        [
-                                            html.Label("Date Range to Backfill", className="form-label small font-monospace text-uppercase text-muted"),
-                                            html.Div(
-                                                dcc.DatePickerRange(
-                                                    id="backfill-date-picker",
-                                                    start_date=default_start.isoformat(),
-                                                    end_date=today.isoformat(),
-                                                    max_date_allowed=today.isoformat(),
-                                                    display_format="YYYY-MM-DD",
-                                                    className="w-100 mb-2",
-                                                ),
-                                                className="mb-2",
-                                            ),
-
-                                            # Quick Presets
-                                            html.Div(
-                                                [
-                                                    dbc.Button("Last 30 Days", id="backfill-preset-30d", size="sm", color="light", className="me-1 mb-1"),
-                                                    dbc.Button("Last 90 Days", id="backfill-preset-90d", size="sm", color="light", className="me-1 mb-1"),
-                                                    dbc.Button("2026 Year-to-Date", id="backfill-preset-ytd", size="sm", color="light", className="me-1 mb-1"),
-                                                    dbc.Button("Since Move-in", id="backfill-preset-movein", size="sm", color="light", className="mb-1"),
-                                                ],
-                                                className="d-flex flex-wrap mb-3",
-                                            ),
-
-                                            html.Label("Chunk Size", className="form-label small font-monospace text-uppercase text-muted"),
+                                            html.H3("SQLite Storage & Pipeline Ledger", className="mb-0"),
                                             html.P(
-                                                "Chunking downloads data in smaller time windows, avoiding API timeouts and materializing chunks incrementally.",
-                                                className="small text-muted mb-2",
+                                                "Row counts, date boundaries, and health across raw ingestion and ELT mart tables",
+                                                className="text-muted small mb-0",
                                             ),
-                                            dbc.RadioItems(
-                                                id="backfill-chunk-size",
-                                                options=[
-                                                    {"label": "7 Days", "value": 7},
-                                                    {"label": "14 Days (Recommended)", "value": 14},
-                                                    {"label": "30 Days", "value": 30},
-                                                ],
-                                                value=14,
-                                                inline=True,
-                                                className="mb-3",
-                                            ),
-
-                                            dbc.Button(
-                                                "🚀 Start Chunked Backfill",
-                                                id="backfill-start-btn",
-                                                className="btn-primary-editorial w-100 mb-3",
-                                                size="md",
-                                            ),
-
-                                            # Progress bar and status feedback
-                                            dbc.Progress(
-                                                id="backfill-progress-bar",
-                                                value=0,
-                                                max=1,
-                                                striped=True,
-                                                animated=True,
-                                                style={"display": "none"},
-                                                className="mb-2",
-                                            ),
-                                            html.Div(
-                                                id="backfill-progress-label",
-                                                className="small text-muted mb-2 font-monospace",
-                                            ),
-                                            html.Div(id="backfill-status-alert"),
                                         ],
-                                        className="p-3",
+                                        className="chart-title-wrap",
                                     ),
                                 ],
-                                className="health-table-card h-100",
+                                className="chart-card-header",
+                            ),
+                            html.Div(id="health-tables-overview-container"),
+                        ],
+                        className="chart-card mb-0 h-100",
+                    ),
+
+                    # Right: Historical Backfill Workbench
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.Div(
+                                        [
+                                            html.H3("Historical Backfill Workbench", className="mb-0"),
+                                            html.P(
+                                                "Download or repair historical smart-meter & tariff windows in safe API batches",
+                                                className="text-muted small mb-0",
+                                            ),
+                                        ],
+                                        className="chart-title-wrap",
+                                    ),
+                                ],
+                                className="chart-card-header",
+                            ),
+                            html.Div(
+                                [
+                                    html.Label(
+                                        "Target Date Window (Synced with Tile Matrix Selection)",
+                                        className="dh-form-label",
+                                    ),
+                                    html.Div(
+                                        dcc.DatePickerRange(
+                                            id="backfill-date-picker",
+                                            start_date=default_start.isoformat(),
+                                            end_date=today.isoformat(),
+                                            max_date_allowed=today.isoformat(),
+                                            display_format="YYYY-MM-DD",
+                                            className="dh-date-picker-range w-100",
+                                        ),
+                                        className="mb-2",
+                                    ),
+                                    html.Div(
+                                        [
+                                            dbc.Button("Prev 30D", id="backfill-preset-30d", size="sm", color="light", className="dh-preset-chip"),
+                                            dbc.Button("Prev 90D", id="backfill-preset-90d", size="sm", color="light", className="dh-preset-chip"),
+                                            dbc.Button("2026 YTD", id="backfill-preset-ytd", size="sm", color="light", className="dh-preset-chip"),
+                                            dbc.Button("Since Move-In", id="backfill-preset-movein", size="sm", color="light", className="dh-preset-chip"),
+                                        ],
+                                        className="dh-preset-row mb-3",
+                                    ),
+                                    html.Label(
+                                        "Batch Chunk Window (API Rate-Limit Guard)",
+                                        className="dh-form-label",
+                                    ),
+                                    dbc.RadioItems(
+                                        id="backfill-chunk-size",
+                                        options=[
+                                            {"label": "7 Days", "value": 7},
+                                            {"label": "14 Days (Rec.)", "value": 14},
+                                            {"label": "30 Days", "value": 30},
+                                        ],
+                                        value=14,
+                                        class_name="segmented-group dh-chunk-segmented mb-3",
+                                        input_class_name="btn-check",
+                                        label_class_name="seg-btn",
+                                        label_checked_class_name="active",
+                                    ),
+                                    dbc.Button(
+                                        "↻ Run Chunked Backfill & Rebuild Marts",
+                                        id="backfill-start-btn",
+                                        className="btn-primary-editorial w-100 py-2",
+                                    ),
+                                    dbc.Progress(
+                                        id="backfill-progress-bar",
+                                        value=0,
+                                        max=1,
+                                        striped=True,
+                                        animated=True,
+                                        style={"display": "none"},
+                                        className="mt-3 mb-1",
+                                    ),
+                                    html.Div(
+                                        id="backfill-progress-label",
+                                        className="small text-muted font-monospace mt-1",
+                                    ),
+                                    html.Div(id="backfill-status-alert", className="mt-2"),
+                                ]
                             ),
                         ],
-                        width=12,
-                        lg=6,
+                        className="chart-card mb-0 h-100",
                     ),
-                ]
+                ],
+                className="dh-bottom-grid",
             ),
         ],
-        className="p-3 p-md-4",
     )

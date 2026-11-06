@@ -117,6 +117,10 @@ def chunked_backfill(
     print(f"🚀 Formulating Chunked Backfill ({total_chunks} chunks of ~{chunk_days}d) for account {account_id}...")
     _safe_progress(progress_cb, "Starting backfill...", 0, total_chunks)
 
+    total_tasks = 0
+    failed_tasks = 0
+    last_error: Exception | None = None
+
     for idx, (w_start, w_end) in enumerate(windows, 1):
         step_label = f"Chunk {idx}/{total_chunks}: {w_start[:10]} → {w_end[:10]}"
         print(f"📦 [{step_label}] Fetching data...")
@@ -129,15 +133,21 @@ def chunked_backfill(
             for tariff in selected_tariffs:
                 futures.append(executor.submit(fetch_tariff_pricing, w_start, w_end, tariff))
 
+            total_tasks += len(futures)
             for future in as_completed(futures):
                 try:
                     future.result()
                 except Exception as e:
+                    failed_tasks += 1
+                    last_error = e
                     print(f"⚠️ Backfill sub-task failed for {w_start}..{w_end}: {e}")
 
         # Materialize analytics after each chunk so newly fetched data lands immediately
         transform_analytics()
         _safe_progress(progress_cb, step_label, idx, total_chunks)
+
+    if total_tasks > 0 and failed_tasks == total_tasks and last_error:
+        raise RuntimeError(f"All {failed_tasks} backfill tasks failed. Last error: {last_error}")
 
     print(f"✅ Chunked Backfill complete for account {account_id}.")
 

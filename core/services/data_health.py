@@ -321,6 +321,26 @@ def get_daily_availability(
     }
 
 
+def get_intraday_slots(
+    date_str: str,
+    conn: sqlite3.Connection | None = None,
+) -> list[bool]:
+    """Return 24 hourly coverage booleans (True if both half-hour slots exist) for `date_str`."""
+    with _conn(conn) as c:
+        rows = c.execute(
+            """
+            SELECT CAST(strftime('%H', interval_start) AS INTEGER) AS hr,
+                   COUNT(*) AS cnt
+            FROM source_consumptions
+            WHERE date(interval_start) = ?
+            GROUP BY hr
+            """,
+            (date_str[:10],),
+        ).fetchall()
+    by_hr = {int(r["hr"]): int(r["cnt"]) for r in rows if r["hr"] is not None}
+    return [by_hr.get(h, 0) >= 2 for h in range(24)]
+
+
 def run_chunked_backfill(
     account_id: int,
     start_date: str,
@@ -330,10 +350,16 @@ def run_chunked_backfill(
 ) -> dict:
     """Execute historical backfill in chunked windows with progress streaming."""
     try:
+        # Ensure end_date covers the full selected day when start_date == end_date
+        s_dt = datetime.date.fromisoformat(start_date[:10])
+        e_dt = datetime.date.fromisoformat(end_date[:10])
+        if e_dt < s_dt:
+            s_dt, e_dt = e_dt, s_dt
+        e_inclusive = (e_dt + datetime.timedelta(days=1)).isoformat()
         orchestrator.chunked_backfill(
             account_id=account_id,
-            start_date=start_date,
-            end_date=end_date,
+            start_date=s_dt.isoformat(),
+            end_date=e_inclusive,
             chunk_days=chunk_days,
             progress_cb=progress_cb,
         )

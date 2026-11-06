@@ -1260,80 +1260,386 @@ body {
     color: var(--setrum-ink-900) !important;
 }
 
-/* ── Data Health Styles ──────────────────────────────────────────── */
-.health-calendar-container {
+/* ── Data Health Styles (Option A: Editorial Ledger & Coverage Matrix) ── */
+.dh-property-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     background: var(--setrum-bg-surface);
-    border: 1px solid var(--setrum-rule);
-    border-radius: var(--setrum-radius-md);
-    padding: 20px 24px;
-    box-shadow: var(--setrum-shadow-card);
+    border: 1px solid var(--setrum-border-strong);
+    border-radius: var(--setrum-radius-sm);
+    padding: 4px 12px;
+    font-family: var(--setrum-font-mono);
+    font-size: 12px;
 }
 
-.health-tiles-grid {
-    display: grid;
-    grid-template-rows: repeat(7, 12px);
-    grid-auto-flow: column;
-    grid-auto-columns: 12px;
-    gap: 3px;
+.dh-prop-label {
+    color: var(--setrum-ink-500);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
 }
 
-.health-tile {
-    width: 12px;
-    height: 12px;
-    border-radius: 2px;
-    transition: transform 0.1s ease;
-    cursor: pointer;
+.dh-prop-dropdown {
+    min-width: 320px;
 }
 
-.health-tile:hover {
-    transform: scale(1.35);
-    z-index: 10;
+.dh-prop-dropdown .Select-control,
+.dh-prop-dropdown .dash-dropdown,
+.dh-prop-dropdown button,
+.dh-prop-dropdown > div {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
-.health-tile--missing,
-.health-tile--empty {
-    background-color: var(--setrum-rule);
+.dh-prop-dropdown .Select-value-label {
+    font-family: var(--setrum-font-mono) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--setrum-ink-900) !important;
+    line-height: 28px !important;
 }
 
-.health-tile--partial {
-    background-color: #E6A817;
+.dh-kpi-strip-5 {
+    grid-template-columns: repeat(5, 1fr);
 }
 
-.health-tile--complete {
-    background-color: var(--setrum-positive);
+.kpi-cell.hero-green::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--setrum-positive);
 }
 
-.health-legend {
+.dh-kpi-unit {
+    font-size: 14px;
+    color: var(--setrum-ink-500);
+    font-weight: 500;
+}
+
+.dh-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--setrum-font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.dh-status-pill--ok {
+    background: var(--setrum-positive-soft);
+    color: var(--setrum-positive);
+}
+
+.dh-status-pill--warn {
+    background: #F9EBC8;
+    color: #B86E08;
+}
+
+.dh-status-pill--err {
+    background: #FADBD8;
+    color: #B42318;
+}
+
+.dh-controls-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-family: var(--setrum-font-mono);
-    font-size: 11px;
-    color: var(--setrum-ink-500);
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    justify-content: flex-end;
 }
 
-.health-table-card {
-    background: var(--setrum-bg-surface);
+.dh-heatmap-box {
+    background: var(--setrum-bg-paper);
     border: 1px solid var(--setrum-rule);
-    border-radius: var(--setrum-radius-md);
-    box-shadow: var(--setrum-shadow-card);
+    border-radius: var(--setrum-radius-sm);
+    padding: 16px 20px;
 }
 
-.health-table-card .table th {
+.dh-matrix-wrap {
+    width: 100%;
+    user-select: none;
+}
+
+.dh-heatmap-months {
+    display: grid;
     font-family: var(--setrum-font-mono);
-    font-size: 11px;
+    font-size: 10.5px;
+    color: var(--setrum-ink-500);
+    margin-bottom: 6px;
+}
+
+.dh-heatmap-body {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    gap: 6px;
+    align-items: stretch;
+}
+
+.dh-heatmap-days {
+    display: grid;
+    grid-template-rows: repeat(7, 15px);
+    gap: 3px;
+    font-family: var(--setrum-font-mono);
+    font-size: 10px;
+    color: var(--setrum-ink-500);
+    align-items: center;
+}
+
+.dh-heatmap-grid {
+    display: grid;
+    grid-template-rows: repeat(7, 15px);
+    grid-auto-flow: column;
+    gap: 3px;
+}
+
+.dh-hm-cell {
+    height: 15px;
+    border-radius: 2.5px;
+    background: #E5DEC9;
+    cursor: pointer;
+    transition: transform 90ms ease, box-shadow 90ms ease;
+}
+
+.dh-hm-cell:hover {
+    transform: scale(1.22);
+    outline: 1.5px solid var(--setrum-ink-900);
+    z-index: 3;
+}
+
+.dh-hm-cell--complete {
+    background: var(--setrum-positive);
+}
+
+.dh-hm-cell--partial {
+    background: #D9822B;
+}
+
+.dh-hm-cell--missing {
+    background: #E5DEC9;
+}
+
+.dh-hm-cell--selected {
+    outline: 2px solid var(--setrum-accent) !important;
+    box-shadow: 0 0 0 2px rgba(153, 15, 61, 0.25);
+    z-index: 4;
+}
+
+.dh-hm-cell--drag-preview {
+    outline: 2px dashed var(--setrum-accent) !important;
+    opacity: 0.85;
+    z-index: 4;
+}
+
+.dh-day-inspector-bar {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--setrum-rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-family: var(--setrum-font-mono);
+    font-size: 11.5px;
+}
+
+.dh-legend-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: var(--setrum-ink-500);
+    flex-wrap: wrap;
+}
+
+.dh-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dh-legend-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.dh-dot-missing { background: #E5DEC9; }
+.dh-dot-partial { background: #D9822B; }
+.dh-dot-complete { background: var(--setrum-positive); }
+
+.dh-inspector-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-border-strong);
+    padding: 5px 12px;
+    border-radius: var(--setrum-radius-sm);
+    font-family: var(--setrum-font-mono);
+    font-size: 11.5px;
+}
+
+.dh-inspector-summary {
+    color: var(--setrum-ink-900);
+}
+
+.dh-mini-slot-strip {
+    display: inline-flex;
+    gap: 1.5px;
+    align-items: center;
+}
+
+.dh-mini-slot {
+    width: 4px;
+    height: 13px;
+    border-radius: 1px;
+    background: var(--setrum-positive);
+}
+
+.dh-mini-slot--gap {
+    background: var(--setrum-orange);
+}
+
+.dh-matrix-backfill-btn {
+    padding: 2px 8px !important;
+    font-family: var(--setrum-font-mono) !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    color: var(--setrum-accent) !important;
+    text-decoration: none !important;
+    border: 1px solid rgba(153, 15, 61, 0.3) !important;
+    border-radius: 4px !important;
+    background: rgba(153, 15, 61, 0.06) !important;
+    white-space: nowrap;
+}
+
+.dh-matrix-backfill-btn:hover {
+    background: var(--setrum-accent) !important;
+    color: #fff !important;
+}
+
+.dh-matrix-clear-btn {
+    padding: 1px 6px !important;
+    font-family: var(--setrum-font-mono) !important;
+    font-size: 11px !important;
+    color: var(--setrum-ink-500) !important;
+    text-decoration: none !important;
+}
+
+.dh-matrix-clear-btn:hover {
+    color: var(--setrum-ink-900) !important;
+}
+
+.dh-bottom-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 24px;
+    align-items: stretch;
+    margin-bottom: 28px;
+}
+
+@media (max-width: 1100px) {
+    .dh-bottom-grid {
+        grid-template-columns: 1fr;
+    }
+    .dh-kpi-strip-5 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.dh-ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--setrum-font-mono);
+    font-size: 12px;
+}
+
+.dh-ledger-table thead th {
+    text-align: left;
+    font-size: 10.5px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--setrum-ink-500);
-    border-bottom: 1px solid var(--setrum-rule);
-    background-color: var(--setrum-bg-paper);
+    padding: 8px 10px;
+    border-bottom: 1.5px solid var(--setrum-ink-900);
+    background: var(--setrum-bg-surface-alt);
+    font-weight: 600;
 }
 
-.health-pill-btn {
-    border-radius: var(--setrum-radius-pill);
-    font-size: 12px;
-    font-weight: 500;
-    padding: 4px 12px;
+.dh-ledger-table tbody td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--setrum-rule);
+    vertical-align: middle;
+    color: var(--setrum-ink-900);
+}
+
+.dh-ledger-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.dh-table-title {
+    font-family: var(--setrum-font-sans);
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--setrum-ink-900);
+}
+
+.dh-table-sub {
+    font-family: var(--setrum-font-mono);
+    font-size: 11px;
+    color: var(--setrum-ink-500);
+    margin-top: 2px;
+}
+
+.dh-form-label {
+    display: block;
+    font-family: var(--setrum-font-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--setrum-ink-500);
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.dh-preset-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.dh-preset-chip {
+    border: 1px solid var(--setrum-rule) !important;
+    background: var(--setrum-bg-surface-alt) !important;
+    padding: 4px 10px !important;
+    border-radius: 4px !important;
+    font-family: var(--setrum-font-mono) !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    color: var(--setrum-ink-700) !important;
+}
+
+.dh-preset-chip:hover {
+    border-color: var(--setrum-ink-900) !important;
+    color: var(--setrum-ink-900) !important;
+}
+
+.dh-chunk-segmented {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
 }
 
 /* ── Responsive adjustments ──────────────────────────────────────── */
