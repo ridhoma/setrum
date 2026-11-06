@@ -741,12 +741,12 @@ uv sync
 echo 'OCTOPUS_API_KEY=sk_live_xxxxx' >  .env
 echo 'OCTOPUS_ACCOUNT_NUMBER=A-XXXX'  >> .env
 
-# Run
+# Run local dev
 uv run python run.py
-# → http://127.0.0.1:8050
+# → http://127.0.0.1:8051 (port 8050 is reserved for production Docker)
 ```
 
-`run.py --port 8050 --debug` for development. `init_db()` runs on every
+`run.py --port 8051 --debug` for development. `init_db()` runs on every
 start (idempotent).
 
 ---

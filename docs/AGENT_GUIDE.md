@@ -327,11 +327,12 @@ When you've made a change and want to verify it works, the user
 restarts the app themselves. To verify *before* asking them, hit:
 
 ```bash
-uv run python run.py --port 8050 &
-until curl -fsS http://127.0.0.1:8050 -o /dev/null 2>/dev/null; do sleep 1; done
+# Note: Port 8050 is reserved for production Docker. Always test on 8051.
+uv run python run.py --port 8051 &
+until curl -fsS http://127.0.0.1:8051 -o /dev/null 2>/dev/null; do sleep 1; done
 
 # Verify a callback by faking its inputs
-curl -fsS -X POST http://127.0.0.1:8050/_dash-update-component \
+curl -fsS -X POST http://127.0.0.1:8051/_dash-update-component \
   -H 'Content-Type: application/json' \
   -d '{"output": "<id>.<prop>", ...}'
 ```
