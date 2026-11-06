@@ -141,7 +141,7 @@ def render() -> html.Div:
                         [
                             html.H3("Half-Hourly Depth Profile (48 Readings / Day)", className="mb-1"),
                             html.P(
-                                "Isolate individual 30-minute appliance cycles (heating, laundry, cooking, EV) and drag across any spike to log what caused it",
+                                "Isolate individual 30-minute appliance cycles (heating, laundry, cooking, EV) and drag across any spike to log what caused it (max 7-day window)",
                                 className="text-muted small mb-0",
                             ),
                         ],
@@ -151,9 +151,9 @@ def render() -> html.Div:
                         date_range_filter.render(
                             "hh",
                             presets=[
+                                ("1D", 1),
                                 ("3D", 3),
                                 ("7D", 7),
-                                ("14D", 14),
                             ],
                             default_days=3,
                         ),

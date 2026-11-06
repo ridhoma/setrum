@@ -221,4 +221,21 @@ def sync_hh_picker_to_preset(preset, _dv, account_id):
     Input(stores.ACTIVE_ACCOUNT_ID, "data"),
 )
 def resolve_hh(preset, custom_start, custom_end, _dv, account_id):
-    return _resolve(preset, custom_start, custom_end, account_id)
+    res, style = _resolve(preset, custom_start, custom_end, account_id)
+    if res and preset == "custom":
+        try:
+            s_d = datetime.date.fromisoformat(res["start_date"])
+            e_d = datetime.date.fromisoformat(res["end_date"])
+            if e_d < s_d:
+                s_d, e_d = e_d, s_d
+            if (e_d - s_d).days > 6:
+                # Clamp custom range to at most 7 days
+                if custom_start:
+                    e_d = s_d + datetime.timedelta(days=6)
+                else:
+                    s_d = e_d - datetime.timedelta(days=6)
+            res["start_date"] = s_d.isoformat()
+            res["end_date"] = e_d.isoformat()
+        except Exception:
+            pass
+    return res, style
