@@ -1,0 +1,19 @@
+services:
+  setrum:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: setrum
+    restart: unless-stopped
+    ports:
+      - "8050:8050"
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - SETRUM_DB_PATH=/app/data/setrum.db
+      - SETRUM_CACHE_DIR=/tmp/setrum-cache
+      - PORT=8050
+      - HOST=0.0.0.0

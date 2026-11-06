@@ -1,0 +1,35 @@
+name: Deploy Setrum (Local Server)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build & Deploy to Mac Mini
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build and Start Container
+        run: |
+          docker compose up -d --build
+
+      - name: Verify Health Check
+        run: |
+          echo "Verifying application health..."
+          for i in {1..30}; do
+            if curl -sf http://localhost:8050/health > /dev/null; then
+              echo "✅ Setrum is healthy and serving traffic!"
+              exit 0
+            fi
+            echo "Waiting for app to initialize... ($i/30)"
+            sleep 1
+          done
+          echo "❌ Health check timed out!"
+          docker compose logs --tail=50
+          exit 1

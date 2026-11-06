@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-DB_NAME = "setrum.db"
+DB_NAME = os.environ.get("SETRUM_DB_PATH", "setrum.db")
 
 def get_connection():
     """Returns a connection to the local SQLite database."""
