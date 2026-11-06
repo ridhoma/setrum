@@ -37,8 +37,8 @@ def _annotation_icon_traces(annotations_df: pd.DataFrame | None, y_at: float) ->
             x=[x_center],
             y=[y_at],
             mode="text",
-            text=["📝"],
-            textfont=dict(size=18),
+            text=["📌"],
+            textfont=dict(size=14),
             customdata=[ann_id],
             hovertemplate=text + "<extra></extra>",
             showlegend=False,
@@ -53,7 +53,7 @@ def build_consumption_figure(
 ) -> go.Figure:
     fig = go.Figure()
     if hh_df.empty:
-        fig.update_layout(**theme.base_layout(height=360, xaxis_title="", yaxis_title="kWh"))
+        fig.update_layout(**theme.base_layout(height=575, xaxis_title="", yaxis_title="kWh"))
         fig.update_xaxes(**theme.xaxis_style())
         fig.update_yaxes(**theme.yaxis_style())
         return fig
@@ -64,8 +64,11 @@ def build_consumption_figure(
     fig.add_bar(
         x=df["interval_start_at_utc"],
         y=df["consumption_kwh"],
-        marker_color=theme.DATA_PRIMARY,
-        marker_line_width=0,
+        marker=dict(
+            color=theme.DATA_PRIMARY,
+            cornerradius=2,
+            line=dict(width=0),
+        ),
         # x is the bucket start. By default Plotly centres bars on x and
         # auto-derives width from data spacing. With offset=0 the bar's left
         # edge sits at x, and an explicit width of 30 min in ms means the
@@ -88,7 +91,6 @@ def build_consumption_figure(
 
     if annotations_df is not None and not annotations_df.empty:
         for _, ann in annotations_df.iterrows():
-            color = _first_color(ann.get("tag_colors")) or theme.ANNOTATION_DEFAULT_FILL
             shapes.append(
                 dict(
                     type="rect",
@@ -97,15 +99,14 @@ def build_consumption_figure(
                     x0=ann["period_start_utc"],
                     x1=ann["period_end_utc"],
                     y0=0, y1=1,
-                    fillcolor=color,
-                    opacity=theme.ANNOTATION_FILL_OPACITY,
-                    line_width=0,
+                    fillcolor="rgba(244, 211, 94, 0.34)",
+                    line=dict(color="#D4B130", width=1),
                     layer="below",
                 )
             )
 
     fig.update_layout(**theme.base_layout(
-        height=360,
+        height=575,
         xaxis_title="", yaxis_title="kWh",
         showlegend=False,
         shapes=shapes,
@@ -136,20 +137,31 @@ def render() -> html.Div:
         [
             html.Div(
                 [
-                    html.H4("Half-Hourly Depth Profile", className="mb-0 flex-grow-1"),
-                    date_range_filter.render(
-                        "hh",
-                        presets=[
-                            ("Last 3 days", 3),
-                            ("Last 7 days", 7),
-                            ("Last 14 days", 14),
+                    html.Div(
+                        [
+                            html.H3("Half-Hourly Depth Profile (48 Readings / Day)", className="mb-1"),
+                            html.P(
+                                "Isolate individual 30-minute appliance cycles (heating, laundry, cooking, EV) and drag across any spike to log what caused it",
+                                className="text-muted small mb-0",
+                            ),
                         ],
-                        default_days=3,
+                        className="chart-title-wrap",
+                    ),
+                    html.Div(
+                        date_range_filter.render(
+                            "hh",
+                            presets=[
+                                ("3D", 3),
+                                ("7D", 7),
+                                ("14D", 14),
+                            ],
+                            default_days=3,
+                        ),
+                        className="control-cluster hh-control-cluster",
                     ),
                 ],
-                className="d-flex align-items-center gap-2 mb-2",
+                className="chart-card-header hh-chart-card-header",
             ),
-            html.Small("Half-Hourly Consumption (kWh)", className="text-muted"),
             html.Div(
                 [
                     dcc.Graph(
@@ -165,20 +177,21 @@ def render() -> html.Div:
                         [
                             html.Span(id="hh-readout-text"),
                             dbc.Button(
-                                "✏️",
+                                "✏️ Pin Note",
                                 id="hh-readout-edit",
                                 color="link",
                                 size="sm",
-                                className="hh-readout-edit p-0 ms-2",
+                                className="brush-readout-btn ms-2",
                                 title="Annotate this selection",
                             ),
                         ],
                         id="hh-selection-readout",
-                        className="hh-readout",
+                        className="hh-readout brush-readout",
                         style={"display": "none"},
                     ),
                 ],
                 style={"position": "relative"},
             ),
-        ]
+        ],
+        className="chart-card h-100 mb-0",
     )

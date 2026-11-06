@@ -1,4 +1,4 @@
-"""Annotation callbacks: save, and render the sticky-note board.
+"""Annotation callbacks: save, render board, and render right rail.
 
 Save handler snaps brushed ranges to half-hour boundaries so per-tag
 SUMs line up cleanly with the half-hourly fact, and bumps
@@ -65,3 +65,33 @@ def save_annotation(
 def render_board(_av: int, _dv: int, account_id: int | None):
     df = annotations_service.list_all_with_aggregates(account_id=account_id)
     return annotations_board.render_notes(df)
+
+
+@callback(
+    Output("rail-notes-list", "children"),
+    Output("nav-ann-count",   "children"),
+    Input(stores.ANNOTATIONS_VERSION, "data"),
+    Input(stores.DATA_VERSION,        "data"),
+    Input(stores.ACTIVE_ACCOUNT_ID,   "data"),
+)
+def render_rail_notes(_av: int, _dv: int, account_id: int | None):
+    df = annotations_service.list_all_with_aggregates(account_id=account_id)
+    count = str(len(df)) if df is not None else "0"
+    return annotations_board.render_rail_notes(df), count
+
+
+@callback(
+    Output(stores.SHOW_PINS, "data"),
+    Output("rail-toggle-pins-icon", "children"),
+    Output("rail-toggle-pins-label", "children"),
+    Output("rail-toggle-pins-btn", "className"),
+    Input("rail-toggle-pins-btn", "n_clicks"),
+    State(stores.SHOW_PINS, "data"),
+    prevent_initial_call=True,
+)
+def toggle_show_pins(n_clicks: int | None, current_state: bool | None):
+    is_showing = True if current_state is None else current_state
+    new_state = not is_showing
+    if new_state:
+        return True, "👁️", "Hide All Pins", "btn-secondary-editorial btn-sm w-100 rail-toggle-pins-btn"
+    return False, "👁️‍🗨️", "Show All Pins", "btn-secondary-editorial btn-sm w-100 rail-toggle-pins-btn muted"

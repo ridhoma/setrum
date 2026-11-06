@@ -206,3 +206,122 @@ def get_data_extent(
         "daily_min": daily["daily_min"] if daily else None,
         "daily_max": daily["daily_max"] if daily else None,
     }
+
+
+def get_hourly_profile_comparison(
+    target_date: str | None = None,
+    account_id: int | None = None,
+    conn: sqlite3.Connection | None = None,
+) -> dict:
+    """Return a 24-hour (00:00..23:00) kWh comparison table:
+      - selected_date's hourly kWh (defaults to latest_date)
+      - avg(prev 7 days before selected_date) hourly kWh
+      - avg(prev 30 days before selected_date) hourly kWh
+    """
+    extra, extra_params = _account_clause(account_id)
+    hours = [f"{h:02d}:00" for h in range(24)]
+
+    with _conn(conn) as c:
+        row = c.execute(
+            f"""
+            SELECT MIN(substr(interval_start_at_utc, 1, 10)) AS min_d,
+                   MAX(substr(interval_start_at_utc, 1, 10)) AS max_d
+            FROM analytics_fct_consumptions_half_hourly
+            WHERE 1=1 {extra}
+            """,
+            extra_params,
+        ).fetchone()
+        min_d = row["min_d"] if row else None
+        max_d = row["max_d"] if row else None
+        if not max_d:
+            return {
+                "selected_date": None,
+                "latest_date": None,
+                "min_date": None,
+                "max_date": None,
+                "rows": [
+                    {"hour": h, "latest_kwh": None, "avg_7d_kwh": None, "avg_30d_kwh": None}
+                    for h in hours
+                ],
+            }
+
+        sel_d = (str(target_date)[:10] if target_date else max_d)
+        try:
+            sel_dt = datetime.date.fromisoformat(sel_d)
+        except ValueError:
+            sel_d = max_d
+            sel_dt = datetime.date.fromisoformat(max_d)
+        next_sel_d = (sel_dt + datetime.timedelta(days=1)).isoformat()
+
+        # Dynamic trailing windows anchored to the selected date:
+        # Prev. 7 Days  = [sel_dt - 7d .. sel_dt - 1d] (fallback to sel_d if at dataset start)
+        # Prev. 30 Days = [sel_dt - 30d .. sel_dt - 1d]
+        d_30 = (sel_dt - datetime.timedelta(days=30)).isoformat()
+        d_7 = (sel_dt - datetime.timedelta(days=7)).isoformat()
+        prev_d = (sel_dt - datetime.timedelta(days=1)).isoformat()
+
+        query = f"""
+            WITH daily_hourly AS (
+                SELECT
+                    substr(interval_start_at_utc, 1, 10) AS d,
+                    substr(interval_start_at_utc, 12, 2) || ':00' AS hour_slot,
+                    SUM(consumption_kwh) AS hourly_kwh
+                FROM analytics_fct_consumptions_half_hourly
+                WHERE interval_start_at_utc >= ? AND interval_start_at_utc < ?
+                {extra}
+                GROUP BY d, hour_slot
+            )
+            SELECT
+                hour_slot,
+                MAX(CASE WHEN d = ? THEN hourly_kwh END) AS latest_kwh,
+                COALESCE(
+                    AVG(CASE WHEN d >= ? AND d <= ? THEN hourly_kwh END),
+                    AVG(CASE WHEN d >= ? AND d <= ? THEN hourly_kwh END)
+                ) AS avg_7d_kwh,
+                COALESCE(
+                    AVG(CASE WHEN d >= ? AND d <= ? THEN hourly_kwh END),
+                    AVG(CASE WHEN d >= ? AND d <= ? THEN hourly_kwh END)
+                ) AS avg_30d_kwh
+            FROM daily_hourly
+            GROUP BY hour_slot
+            ORDER BY hour_slot ASC
+        """
+        cur = c.execute(
+            query,
+            [
+                d_30, next_sel_d,
+                *extra_params,
+                sel_d,
+                d_7, prev_d,
+                d_7, sel_d,
+                d_30, prev_d,
+                d_30, sel_d,
+            ],
+        )
+        by_hour = {
+            r["hour_slot"]: {
+                "latest_kwh": float(r["latest_kwh"]) if r["latest_kwh"] is not None else None,
+                "avg_7d_kwh": float(r["avg_7d_kwh"]) if r["avg_7d_kwh"] is not None else None,
+                "avg_30d_kwh": float(r["avg_30d_kwh"]) if r["avg_30d_kwh"] is not None else None,
+            }
+            for r in cur.fetchall()
+        }
+
+    rows = []
+    for h in hours:
+        vals = by_hour.get(h, {})
+        rows.append(
+            {
+                "hour": h,
+                "latest_kwh": vals.get("latest_kwh"),
+                "avg_7d_kwh": vals.get("avg_7d_kwh"),
+                "avg_30d_kwh": vals.get("avg_30d_kwh"),
+            }
+        )
+    return {
+        "selected_date": sel_d,
+        "latest_date": max_d,
+        "min_date": min_d,
+        "max_date": max_d,
+        "rows": rows,
+    }

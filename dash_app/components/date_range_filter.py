@@ -1,6 +1,6 @@
-"""Compact date range filter: a dropdown of preset windows + a collapsible
-custom picker. Resolved range goes to a `dcc.Store` so chart callbacks
-read a single source of truth.
+"""Compact date range filter — Option 1: Segmented Group + Collapsible Custom Range Picker.
+
+Resolved range goes to a `dcc.Store` so chart callbacks read a single source of truth.
 """
 
 from __future__ import annotations
@@ -29,26 +29,22 @@ def render(
     appended. `default_days` should match one of the preset day counts.
     """
     if presets is None:
-        presets = [("Last 7 days", 7), ("Last 14 days", 14), ("Last 30 days", 30)]
+        presets = [("7D", 7), ("14D", 14), ("30D", 30), ("90D", 90)]
 
     ids = _ids(prefix)
     options = [{"label": label, "value": str(days)} for label, days in presets]
     options.append({"label": "Custom", "value": "custom"})
 
-    # Pill layout (Google-Trends-ish): preset select sits inline with the
-    # custom-range picker. The picker only materialises when "Custom" is
-    # picked — the preset alone keeps the control narrow when it doesn't
-    # need to be wide.
     return html.Div(
         [
-            dbc.Select(
+            dbc.RadioItems(
                 id=ids["preset"],
                 options=options,
                 value=str(default_days),
-                size="sm",
-                class_name="date-range-select",
-                # Survive tab swaps within the same browser session so user's
-                # selection isn't reset every time the Consumptions tab remounts.
+                class_name="segmented-group",
+                input_class_name="btn-check",
+                label_class_name="seg-btn",
+                label_checked_class_name="active",
                 persistence=True,
                 persistence_type="session",
             ),
@@ -60,14 +56,13 @@ def render(
                     persistence_type="session",
                 ),
                 id=ids["wrap"],
-                className="date-range-custom-wrap",
+                className="date-range-custom-wrap ms-2",
                 style={"display": "none"},
             ),
             dcc.Store(id=ids["resolved"]),
         ],
-        className="date-range-filter",
+        className="date-range-filter d-inline-flex align-items-center",
     )
 
 
-# Public so callbacks can reference IDs by structured lookup
 ids = _ids

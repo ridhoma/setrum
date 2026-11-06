@@ -1,11 +1,14 @@
-"""Annotations tab: header with '+ New' + pan/zoom canvas of sticky notes."""
+"""Annotations tab — Option 1: Editorial Field Notes.
+
+Header with '+ New Field Note' + pan/zoom canvas of sticky notes on warm dotted corkboard.
+"""
 
 from __future__ import annotations
 
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-from dash_app.components import annotations_board  # canvas + sticky-note rendering
+from dash_app.components import annotations_board
 
 
 def _zoom_controls() -> html.Div:
@@ -25,20 +28,29 @@ def _zoom_controls() -> html.Div:
 
 
 def render() -> html.Div:
-    return html.Div(
+    section_head = html.Div(
         [
             html.Div(
                 [
-                    html.H3("Annotations", className="mb-0 me-3"),
-                    dbc.Button(
-                        "+",
-                        id="ann-mgr-new-btn",
-                        color="primary",
-                        className="ann-mgr-new-btn-circle",
-                        title="New annotation",
-                    ),
-                ],
-                className="d-flex align-items-center mb-3",
+                    html.Div("II. Spatial Observation Board", className="editorial-kicker"),
+                    html.H1("The Energy Lab Corkboard", className="editorial-h1"),
+                ]
+            ),
+            dbc.Button(
+                "+ New Field Note",
+                id="ann-mgr-new-btn",
+                className="btn-primary-editorial",
+                title="New field note",
+            ),
+        ],
+        className="editorial-section-head",
+    )
+    return html.Div(
+        [
+            section_head,
+            html.P(
+                "Drag sticky notes anywhere on the board to cluster your household experiments. Positions persist in SQLite.",
+                style={"marginBottom": "14px", "color": "var(--setrum-ink-700)"},
             ),
             html.Div(
                 [
@@ -58,7 +70,7 @@ def render() -> html.Div:
                     html.Div(id="sticky-position-status", style={"display": "none"}),
                 ],
                 id="annotations-canvas-viewport",
-                className="annotations-canvas-viewport",
+                className="annotations-canvas-viewport corkboard-viewport",
             ),
         ]
     )

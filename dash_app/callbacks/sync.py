@@ -28,9 +28,9 @@ from dash_app import stores
     background=True,
     running=[
         (Output("refresh-btn", "disabled"),  True,  False),
-        (Output("refresh-btn", "children"),  "Syncing…", "Refresh"),
+        (Output("refresh-btn", "children"),  "Syncing…", "↻ Sync Octopus"),
         (Output("sync-progress-bar", "style"),
-         {"display": "block"}, {"display": "none"}),
+         {"display": "flex"}, {"display": "none"}),
     ],
     progress=[
         Output("sync-progress-bar", "value"),
@@ -98,6 +98,7 @@ def render_status_pill(_dv: int, account_id: int | None):
     """
     from dash import html
 
+    import pandas as pd
     from core.services import consumption as consumption_service
 
     status = sync_service.get_sync_status()
@@ -108,43 +109,44 @@ def render_status_pill(_dv: int, account_id: int | None):
     extent = consumption_service.get_data_extent(account_id=account_id)
     latest = extent.get("hh_max")
 
-    def _pill(text: str, variant: str) -> html.Span:
-        return html.Span(text, className=f"setrum-pill setrum-pill--{variant}")
+    def _format_compact(ts: str | None) -> str:
+        if not ts:
+            return ""
+        try:
+            dt = pd.to_datetime(ts)
+            return dt.strftime("%d %b %H:%M")
+        except Exception:
+            return str(ts)
+
+    compact_latest = _format_compact(latest)
 
     if s == "RUNNING":
-        return _pill("Syncing", "cool")
+        label, variant = "Syncing Octopus…", "cool"
+    elif s == "ERROR":
+        label, variant = f"Sync failed • {_humanize_delta(last_run)}", "accent"
+    elif s in (None, "NEVER_RUN"):
+        label, variant = "Never synced", "warning"
+    else:
+        is_stale = bool(status.get("is_stale"))
+        variant = "warning" if is_stale else "positive"
+        base_label = "Stale" if is_stale else "Up to date"
+        if not latest:
+            label, variant = "No data", "neutral"
+        elif compact_latest:
+            label = f"{base_label} • {compact_latest}"
+        else:
+            label = f"{base_label} • Synced {_humanize_delta(last_run)}"
 
-    if s == "ERROR":
-        return html.Div(
-            [
-                _pill("Sync failed", "accent"),
-                html.Small(
-                    f"{err or 'unknown'} · last try {_humanize_delta(last_run)}",
-                    className="text-muted d-block mt-1",
-                ),
-            ]
-        )
+    tooltip = f"Latest telemetry: {latest or 'None'} · Last synced: {_humanize_delta(last_run)}"
+    if err:
+        tooltip = f"{err} · {tooltip}"
 
-    if s in (None, "NEVER_RUN"):
-        return _pill("Never synced", "warning")
-
-    # Successful (or at least non-error) sync. Variant depends on staleness.
-    is_stale = bool(status.get("is_stale"))
-    variant = "warning" if is_stale else "positive"
-    label = "Stale" if is_stale else "Up to date"
-    if not latest:
-        label, variant = "No data", "neutral"
-
-    sub_lines = []
-    if latest:
-        sub_lines.append(f"Latest {latest}")
-    sub_lines.append(f"Synced {_humanize_delta(last_run)}")
     return html.Div(
         [
-            _pill(label, variant),
-            html.Small(
-                " · ".join(sub_lines),
-                className="text-muted d-block mt-1",
-            ),
-        ]
+            html.Span(className="sync-dot"),
+            html.Span(label, id="sync-text"),
+        ],
+        id="sync-pill",
+        className=f"sync-pill sync-pill--{variant}",
+        title=tooltip,
     )

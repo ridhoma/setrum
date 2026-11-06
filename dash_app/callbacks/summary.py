@@ -29,9 +29,10 @@ def render_summary(_data_version, resolved, account_id):
     m = consumption_service.get_summary_metrics(
         resolved["start_date"], resolved["end_date"], account_id=account_id
     )
+    sc_pence = m["avg_standing_charge"] * 100.0
     return (
         f"{m['total_kwh']:.1f} kWh",
         f"£{m['total_cost_inc_vat']:.2f}",
-        f"{m['avg_price_inc_vat']:.1f}p / kWh",
-        f"£{m['avg_standing_charge']:.2f} / day",
+        f"{m['avg_price_inc_vat']:.1f}p",
+        f"{sc_pence:.1f}p/d",
     )

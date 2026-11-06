@@ -2,6 +2,7 @@ import os
 import requests
 import pandas as pd
 from datetime import timedelta
+from core.credentials import get_octopus_account_number, get_octopus_api_key
 from core.database import get_connection, upsert_dataframe
 from core.queries import update_job_status, get_job_state
 from concurrent.futures import ThreadPoolExecutor
@@ -12,9 +13,9 @@ load_dotenv()
 BASE_URL = "https://api.octopus.energy/v1"
 
 def get_auth():
-    api_key = os.getenv("OCTOPUS_API_KEY")
+    api_key = get_octopus_api_key()
     if not api_key:
-        raise ValueError("API Key is missing. Check your .env file.")
+        raise ValueError("API Key is missing. Set OCTOPUS_API_KEY in .env or store it in macOS Keychain.")
     return (api_key, '')
 
 def _fetch_paginated_chunk(url, period_from, period_to):
@@ -27,7 +28,7 @@ def _fetch_paginated_chunk(url, period_from, period_to):
     
     while next_url:
         resp_params = params if next_url == url else None
-        response = requests.get(next_url, auth=get_auth(), params=resp_params)
+        response = requests.get(next_url, auth=get_auth(), params=resp_params, timeout=20)
         
         if response.status_code != 200:
             print(f"API Error {response.status_code}: {response.text}")
@@ -45,11 +46,19 @@ def _chunked_fetch(endpoint_name, fetch_url, start_date, end_date, formatter_fun
         current_start = pd.to_datetime(start_date, utc=True)
         final_end = pd.to_datetime(end_date, utc=True)
         
-        if current_start > final_end:
-            current_start, final_end = final_end, current_start
+        if (final_end - current_start).total_seconds() < 60:
+            update_job_status(endpoint_name, 'SUCCESS')
+            print(f"✅ [{endpoint_name}] Already up to date.")
+            return
             
+        is_tariff_table = db_table in (
+            'source_electricity_standard_unit_rates',
+            'source_electricity_standing_charges',
+        )
+        step_days = 90 if is_tariff_table else 30
+
         while current_start < final_end:
-            chunk_end = min(current_start + timedelta(days=7), final_end)
+            chunk_end = min(current_start + timedelta(days=step_days), final_end)
             
             print(f"[{endpoint_name}] Syncing {current_start.strftime('%Y-%m-%d')} to {chunk_end.strftime('%Y-%m-%d')}...")
             results = _fetch_paginated_chunk(fetch_url, current_start, chunk_end)
@@ -60,6 +69,10 @@ def _chunked_fetch(endpoint_name, fetch_url, start_date, end_date, formatter_fun
                     upsert_dataframe(conn, df, db_table, conflict_cols)
                     
                 max_ts = df['interval_start'].max()
+                if is_tariff_table:
+                    chunk_end_iso = chunk_end.strftime('%Y-%m-%dT%H:%M:%SZ')
+                    if chunk_end_iso > str(max_ts):
+                        max_ts = chunk_end_iso
                 min_ts = df['interval_start'].min()
                 
                 state = get_job_state(endpoint_name)
@@ -113,7 +126,7 @@ def fetch_tariff_pricing(start_date, end_date, tariff_code):
     print(f"[{product_code}] Synchronizing Product Detail...")
     update_job_status(f'product_{product_code}', 'RUNNING')
     try:
-        prod_resp = requests.get(f"{BASE_URL}/products/{product_code}/")
+        prod_resp = requests.get(f"{BASE_URL}/products/{product_code}/", timeout=20)
         if prod_resp.status_code == 200:
             p = prod_resp.json()
             df_prod = pd.DataFrame([{
@@ -157,16 +170,16 @@ def fetch_tariff_pricing(start_date, end_date, tariff_code):
         future_charges.result()
 
 def fetch_accounts():
-    account_number = os.getenv("OCTOPUS_ACCOUNT_NUMBER")
+    account_number = get_octopus_account_number()
     if not account_number:
-        print("⚠️ No OCTOPUS_ACCOUNT_NUMBER found in .env. Skipping account fetch.")
+        print("⚠️ No OCTOPUS_ACCOUNT_NUMBER found in .env or macOS Keychain. Skipping account fetch.")
         return
 
     update_job_status('accounts', 'RUNNING')
     try:
         print("[accounts] Synchronizing Account Details...")
         url = f"{BASE_URL}/accounts/{account_number}/"
-        response = requests.get(url, auth=get_auth())
+        response = requests.get(url, auth=get_auth(), timeout=20)
         
         if response.status_code != 200:
             raise Exception(f"Failed to fetch accounts")

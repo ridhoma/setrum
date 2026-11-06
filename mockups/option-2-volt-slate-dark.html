@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setrum Redesign — Option 2: Volt & Slate (Precision Dark Telemetry)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Surface Palette — Obsidian & Graphite */
+      --bg-canvas: #0B0E14;
+      --bg-surface: #121722;
+      --bg-elevated: #181F2E;
+      --bg-glass: rgba(24, 31, 46, 0.85);
+      --border-subtle: #1F293D;
+      --border-bright: #33415C;
+
+      /* Text Hierarchy */
+      --text-100: #F3F6FC;
+      --text-300: #9BA8C2;
+      --text-500: #63708A;
+
+      /* Signal & Data Accents */
+      --volt: #F59E0B;
+      --volt-bright: #FBBF24;
+      --volt-glow: rgba(245, 158, 11, 0.18);
+      --cyan: #06B6D4;
+      --violet: #A855F7;
+      --violet-glow: rgba(168, 85, 247, 0.22);
+      --emerald: #10B981;
+      --rose: #F43F5E;
+
+      /* Typography */
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-canvas);
+      color: var(--text-100);
+      font-family: var(--font-sans);
+      font-size: 13.5px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Top Meta Switcher Bar ───────────────────────────────────────── */
+    .mockup-meta-bar {
+      background: #06080C;
+      color: var(--text-300);
+      padding: 8px 24px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+    .mockup-meta-bar a {
+      color: var(--volt-bright);
+      text-decoration: none;
+      font-family: var(--font-mono);
+    }
+    .meta-badge {
+      background: rgba(245, 158, 11, 0.14);
+      color: var(--volt-bright);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 1px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      margin-left: 8px;
+    }
+
+    /* ── App Shell: Left Command Sidebar + Main Viewport ─────────────── */
+    .app-shell {
+      display: grid;
+      grid-template-columns: 248px 1fr;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Left Command Rail */
+    .command-rail {
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .brand-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 8px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 14px;
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .volt-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--volt-bright), #D97706);
+      color: #0B0E14;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
+    }
+    .kbd-hint {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--text-500);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-subtle);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .rail-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .rail-btn {
+      width: 100%;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-300);
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 140ms;
+    }
+    .rail-btn:hover {
+      background: var(--bg-elevated);
+      color: var(--text-100);
+    }
+    .rail-btn.active {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.35);
+      color: var(--volt-bright);
+    }
+
+    /* Telemetry Pod in Sidebar Footer */
+    .telemetry-pod {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+    }
+    .pod-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .status-pulse {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--emerald);
+      font-weight: 600;
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+    }
+    .btn-volt {
+      width: 100%;
+      background: var(--bg-elevated);
+      color: var(--text-100);
+      border: 1px solid var(--border-bright);
+      padding: 7px 12px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 140ms;
+    }
+    .btn-volt:hover {
+      border-color: var(--volt);
+      color: var(--volt-bright);
+    }
+
+    /* ── Main Content Stage ──────────────────────────────────────────── */
+    .viewport-stage {
+      overflow-y: auto;
+      padding: 24px 32px 96px;
+      position: relative;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+    .stage-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .stage-sub {
+      color: var(--text-500);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+    }
+
+    .pill-group {
+      display: inline-flex;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      padding: 3px;
+      border-radius: var(--radius-sm);
+    }
+    .pill-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-300);
+      padding: 5px 11px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .pill-btn.active {
+      background: var(--bg-elevated);
+      color: var(--volt-bright);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    /* KPI Telemetry Row */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 2px;
+      background: linear-gradient(90deg, var(--volt), transparent);
+      opacity: 0.7;
+    }
+    .kpi-head {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-500);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .kpi-num {
+      font-family: var(--font-mono);
+      font-size: 25px;
+      font-weight: 600;
+      color: var(--text-100);
+      font-variant-numeric: tabular-nums;
+    }
+    .kpi-foot {
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-300);
+    }
+
+    /* Telemetry Chart Panels */
+    .panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      margin-bottom: 18px;
+    }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 15.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: 230px;
+      display: block;
+      cursor: crosshair;
+    }
+    .dark-grid { stroke: #1B2333; stroke-width: 1; }
+    .dark-monday { stroke: #2D3A54; stroke-width: 1; stroke-dasharray: 3 3; }
+    .dark-axis { font-family: var(--font-mono); font-size: 10px; fill: var(--text-500); }
+    .violet-band {
+      fill: var(--violet-glow);
+      stroke: var(--violet);
+      stroke-width: 1;
+      cursor: pointer;
+    }
+
+    /* ── Raycast-Style Bottom Quick-Annotate HUD Bar ─────────────────── */
+    .quick-hud {
+      position: fixed;
+      bottom: 22px;
+      left: calc(248px + 50%);
+      transform: translateX(-50%);
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--violet);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65), 0 0 24px rgba(168, 85, 247, 0.25);
+      border-radius: 99px;
+      padding: 8px 14px 8px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      z-index: 90;
+    }
+    .hud-metric {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-100);
+    }
+    .hud-input {
+      background: rgba(11, 14, 20, 0.8);
+      border: 1px solid var(--border-bright);
+      color: var(--text-100);
+      padding: 5px 12px;
+      border-radius: 99px;
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      width: 220px;
+    }
+    .hud-tag-btn {
+      background: rgba(168, 85, 247, 0.16);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #E9D5FF;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .hud-save-btn {
+      background: var(--violet);
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ── Dark Spatial Canvas & Neon-Edge Sticky Cards ────────────────── */
+    .dark-canvas {
+      height: 540px;
+      background-color: #090C11;
+      background-image: radial-gradient(#222C40 1px, transparent 1px);
+      background-size: 20px 20px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    .neon-sticky {
+      position: absolute;
+      width: 250px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      border-top: 3px solid var(--volt);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+      cursor: grab;
+    }
+    .neon-sticky.cyan { border-top-color: var(--cyan); }
+    .neon-sticky.violet { border-top-color: var(--violet); }
+    .neon-sticky.emerald { border-top-color: var(--emerald); }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Meta Bar -->
+  <div class="mockup-meta-bar">
+    <div>
+      <strong>DESIGN OPTION 02 / 04:</strong> Volt & Slate (Obsidian Dark Telemetry, Space Grotesk + IBM Plex Mono, Bottom Quick-Annotate HUD)
+      <span class="meta-badge">Linear / Raycast / Grafana Dark Inspired</span>
+    </div>
+    <div style="display:flex; gap:16px;">
+      <a href="index.html">← All 4 Design Options</a>
+      <a href="option-3-swiss-industrial.html">Next: Option 3 (Swiss Industrial) →</a>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <!-- Left Command Sidebar -->
+    <aside class="command-rail">
+      <div>
+        <div class="brand-header">
+          <div class="brand-logo">
+            <span class="volt-icon">⚡</span>
+            <span>SETRUM // OS</span>
+          </div>
+          <span class="kbd-hint">v2.4</span>
+        </div>
+
+        <nav class="rail-nav">
+          <button class="rail-btn active" onclick="switchTab('consumptions', this)">
+            <span>📈 Telemetry & Cost</span>
+            <span class="kbd-hint">1</span>
+          </button>
+          <button class="rail-btn" onclick="switchTab('annotations', this)">
+            <span>📌 Spatial Board</span>
+            <span class="kbd-hint" id="rail-note-count">4</span>
+          </button>
+          <button class="rail-btn" onclick="switchTab('health', this)">
+            <span>🩺 Ingestion Health</span>
+            <span class="kbd-hint">99.4%</span>
+          </button>
+          <button class="rail-btn" onclick="switchTab('spec', this)">
+            <span>🎨 Design Tokens</span>
+            <span class="kbd-hint">Spec</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="telemetry-pod">
+        <div class="pod-row">
+          <span style="color:var(--text-500)">OCTOPUS STREAM</span>
+          <span class="status-pulse"><span class="pulse-dot"></span>SYNCED</span>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-300);">
+          MPAN ••8419 • Agile/Flex<br>
+          Latest slot: <span id="sync-slot">23 Oct 23:30 UTC</span>
+        </div>
+        <button class="btn-volt" onclick="triggerSync(this)">↻ Fetch New Readings</button>
+      </div>
+    </aside>
+
+    <!-- Main Viewport Stage -->
+    <main class="viewport-stage">
+
+      <!-- TAB 1: TELEMETRY & COST -->
+      <section id="tab-consumptions" class="tab-pane active">
+        <div class="top-bar">
+          <div>
+            <h1 class="stage-title">Consumption & Tariff Telemetry</h1>
+            <div class="stage-sub">UTC Half-Hourly Settlement • Drag any chart interval to trigger Quick-Annotate HUD below</div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <div class="pill-group">
+              <button class="pill-btn active" onclick="setMode('cost', this)">£ GBP Stacked</button>
+              <button class="pill-btn" onclick="setMode('kwh', this)">kWh Raw</button>
+            </div>
+            <div class="pill-group">
+              <button class="pill-btn" onclick="setDays(7, this)">7D</button>
+              <button class="pill-btn active" onclick="setDays(30, this)">30D</button>
+              <button class="pill-btn" onclick="setDays(90, this)">90D</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-head"><span>NET ENERGY</span><span style="color:var(--emerald)">-6.4%</span></div>
+            <div class="kpi-num" id="v-kwh">284.62 <span style="font-size:14px;color:var(--text-500)">kWh</span></div>
+            <div class="kpi-foot">9.48 kWh daily mean</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-head"><span>TOTAL COST (INC VAT)</span><span style="color:var(--volt-bright)">GBP</span></div>
+            <div class="kpi-num" id="v-cost">£82.40</div>
+            <div class="kpi-foot">£64.10 usage • £14.38 standing</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-head"><span>UNIT RATE</span><span>MEAN</span></div>
+            <div class="kpi-num">22.52<span style="font-size:14px;color:var(--text-500)">p/kWh</span></div>
+            <div class="kpi-foot">Excl. 5% domestic VAT</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-head"><span>BASELOAD FLOOR</span><span>02:00-05:00</span></div>
+            <div class="kpi-num">110<span style="font-size:14px;color:var(--text-500)">W</span></div>
+            <div class="kpi-foot">0.055 kWh / 30m bucket</div>
+          </div>
+        </div>
+
+        <!-- Daily Chart -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">
+              <span>Daily Cost & Consumption Stack</span>
+              <span class="kbd-hint" style="color:var(--violet)">3 Pinned Bands</span>
+            </div>
+            <div style="display:flex;gap:16px;font-family:var(--font-mono);font-size:11px;color:var(--text-300);">
+              <span><span style="color:var(--volt-bright)">●</span> Usage (£)</span>
+              <span><span style="color:var(--cyan)">●</span> Standing Charge</span>
+              <span><span style="color:var(--violet)">▊</span> Annotation</span>
+            </div>
+          </div>
+          <svg class="chart-svg" id="dark-daily-svg" viewBox="0 0 880 220"></svg>
+        </div>
+
+        <!-- Half-Hourly Chart -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">
+              <span>Half-Hourly Settlement Profile (48 Buckets/Day)</span>
+            </div>
+            <div class="pill-group">
+              <button class="pill-btn active">72 Hours</button>
+              <button class="pill-btn">7 Days</button>
+            </div>
+          </div>
+          <svg class="chart-svg" id="dark-hh-svg" viewBox="0 0 880 210"></svg>
+        </div>
+      </section>
+
+      <!-- TAB 2: SPATIAL BOARD -->
+      <section id="tab-annotations" class="tab-pane">
+        <div class="top-bar">
+          <div>
+            <h1 class="stage-title">Annotation Canvas // Lab Notebook</h1>
+            <div class="stage-sub">Drag neon-edge cards freely • Every card computes live kWh & GBP from SQLite</div>
+          </div>
+          <button class="hud-save-btn" onclick="addQuickNote('#induction-hob')">+ New Observation (⌘N)</button>
+        </div>
+        <div class="dark-canvas" id="dark-canvas"></div>
+      </section>
+
+      <!-- TAB 3: DATA HEALTH -->
+      <section id="tab-health" class="tab-pane">
+        <div class="top-bar">
+          <div>
+            <h1 class="stage-title">SQLite Ingestion & Slot Completeness</h1>
+            <div class="stage-sub">17,520 half-hourly buckets audited across 365 days</div>
+          </div>
+        </div>
+        <div class="panel">
+          <p style="font-family:var(--font-mono);color:var(--emerald);margin-bottom:12px;">● 99.4% COMPLETE (48/48 SLOTS) • 0 GAPS IN LAST 60 DAYS</p>
+          <div id="dark-heatmap" style="display:grid;grid-template-columns:repeat(52,1fr);gap:3px;"></div>
+        </div>
+      </section>
+
+      <!-- TAB 4: DESIGN SPEC -->
+      <section id="tab-spec" class="tab-pane">
+        <div class="top-bar">
+          <div>
+            <h1 class="stage-title">Option 2 Design Guide: Volt & Slate</h1>
+            <div class="stage-sub">High-contrast dark telemetry UI with instant bottom HUD annotation bar</div>
+          </div>
+        </div>
+        <div class="kpi-grid">
+          <div class="panel">
+            <h4 style="font-family:var(--font-display);margin-bottom:8px;color:var(--volt-bright)">Color System</h4>
+            <p style="font-family:var(--font-mono);font-size:12px;color:var(--text-300)">
+              Canvas: #0B0E14<br>
+              Surface: #121722<br>
+              Volt Primary: #F59E0B<br>
+              Cyan Secondary: #06B6D4<br>
+              Violet Annotation: #A855F7
+            </p>
+          </div>
+          <div class="panel">
+            <h4 style="font-family:var(--font-display);margin-bottom:8px;color:var(--cyan)">Typography</h4>
+            <p style="font-family:var(--font-mono);font-size:12px;color:var(--text-300)">
+              Headers: Space Grotesk<br>
+              UI Body: Inter<br>
+              Numerics: IBM Plex Mono
+            </p>
+          </div>
+          <div class="panel" style="grid-column: span 2;">
+            <h4 style="font-family:var(--font-display);margin-bottom:8px;color:var(--violet)">Interaction Innovation: Floating Quick-Annotate HUD</h4>
+            <p style="color:var(--text-300);font-size:13px;">
+              Instead of opening a multi-field modal every time you brush a chart, brushing immediately populates the persistent glass HUD at the bottom of the screen. One click on a tag chip (like <code>#cooking</code>) or pressing Enter pins the note immediately.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Persistent Floating Quick-Annotate Command Bar -->
+  <div class="quick-hud" id="quick-hud">
+    <span style="color:var(--violet);font-family:var(--font-mono);font-weight:600;">⚡ BRUSHED:</span>
+    <span class="hud-metric" id="hud-readout">Wed 22 Oct 18:00→19:30 • <strong>2.84 kWh</strong> • <strong>£0.68</strong></span>
+    <input class="hud-input" id="hud-comment" placeholder="Type note & press Enter..." value="Wok stir-fry + rice cooker" />
+    <button class="hud-tag-btn" onclick="addQuickNote('cooking')">+ #cooking</button>
+    <button class="hud-tag-btn" onclick="addQuickNote('heating')">+ #heating</button>
+    <button class="hud-save-btn" onclick="addQuickNote('custom')">Pin Note ↵</button>
+  </div>
+
+  <script>
+    let mode = 'cost';
+    const darkNotes = [
+      { id: 1, src: 'HH', period: 'Wed 22 Oct • 18:30→20:00', text: 'Induction wok + oven preheat', kwh: '3.18 kWh', gbp: '£0.76', tag: 'cooking', cls: '', x: 36, y: 36 },
+      { id: 2, src: 'DAILY', period: 'Sun 12 Oct → Tue 14 Oct', text: 'Bristol away trip — baseline load test', kwh: '5.42 kWh', gbp: '£2.64', tag: 'away', cls: 'cyan', x: 320, y: 42 },
+      { id: 3, src: 'HH', period: 'Mon 20 Oct • 04:00→05:30', text: 'Immersion tank scheduled boost', kwh: '4.50 kWh', gbp: '£1.08', tag: 'heating', cls: 'violet', x: 600, y: 36 },
+      { id: 4, src: 'DAILY', period: 'Sat 18 Oct → Sun 19 Oct', text: '3x laundry cycles + dehumidifier', kwh: '24.80 kWh', gbp: '£6.42', tag: 'laundry', cls: 'emerald', x: 180, y: 250 }
+    ];
+
+    function drawDaily() {
+      const svg = document.getElementById('dark-daily-svg');
+      const w = 880, h = 195, padL = 42, padR = 12, padT = 12;
+      const plotW = w - padL - padR;
+      const days = 30;
+      const bw = (plotW / days) - 4;
+      let out = '';
+
+      for (let i = 0; i <= 4; i++) {
+        const y = padT + (h - padT) * (i / 4);
+        out += `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" class="dark-grid"/>`;
+        const lbl = mode === 'cost' ? `£${((4 - i)*1.2).toFixed(1)}` : `${(4 - i)*5}k`;
+        out += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" class="dark-axis">${lbl}</text>`;
+      }
+
+      // Violet annotation bands
+      [6, 19].forEach(d => {
+        const bx = padL + d * (plotW / days) - 2;
+        out += `<rect x="${bx}" y="${padT}" width="${(plotW/days)*2}" height="${h - padT}" class="violet-band"/>`;
+      });
+
+      for (let i = 0; i < days; i++) {
+        const x = padL + i * (plotW / days);
+        const val = (Math.sin(i * 0.7) * 0.35 + 0.65) * (i % 7 >= 5 ? 1.25 : 0.85);
+        if (i % 7 === 0) {
+          out += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${h}" class="dark-monday"/>`;
+          out += `<text x="${x + 3}" y="${h + 15}" class="dark-axis">Oct ${i+1}</text>`;
+        }
+        const sc = 24;
+        const usage = Math.round(val * 120);
+        if (mode === 'cost') {
+          out += `<rect x="${x}" y="${h - sc}" width="${bw}" height="${sc}" fill="var(--cyan)" opacity="0.75" rx="1"/>`;
+          out += `<rect x="${x}" y="${h - sc - usage}" width="${bw}" height="${usage}" fill="var(--volt)" rx="1" onclick="selectDay(${i+1}, ${(val*11).toFixed(2)})"/>`;
+        } else {
+          out += `<rect x="${x}" y="${h - usage - 15}" width="${bw}" height="${usage + 15}" fill="var(--volt-bright)" rx="1" onclick="selectDay(${i+1}, ${(val*11).toFixed(2)})"/>`;
+        }
+      }
+      svg.innerHTML = out;
+    }
+
+    function drawHH() {
+      const svg = document.getElementById('dark-hh-svg');
+      const w = 880, h = 185, padL = 42, padR = 12, padT = 12;
+      const plotW = w - padL - padR;
+      const slots = 96;
+      const bw = (plotW / slots) - 1.5;
+      let out = '';
+
+      for (let i = 0; i <= 3; i++) {
+        const y = padT + (h - padT) * (i / 3);
+        out += `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" class="dark-grid"/>`;
+        out += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" class="dark-axis">${((3-i)*0.6).toFixed(1)}</text>`;
+      }
+
+      const sx = padL + 66 * (plotW / slots);
+      out += `<rect x="${sx}" y="${padT}" width="${(plotW/slots)*5}" height="${h - padT}" class="violet-band"/>`;
+
+      for (let i = 0; i < slots; i++) {
+        const x = padL + i * (plotW / slots);
+        const hr = (i % 48) / 2;
+        let v = 0.15;
+        if (hr >= 18 && hr <= 20) v = 1.45;
+        else if (hr >= 7 && hr <= 8.5) v = 0.72;
+        else if (hr === 4.5) v = 1.1;
+        const bh = Math.round((v / 1.7) * (h - padT));
+        const col = v > 1.0 ? 'var(--volt-bright)' : 'var(--volt)';
+        out += `<rect x="${x}" y="${h - bh}" width="${bw}" height="${bh}" fill="${col}" rx="1"/>`;
+      }
+      svg.innerHTML = out;
+    }
+
+    function renderDarkCanvas() {
+      const c = document.getElementById('dark-canvas');
+      c.innerHTML = '';
+      document.getElementById('rail-note-count').textContent = darkNotes.length;
+      darkNotes.forEach(n => {
+        const el = document.createElement('div');
+        el.className = `neon-sticky ${n.cls}`;
+        el.style.left = n.x + 'px';
+        el.style.top = n.y + 'px';
+        el.innerHTML = `
+          <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10.5px;color:var(--text-500);margin-bottom:6px;">
+            <span>${n.src} // ${n.period}</span>
+            <span>✏️</span>
+          </div>
+          <div style="font-size:14px;font-weight:500;color:var(--text-100);margin-bottom:12px;">${n.text}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border-subtle);padding-top:8px;font-family:var(--font-mono);font-size:12px;">
+            <span style="color:var(--volt-bright)">${n.kwh} • ${n.gbp}</span>
+            <span class="kbd-hint">#${n.tag}</span>
+          </div>
+        `;
+        let sx = 0, sy = 0, ox = 0, oy = 0;
+        el.onmousedown = (e) => {
+          ox = n.x; oy = n.y; sx = e.clientX; sy = e.clientY;
+          document.onmousemove = (ev) => {
+            n.x = ox + (ev.clientX - sx);
+            n.y = oy + (ev.clientY - sy);
+            el.style.left = n.x + 'px';
+            el.style.top = n.y + 'px';
+          };
+          document.onmouseup = () => { document.onmousemove = null; };
+        };
+        c.appendChild(el);
+      });
+    }
+
+    function selectDay(day, kwh) {
+      document.getElementById('hud-readout').innerHTML = `Oct ${day} (Daily) • <strong>${kwh} kWh</strong> • <strong>£${(kwh * 0.24).toFixed(2)}</strong>`;
+    }
+
+    function addQuickNote(tag) {
+      const comment = document.getElementById('hud-comment').value || 'Pinned telemetry spike';
+      darkNotes.push({
+        id: Date.now(),
+        src: 'HH',
+        period: 'Wed 22 Oct • 18:00→19:30',
+        text: comment,
+        kwh: '2.84 kWh',
+        gbp: '£0.68',
+        tag: tag.replace('#', ''),
+        cls: 'violet',
+        x: 80 + (darkNotes.length * 35) % 400,
+        y: 120 + (darkNotes.length * 30) % 220
+      });
+      renderDarkCanvas();
+      const btn = document.querySelector('.hud-save-btn');
+      btn.textContent = '✓ Pinned to Board!';
+      setTimeout(() => { btn.textContent = 'Pin Note ↵'; }, 1200);
+    }
+
+    function switchTab(id, btn) {
+      document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-' + id).classList.add('active');
+    }
+
+    function setMode(m, btn) {
+      mode = m;
+      btn.parentElement.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      drawDaily();
+    }
+
+    function setDays(d, btn) {
+      btn.parentElement.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const factor = d / 30;
+      document.getElementById('v-kwh').innerHTML = `${(284.62 * factor).toFixed(1)} <span style="font-size:14px;color:var(--text-500)">kWh</span>`;
+      document.getElementById('v-cost').textContent = `£${(82.40 * factor).toFixed(2)}`;
+      drawDaily();
+    }
+
+    function triggerSync(btn) {
+      btn.textContent = '↻ Fetching Octopus API...';
+      setTimeout(() => {
+        btn.textContent = '✓ Up to Date (48/48)';
+        document.getElementById('sync-slot').textContent = 'Just now (UTC)';
+      }, 900);
+    }
+
+    const hm = document.getElementById('dark-heatmap');
+    for (let i = 0; i < 52 * 7; i++) {
+      const d = document.createElement('div');
+      d.style.aspectRatio = '1';
+      d.style.borderRadius = '2px';
+      d.style.background = i === 140 ? 'var(--volt)' : 'var(--emerald)';
+      d.style.opacity = (0.55 + (i % 5) * 0.1).toString();
+      hm.appendChild(d);
+    }
+
+    drawDaily();
+    drawHH();
+    renderDarkCanvas();
+  </script>
+</body>
+</html>

@@ -8,6 +8,7 @@ from dash_app.callbacks import (  # noqa: F401
     boot,
     canvas,
     charts,
+    data_health,
     date_filters,
     router,
     selection,

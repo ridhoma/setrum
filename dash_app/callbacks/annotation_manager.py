@@ -129,8 +129,10 @@ def _build_period(source, from_date, from_hour, from_minute, to_date, to_hour, t
     Output("ann-mgr-comment",        "value"),
     Output("ann-mgr-error",          "children"),
     Output(stores.ANNOTATIONS_VERSION, "data", allow_duplicate=True),
-    Input("ann-mgr-new-btn",                          "n_clicks"),
-    Input({"type": "ann-edit-btn", "id": ALL},        "n_clicks"),
+    Input("ann-mgr-new-btn",                          "n_clicks", allow_optional=True),
+    Input("rail-new-btn",                             "n_clicks", allow_optional=True),
+    Input({"type": "ann-edit-btn", "id": ALL},        "n_clicks", allow_optional=True),
+    Input({"type": "rail-edit-btn", "id": ALL},       "n_clicks", allow_optional=True),
     Input("ann-mgr-cancel-btn",                       "n_clicks"),
     Input("ann-mgr-save-btn",                         "n_clicks"),
     # Charts only exist on the Consumptions tab; the manager modal lives at
@@ -155,7 +157,9 @@ def _build_period(source, from_date, from_hour, from_minute, to_date, to_hour, t
 )
 def manage_modal(
     _new_n,
+    _rail_new_n,
     _edit_clicks,
+    _rail_edit_clicks,
     _cancel_n,
     _save_n,
     hh_click,
@@ -172,6 +176,24 @@ def manage_modal(
 
     # ── + New ────────────────────────────────────────────────────────────
     if triggered == "ann-mgr-new-btn":
+        if not _new_n:
+            return tuple(no_update for _ in range(14))
+        return (
+            True,                                                        # is_open
+            {"mode": "create", "annotation_id": None},
+            "New annotation",
+            "half-hourly",
+            None, "0", "0",
+            None, "0", "0",
+            [],
+            "",
+            "",
+            no_update,
+        )
+
+    if triggered == "rail-new-btn":
+        if not _rail_new_n:
+            return tuple(no_update for _ in range(14))
         return (
             True,                                                        # is_open
             {"mode": "create", "annotation_id": None},
@@ -186,10 +208,11 @@ def manage_modal(
         )
 
     # ── Edit via sticky note ✏️ icon (pattern-matched) ────────────────────
-    if isinstance(triggered, dict) and triggered.get("type") == "ann-edit-btn":
+    if isinstance(triggered, dict) and triggered.get("type") in ("ann-edit-btn", "rail-edit-btn"):
         # Pattern callbacks fire when new sticky-note buttons mount; require
         # an actual click somewhere before opening.
-        if not any(c for c in (_edit_clicks or []) if c):
+        clicks = _edit_clicks if triggered.get("type") == "ann-edit-btn" else _rail_edit_clicks
+        if not any(c for c in (clicks or []) if c):
             return _empty_form_outputs()
         return _open_for_edit(triggered["id"])
 
@@ -299,14 +322,15 @@ def populate_mgr_tag_options(_av, _dv, search_value, current_value):
     Output("ann-delete-confirm-modal",  "is_open"),
     Output("ann-pending-delete-id",     "data"),
     Output(stores.ANNOTATIONS_VERSION,  "data", allow_duplicate=True),
-    Input({"type": "ann-delete-btn", "id": ALL}, "n_clicks"),
+    Input({"type": "ann-delete-btn", "id": ALL}, "n_clicks", allow_optional=True),
+    Input({"type": "rail-delete-btn", "id": ALL}, "n_clicks", allow_optional=True),
     Input("ann-delete-confirm-btn",     "n_clicks"),
     Input("ann-delete-cancel-btn",      "n_clicks"),
     State("ann-pending-delete-id",      "data"),
     State(stores.ANNOTATIONS_VERSION,   "data"),
     prevent_initial_call=True,
 )
-def manage_delete_modal(delete_clicks, _confirm_n, _cancel_n, pending_id, current_version):
+def manage_delete_modal(delete_clicks, rail_delete_clicks, _confirm_n, _cancel_n, pending_id, current_version):
     """Single-owner state machine: 🗑 → open confirm → confirm/cancel → close.
 
     Deletion happens only on confirm; ANNOTATIONS_VERSION bumps then so the
@@ -315,8 +339,9 @@ def manage_delete_modal(delete_clicks, _confirm_n, _cancel_n, pending_id, curren
     triggered = ctx.triggered_id
 
     # 🗑 on a sticky note → open modal, remember which annotation
-    if isinstance(triggered, dict) and triggered.get("type") == "ann-delete-btn":
-        if not any(c for c in (delete_clicks or []) if c):
+    if isinstance(triggered, dict) and triggered.get("type") in ("ann-delete-btn", "rail-delete-btn"):
+        clicks = delete_clicks if triggered.get("type") == "ann-delete-btn" else rail_delete_clicks
+        if not any(c for c in (clicks or []) if c):
             return no_update, no_update, no_update
         return True, int(triggered["id"]), no_update
 

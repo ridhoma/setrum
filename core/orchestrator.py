@@ -30,15 +30,16 @@ def auto_catch_up(progress_cb: Optional[ProgressCb] = None):
         update_job_status(SYNC_JOB_NAME, 'RUNNING')
         now = datetime.now(timezone.utc).isoformat()
 
-        _safe_progress(progress_cb, "accounts", 0, 1)
+        _safe_progress(progress_cb, "accounts", 1, 4)
         fetch_accounts()
-        _safe_progress(progress_cb, "accounts", 1, 1)
 
         active_meters = get_active_meters()
         active_tariffs = get_active_tariffs()
 
         total_fetches = len(active_meters) + len(active_tariffs)
-        _safe_progress(progress_cb, "fetch", 0, total_fetches)
+        total_steps = max(2 + total_fetches, 3)
+        completed_steps = 1
+        _safe_progress(progress_cb, "meters & tariffs", completed_steps, total_steps)
 
         print("🚀 Formulating Async Pipeline for all delta data synchronization...")
 
@@ -57,18 +58,17 @@ def auto_catch_up(progress_cb: Optional[ProgressCb] = None):
                 p_start = p_state.get('last_successful_timestamp') or (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
                 futures.append(executor.submit(fetch_tariff_pricing, p_start, now, tariff))
 
-            done = 0
             for future in as_completed(futures):
                 try:
                     future.result()
                 except Exception as e:
                     print(f"❌ Sub-thread execution failed: {e}")
-                done += 1
-                _safe_progress(progress_cb, "fetch", done, total_fetches)
+                completed_steps += 1
+                _safe_progress(progress_cb, "meters & tariffs", completed_steps, total_steps)
 
-            _safe_progress(progress_cb, "transform", 0, 1)
+            _safe_progress(progress_cb, "analytics tables", total_steps - 1, total_steps)
             transform_analytics()
-            _safe_progress(progress_cb, "transform", 1, 1)
+            _safe_progress(progress_cb, "complete", total_steps, total_steps)
 
         update_job_status(SYNC_JOB_NAME, 'COMPLETE')
         print("✅ Sync complete.")
@@ -77,32 +77,74 @@ def auto_catch_up(progress_cb: Optional[ProgressCb] = None):
         print(f"❌ Sync failed: {e}")
         raise
 
-def manual_backfill(account_id, start_date, end_date):
-    """Explicit UI-triggered backward history block sync for a selected property."""
+def chunked_backfill(
+    account_id: int,
+    start_date: str,
+    end_date: str,
+    chunk_days: int = 14,
+    progress_cb: Optional[ProgressCb] = None,
+):
+    """Backfills consumption and tariff history in discrete, manageable chunks.
+
+    Divides [start_date, end_date] into windows of `chunk_days` days.
+    For each chunk:
+      1. Fetches consumption for all meters of the account.
+      2. Fetches tariff rates for all agreements of the account.
+      3. Immediately triggers transform_analytics() so data is committed & available in the mart.
+      4. Invokes progress_cb(step_label, completed_chunks, total_chunks).
+    """
+    import pandas as pd
     selected_meters = get_meters_by_account(account_id)
     selected_tariffs = get_tariffs_by_account(account_id)
-    
-    print(f"🚀 Formulating Async Pipeline for manual backfill of account {account_id}...")
-    
-    futures = []
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        if not selected_meters:
-            print(f"⚠️ No meters found for account_id {account_id}")
-            
-        for mpan, serial in selected_meters:
-            futures.append(executor.submit(fetch_consumptions, start_date, end_date, mpan, serial))
-            
-        for tariff in selected_tariffs:
-            futures.append(executor.submit(fetch_tariff_pricing, start_date, end_date, tariff))
-            
-        for future in as_completed(futures):
-            try:
-                future.result()
-            except Exception as e:
-                print(f"❌ Sub-thread execution failed: {e}")
 
-        # Post-Processing: ELT Transformation
+    dt_start = pd.to_datetime(start_date, utc=True)
+    dt_end = pd.to_datetime(end_date, utc=True)
+    if dt_start > dt_end:
+        dt_start, dt_end = dt_end, dt_start
+
+    # Build windows
+    windows = []
+    curr = dt_start
+    while curr < dt_end:
+        nxt = min(curr + timedelta(days=chunk_days), dt_end)
+        windows.append((curr.strftime("%Y-%m-%dT%H:%M:%SZ"), nxt.strftime("%Y-%m-%dT%H:%M:%SZ")))
+        curr = nxt
+
+    total_chunks = len(windows)
+    if total_chunks == 0:
+        return
+
+    print(f"🚀 Formulating Chunked Backfill ({total_chunks} chunks of ~{chunk_days}d) for account {account_id}...")
+    _safe_progress(progress_cb, "Starting backfill...", 0, total_chunks)
+
+    for idx, (w_start, w_end) in enumerate(windows, 1):
+        step_label = f"Chunk {idx}/{total_chunks}: {w_start[:10]} → {w_end[:10]}"
+        print(f"📦 [{step_label}] Fetching data...")
+
+        futures = []
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            for mpan, serial in selected_meters:
+                futures.append(executor.submit(fetch_consumptions, w_start, w_end, mpan, serial))
+
+            for tariff in selected_tariffs:
+                futures.append(executor.submit(fetch_tariff_pricing, w_start, w_end, tariff))
+
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as e:
+                    print(f"⚠️ Backfill sub-task failed for {w_start}..{w_end}: {e}")
+
+        # Materialize analytics after each chunk so newly fetched data lands immediately
         transform_analytics()
+        _safe_progress(progress_cb, step_label, idx, total_chunks)
+
+    print(f"✅ Chunked Backfill complete for account {account_id}.")
+
+
+def manual_backfill(account_id, start_date, end_date):
+    """Explicit UI-triggered backward history block sync for a selected property."""
+    return chunked_backfill(account_id, start_date, end_date, chunk_days=14)
 
 def transform_analytics():
     """Drops and rebuilds materialized native SQL presentation tables for Streamlit."""

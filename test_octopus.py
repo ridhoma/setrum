@@ -15,16 +15,18 @@ import sys
 import requests
 from dotenv import load_dotenv
 
+from core.credentials import get_credential
+
 load_dotenv()
 
-api_key = os.getenv("OCTOPUS_API_KEY")
-mpan = os.getenv("OCTOPUS_MPAN")
-serial = os.getenv("OCTOPUS_METER_SERIAL")
+api_key = get_credential("OCTOPUS_API_KEY")
+mpan = get_credential("OCTOPUS_MPAN")
+serial = get_credential("OCTOPUS_METER_SERIAL")
 
 if not api_key or not mpan or not serial:
     sys.exit(
-        "Missing env vars. Set OCTOPUS_API_KEY, OCTOPUS_MPAN, "
-        "OCTOPUS_METER_SERIAL in your .env."
+        "Missing credentials. Set OCTOPUS_API_KEY, OCTOPUS_MPAN, "
+        "OCTOPUS_METER_SERIAL in your .env or macOS Keychain."
     )
 
 period_from = os.getenv("OCTOPUS_PROBE_FROM", "2026-02-01T00:00:00Z")

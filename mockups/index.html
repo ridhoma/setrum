@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setrum Redesign — 4 Interactive Design Style Mockups</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #111318;
+      --surface: #1A1D24;
+      --border: #2B303C;
+      --text: #F3F4F6;
+      --muted: #9CA3AF;
+      --accent: #F59E0B;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      line-height: 1.5;
+      padding: 36px 40px 80px;
+    }
+    .header {
+      max-width: 1360px;
+      margin: 0 auto 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .header p {
+      color: var(--muted);
+      font-size: 14.5px;
+      margin-top: 6px;
+    }
+    .grid {
+      max-width: 1360px;
+      margin: 0 auto 36px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: border-color 160ms, transform 160ms;
+    }
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .card-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+    .card h2 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .card-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .swatches {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .swatch {
+      height: 26px;
+      flex: 1;
+      border-radius: 5px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .meta-list {
+      font-size: 12px;
+      color: #D1D5DB;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .meta-list strong {
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      flex: 1;
+      text-align: center;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: #242936;
+      color: #fff;
+    }
+    .btn.primary {
+      background: var(--accent);
+      color: #111318;
+      border-color: var(--accent);
+    }
+    .preview-shell {
+      max-width: 1360px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .preview-bar {
+      padding: 12px 20px;
+      background: #0D0F14;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+    iframe {
+      width: 100%;
+      height: 780px;
+      border: none;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <h1>⚡ Setrum — Redesign Style & Architecture Explorer</h1>
+      <p>Review 4 distinct visual & interaction directions. Click <strong>Preview Below</strong> to test interactively or <strong>Open Full Tab</strong>.</p>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">
+      4 Standalone Interactive HTML Mockups
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Option 1 -->
+    <div class="card">
+      <div>
+        <div class="card-num">Option 01 • Warm Editorial</div>
+        <h2>Editorial Field Notes</h2>
+        <p class="card-desc">Inspired by Financial Times, Monocle & lab field journals. Warm archival paper with terracotta data series and a collapsible right Field-Notes Rail.</p>
+        <div class="swatches">
+          <div class="swatch" style="background:#FAF6F0" title="#FAF6F0 Paper"></div>
+          <div class="swatch" style="background:#181512" title="#181512 Espresso Ink"></div>
+          <div class="swatch" style="background:#D95D39" title="#D95D39 Terracotta"></div>
+          <div class="swatch" style="background:#16697A" title="#16697A Petrol Teal"></div>
+          <div class="swatch" style="background:#F4D35E" title="#F4D35E Ochre Tape"></div>
+        </div>
+        <div class="meta-list">
+          <div><strong>FONTS:</strong> Fraunces + Plus Jakarta Sans + JetBrains Mono</div>
+          <div><strong>LAYOUT:</strong> Editorial Masthead + Split Chart/Notebook Rail</div>
+          <div><strong>INTERACTION:</strong> Hovering any sticky note in the side rail pulses its yellow band on the chart.</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="loadPreview('option-1-editorial-field-notes.html', 'Option 1: Editorial Field Notes')">Preview Below</button>
+        <a class="btn" href="option-1-editorial-field-notes.html" target="_blank">Open Tab ↗</a>
+      </div>
+    </div>
+
+    <!-- Option 2 -->
+    <div class="card">
+      <div>
+        <div class="card-num">Option 02 • Dark Telemetry</div>
+        <h2>Volt & Slate OS</h2>
+        <p class="card-desc">Inspired by Linear, Raycast & high-precision telemetry dashboards. Obsidian carbon canvas with electric amber/volt and cyan accents.</p>
+        <div class="swatches">
+          <div class="swatch" style="background:#0B0E14" title="#0B0E14 Obsidian"></div>
+          <div class="swatch" style="background:#181F2E" title="#181F2E Graphite"></div>
+          <div class="swatch" style="background:#F59E0B" title="#F59E0B Electric Volt"></div>
+          <div class="swatch" style="background:#06B6D4" title="#06B6D4 Cyan"></div>
+          <div class="swatch" style="background:#A855F7" title="#A855F7 Violet"></div>
+        </div>
+        <div class="meta-list">
+          <div><strong>FONTS:</strong> Space Grotesk + Inter + IBM Plex Mono</div>
+          <div><strong>LAYOUT:</strong> Left Command Rail + Telemetry Stage + Bottom HUD</div>
+          <div><strong>INTERACTION:</strong> Persistent bottom Quick-Annotate HUD bar for 1-click tag pinning without modals.</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="loadPreview('option-2-volt-slate-dark.html', 'Option 2: Volt & Slate OS')">Preview Below</button>
+        <a class="btn" href="option-2-volt-slate-dark.html" target="_blank">Open Tab ↗</a>
+      </div>
+    </div>
+
+    <!-- Option 3 -->
+    <div class="card">
+      <div>
+        <div class="card-num">Option 03 • Industrial Meter</div>
+        <h2>Swiss Utility Brutalism</h2>
+        <p class="card-desc">Inspired by Dieter Rams / Braun instruments & architectural blueprints. Exposed 1.5px black grid hairlines, zero drop shadows, mechanical buttons.</p>
+        <div class="swatches">
+          <div class="swatch" style="background:#F2F1EC" title="#F2F1EC Alabaster Chassis"></div>
+          <div class="swatch" style="background:#141413" title="#141413 Carbon Rule"></div>
+          <div class="swatch" style="background:#FF4F00" title="#FF4F00 Signal Orange"></div>
+          <div class="swatch" style="background:#0050C8" title="#0050C8 Cobalt Blue"></div>
+          <div class="swatch" style="background:#FFE600" title="#FFE600 Acid Yellow"></div>
+        </div>
+        <div class="meta-list">
+          <div><strong>FONTS:</strong> Archivo + DM Sans + Space Mono</div>
+          <div><strong>LAYOUT:</strong> Exposed Bento Grid (Charts Left + Pegboard Right)</div>
+          <div><strong>INTERACTION:</strong> Single-screen Workbench where stamped Specimen Cards live right next to the charts.</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="loadPreview('option-3-swiss-industrial.html', 'Option 3: Swiss Industrial Meter')">Preview Below</button>
+        <a class="btn" href="option-3-swiss-industrial.html" target="_blank">Open Tab ↗</a>
+      </div>
+    </div>
+
+    <!-- Option 4 -->
+    <div class="card">
+      <div>
+        <div class="card-num">Option 04 • Calm Consumer</div>
+        <h2>Nordic Daylight Home</h2>
+        <p class="card-desc">Inspired by Apple Health & modern smart-home apps. Frosted glass pill header, rounded 22px cards, calm botanical teal & solar coral peak bars.</p>
+        <div class="swatches">
+          <div class="swatch" style="background:#F4F7F9" title="#F4F7F9 Daylight"></div>
+          <div class="swatch" style="background:#FFFFFF" title="#FFFFFF Pure Card"></div>
+          <div class="swatch" style="background:#0D9488" title="#0D9488 Nordic Teal"></div>
+          <div class="swatch" style="background:#F97316" title="#F97316 Solar Coral"></div>
+          <div class="swatch" style="background:#6366F1" title="#6366F1 Indigo"></div>
+        </div>
+        <div class="meta-list">
+          <div><strong>FONTS:</strong> Outfit + Plus Jakarta Sans + JetBrains Mono</div>
+          <div><strong>LAYOUT:</strong> Floating Glass Pill Nav + Habit Story Feed</div>
+          <div><strong>INTERACTION:</strong> Magnetic Habit Tag Pills (#cooking, #heating) filter sticky notes and chart bands together.</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="loadPreview('option-4-nordic-daylight.html', 'Option 4: Nordic Daylight Home')">Preview Below</button>
+        <a class="btn" href="option-4-nordic-daylight.html" target="_blank">Open Tab ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-shell">
+    <div class="preview-bar">
+      <span id="preview-label">LIVE INTERACTIVE PREVIEW — Option 1: Editorial Field Notes</span>
+      <a id="preview-ext" href="option-1-editorial-field-notes.html" target="_blank" style="color:var(--accent);text-decoration:none;">Open Fullscreen in Browser ↗</a>
+    </div>
+    <iframe id="preview-frame" src="option-1-editorial-field-notes.html"></iframe>
+  </div>
+
+  <script>
+    function loadPreview(url, title) {
+      document.getElementById('preview-frame').src = url;
+      document.getElementById('preview-label').textContent = 'LIVE INTERACTIVE PREVIEW — ' + title;
+      document.getElementById('preview-ext').href = url;
+    }
+  </script>
+</body>
+</html>

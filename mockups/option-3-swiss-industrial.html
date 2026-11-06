@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setrum Redesign — Option 3: Swiss Industrial Meter (Braun / Rams)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-chassis: #F2F1EC;
+      --bg-panel: #FAF9F5;
+      --bg-recessed: #E5E3DC;
+      --ink-black: #141413;
+      --ink-mid: #575652;
+      --ink-muted: #8C8A84;
+
+      /* Braun / Swiss Signal Colors */
+      --signal-orange: #FF4F00;
+      --cobalt-blue: #0050C8;
+      --acid-yellow: #FFE600;
+      --forest-green: #007A4D;
+
+      --border-rule: 1.5px solid #141413;
+      --border-fine: 1px solid #C9C7BE;
+
+      --font-display: 'Archivo', sans-serif;
+      --font-sans: 'DM Sans', sans-serif;
+      --font-mono: 'Space Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-chassis);
+      color: var(--ink-black);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.45;
+      min-height: 100vh;
+    }
+
+    /* Top Meta Bar */
+    .mockup-meta-bar {
+      background: var(--ink-black);
+      color: var(--bg-chassis);
+      padding: 8px 24px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .mockup-meta-bar a {
+      color: var(--acid-yellow);
+      text-decoration: none;
+      font-family: var(--font-mono);
+    }
+
+    /* ── Exposed Swiss Structural Grid ───────────────────────────────── */
+    .swiss-frame {
+      max-width: 1440px;
+      margin: 0 auto;
+      border-left: var(--border-rule);
+      border-right: var(--border-rule);
+      border-bottom: var(--border-rule);
+      background: var(--bg-panel);
+    }
+
+    /* Hardware Header Strip */
+    .chassis-header {
+      display: grid;
+      grid-template-columns: 280px 1fr 340px;
+      border-bottom: var(--border-rule);
+      background: var(--bg-chassis);
+    }
+    .chassis-cell {
+      padding: 16px 20px;
+      border-right: var(--border-rule);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chassis-cell:last-child { border-right: none; }
+
+    .braun-logo {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .orange-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--signal-orange);
+      border: 1.5px solid var(--ink-black);
+    }
+
+    /* Mechanical Push-Buttons */
+    .mech-tabs {
+      display: flex;
+      gap: 8px;
+    }
+    .mech-btn {
+      background: var(--bg-panel);
+      color: var(--ink-black);
+      border: var(--border-rule);
+      padding: 6px 14px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--ink-black);
+      transition: transform 80ms, box-shadow 80ms;
+    }
+    .mech-btn:active, .mech-btn.active {
+      background: var(--ink-black);
+      color: var(--bg-panel);
+      transform: translate(2px, 2px);
+      box-shadow: 0 0 0 var(--ink-black);
+    }
+    .mech-btn.orange-cta {
+      background: var(--signal-orange);
+      color: #fff;
+    }
+
+    /* KPI 4-Column Architectural Strip */
+    .swiss-kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: var(--border-rule);
+    }
+    .swiss-kpi {
+      padding: 18px 22px;
+      border-right: var(--border-rule);
+      background: var(--bg-panel);
+    }
+    .swiss-kpi:last-child { border-right: none; }
+    .index-code {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--ink-mid);
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .swiss-big-num {
+      font-family: var(--font-display);
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .swiss-unit {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--ink-mid);
+    }
+
+    /* ── Bento Split: Left Telemetry Stack + Right Pegboard ──────────── */
+    .bento-body {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+    }
+    .telemetry-col {
+      border-right: var(--border-rule);
+    }
+    .bento-section {
+      padding: 20px 24px;
+      border-bottom: var(--border-rule);
+    }
+    .bento-section:last-child { border-bottom: none; }
+
+    .section-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: var(--border-fine);
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.01em;
+    }
+
+    /* Specimen Pegboard (Annotations) */
+    .pegboard-col {
+      background-color: var(--bg-recessed);
+      background-image: radial-gradient(var(--ink-black) 1px, transparent 1px);
+      background-size: 16px 16px;
+      padding: 20px;
+      position: relative;
+      min-height: 620px;
+    }
+    .specimen-card {
+      background: var(--bg-panel);
+      border: var(--border-rule);
+      box-shadow: 4px 4px 0 var(--ink-black);
+      padding: 14px;
+      margin-bottom: 16px;
+      cursor: grab;
+      transition: transform 100ms;
+    }
+    .specimen-card:hover {
+      background: #FFFDF0;
+    }
+    .specimen-card.highlighted {
+      background: var(--acid-yellow);
+    }
+    .spec-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--ink-black);
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .spec-stamp {
+      background: var(--acid-yellow);
+      border: 1px solid var(--ink-black);
+      padding: 1px 6px;
+    }
+    .spec-comment {
+      font-family: var(--font-sans);
+      font-size: 14.5px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .spec-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: var(--bg-chassis);
+      padding: 6px 8px;
+      border: 1px solid var(--ink-black);
+    }
+
+    /* Mechanical Selection Readout Banner */
+    .mech-readout {
+      background: var(--acid-yellow);
+      border: var(--border-rule);
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: 220px;
+      display: block;
+    }
+    .swiss-grid { stroke: #D5D3C8; stroke-width: 1; }
+    .swiss-axis { font-family: var(--font-mono); font-size: 10px; fill: var(--ink-mid); }
+    .acid-band {
+      fill: rgba(255, 230, 0, 0.38);
+      stroke: var(--ink-black);
+      stroke-width: 1.5;
+      stroke-dasharray: 4 2;
+    }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="mockup-meta-bar">
+    <div>
+      <strong>DESIGN OPTION 03 / 04:</strong> Swiss Industrial Meter (Braun / Dieter Rams Aesthetic, Exposed 1.5px Grid, Stamped Specimen Cards)
+    </div>
+    <div style="display:flex; gap:16px;">
+      <a href="index.html">← All 4 Design Options</a>
+      <a href="option-4-nordic-daylight.html">Next: Option 4 (Nordic Daylight) →</a>
+    </div>
+  </div>
+
+  <div class="swiss-frame">
+    <!-- Hardware Top Bar -->
+    <header class="chassis-header">
+      <div class="chassis-cell">
+        <div class="braun-logo">
+          <span class="orange-dot"></span>
+          <span>SETRUM // M-01</span>
+        </div>
+        <span style="font-family:var(--font-mono);font-size:11px;">UK-GRID</span>
+      </div>
+
+      <div class="chassis-cell">
+        <div class="mech-tabs">
+          <button class="mech-btn active" onclick="showPane('workbench', this)">01. WORKBENCH (SPLIT)</button>
+          <button class="mech-btn" onclick="showPane('health', this)">02. TELEMETRY AUDIT</button>
+          <button class="mech-btn" onclick="showPane('spec', this)">03. DESIGN SPEC</button>
+        </div>
+        <div class="mech-tabs">
+          <button class="mech-btn active" id="btn-gbp" onclick="toggleUnit('cost')">£ GBP</button>
+          <button class="mech-btn" id="btn-kwh" onclick="toggleUnit('kwh')">KWH</button>
+        </div>
+      </div>
+
+      <div class="chassis-cell">
+        <div style="font-family:var(--font-mono);font-size:11px;">
+          <div>STATUS: <strong style="color:var(--forest-green)">● ONLINE (48/48)</strong></div>
+          <div>SYNC: 23 OCT 23:30 UTC</div>
+        </div>
+        <button class="mech-btn orange-cta" onclick="this.textContent='SYNCED ✓'">SYNC</button>
+      </div>
+    </header>
+
+    <!-- PANE 1: UNIFIED WORKBENCH -->
+    <div id="pane-workbench" class="tab-pane active">
+      <!-- 4 KPI Cells -->
+      <section class="swiss-kpi-row">
+        <div class="swiss-kpi">
+          <div class="index-code"><span>[01] CONSUMPTION</span><span>30 DAYS</span></div>
+          <div class="swiss-big-num">284.6 <span class="swiss-unit">kWh</span></div>
+        </div>
+        <div class="swiss-kpi">
+          <div class="index-code"><span>[02] GROSS COST</span><span>INC 5% VAT</span></div>
+          <div class="swiss-big-num" style="color:var(--signal-orange)">£82.40</div>
+        </div>
+        <div class="swiss-kpi">
+          <div class="index-code"><span>[03] TARIFF MEAN</span><span>OCTOPUS FLEX</span></div>
+          <div class="swiss-big-num">22.5 <span class="swiss-unit">p/kWh</span></div>
+        </div>
+        <div class="swiss-kpi">
+          <div class="index-code"><span>[04] STANDING FEE</span><span>FIXED DAILY</span></div>
+          <div class="swiss-big-num">47.9 <span class="swiss-unit">p/day</span></div>
+        </div>
+      </section>
+
+      <!-- Bento Body: Left Charts + Right Specimen Pegboard -->
+      <div class="bento-body">
+        <div class="telemetry-col">
+          <!-- Daily Chart Section -->
+          <div class="bento-section">
+            <div class="section-bar">
+              <span class="section-title">A. Daily Cost & Consumption Matrix</span>
+              <span style="font-family:var(--font-mono);font-size:11px;">■ ORANGE: USAGE &nbsp; ■ COBALT: STANDING</span>
+            </div>
+
+            <div class="mech-readout">
+              <span id="swiss-readout">SELECTION [18 OCT – 19 OCT] // 24.80 KWH // £6.42</span>
+              <button class="mech-btn" style="padding:3px 10px;" onclick="stampNewCard()">+ STAMP SPECIMEN</button>
+            </div>
+
+            <svg class="chart-svg" id="swiss-daily-svg" viewBox="0 0 760 210"></svg>
+          </div>
+
+          <!-- Half-Hourly Chart Section -->
+          <div class="bento-section">
+            <div class="section-bar">
+              <span class="section-title">B. Half-Hourly Load Profile (30-Min Buckets)</span>
+              <span style="font-family:var(--font-mono);font-size:11px;">RESOLUTION: 48 SLOTS/24H</span>
+            </div>
+            <svg class="chart-svg" id="swiss-hh-svg" viewBox="0 0 760 200"></svg>
+          </div>
+        </div>
+
+        <!-- Right Specimen Pegboard -->
+        <aside class="pegboard-col">
+          <div class="section-bar" style="background:var(--bg-panel);padding:10px 14px;border:var(--border-rule);box-shadow:3px 3px 0 var(--ink-black);">
+            <span class="section-title">C. Pinned Specimen Log</span>
+            <button class="mech-btn orange-cta" style="padding:4px 10px;" onclick="stampNewCard()">+ NEW</button>
+          </div>
+          <div id="specimen-list"></div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- PANE 2: DATA HEALTH -->
+    <div id="pane-health" class="tab-pane">
+      <div class="bento-section">
+        <div class="section-bar">
+          <span class="section-title">SQLite Telemetry Matrix — 365 Day Audit</span>
+          <span style="font-family:var(--font-mono);font-size:12px;">17,520 / 17,520 SLOTS VERIFIED</span>
+        </div>
+        <div id="swiss-heatmap" style="display:grid;grid-template-columns:repeat(52,1fr);gap:3px;padding:12px 0;"></div>
+      </div>
+    </div>
+
+    <!-- PANE 3: DESIGN SPEC -->
+    <div id="pane-spec" class="tab-pane">
+      <div class="swiss-kpi-row">
+        <div class="swiss-kpi">
+          <div class="index-code"><span>PALETTE // 01</span></div>
+          <div style="height:40px;background:#FF4F00;border:var(--border-rule);margin-bottom:8px;"></div>
+          <strong>Signal Orange (#FF4F00)</strong>
+          <p style="font-size:12px;color:var(--ink-mid);">Primary energy consumption series & hardware CTA buttons.</p>
+        </div>
+        <div class="swiss-kpi">
+          <div class="index-code"><span>PALETTE // 02</span></div>
+          <div style="height:40px;background:#0050C8;border:var(--border-rule);margin-bottom:8px;"></div>
+          <strong>Cobalt Blue (#0050C8)</strong>
+          <p style="font-size:12px;color:var(--ink-mid);">Fixed standing charge series & secondary metrics.</p>
+        </div>
+        <div class="swiss-kpi">
+          <div class="index-code"><span>PALETTE // 03</span></div>
+          <div style="height:40px;background:#FFE600;border:var(--border-rule);margin-bottom:8px;"></div>
+          <strong>Acid Yellow (#FFE600)</strong>
+          <p style="font-size:12px;color:var(--ink-mid);">High-visibility annotation bands & stamped specimen tags.</p>
+        </div>
+        <div class="swiss-kpi">
+          <div class="index-code"><span>ARCHITECTURE</span></div>
+          <strong>Zero-Margin Bento Grid</strong>
+          <p style="font-size:12px;color:var(--ink-mid);margin-top:6px;">Replaces floating drop-shadow cards with exposed 1.5px solid black hairlines and mechanical tactile push-buttons.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let swissUnit = 'cost';
+    const specimens = [
+      { code: 'SPEC-01', src: 'HH', period: 'FRI 17 OCT // 18:30–20:00', note: 'Induction hob wok burner + extractor hood test', kwh: '3.18 kWh', gbp: '£0.76', tag: 'COOKING' },
+      { code: 'SPEC-02', src: 'DAILY', period: 'SUN 12 OCT – TUE 14 OCT', note: 'House unoccupied (Bristol trip) — pure phantom load', kwh: '5.42 kWh', gbp: '£2.64', tag: 'BASELINE' },
+      { code: 'SPEC-03', src: 'HH', period: 'MON 20 OCT // 04:00–05:30', note: 'Immersion water cylinder scheduled legionella cycle', kwh: '4.50 kWh', gbp: '£1.08', tag: 'HEATING' },
+      { code: 'SPEC-04', src: 'DAILY', period: 'SAT 18 OCT – SUN 19 OCT', note: 'Weekend laundry marathon (3x wash + condenser dryer)', kwh: '24.80 kWh', gbp: '£6.42', tag: 'LAUNDRY' }
+    ];
+
+    function renderSwissCharts() {
+      const svg = document.getElementById('swiss-daily-svg');
+      const w = 760, h = 185, padL = 40, padR = 10, padT = 10;
+      const plotW = w - padL - padR;
+      const days = 28;
+      const bw = (plotW / days) - 3;
+      let html = '';
+
+      for (let i = 0; i <= 4; i++) {
+        const y = padT + (h - padT) * (i / 4);
+        html += `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" class="swiss-grid"/>`;
+        html += `<text x="${padL - 6}" y="${y + 4}" text-anchor="end" class="swiss-axis">${4 - i}</text>`;
+      }
+
+      // Acid yellow annotation band
+      html += `<rect x="${padL + 16 * (plotW/days)}" y="${padT}" width="${(plotW/days)*2}" height="${h - padT}" class="acid-band"/>`;
+
+      for (let i = 0; i < days; i++) {
+        const x = padL + i * (plotW / days);
+        const v = (Math.cos(i * 0.55) * 0.35 + 0.65);
+        const sc = 24;
+        const use = Math.round(v * 115);
+        if (swissUnit === 'cost') {
+          html += `<rect x="${x}" y="${h - sc}" width="${bw}" height="${sc}" fill="var(--cobalt-blue)" stroke="#141413" stroke-width="1"/>`;
+          html += `<rect x="${x}" y="${h - sc - use}" width="${bw}" height="${use}" fill="var(--signal-orange)" stroke="#141413" stroke-width="1"/>`;
+        } else {
+          html += `<rect x="${x}" y="${h - use - 15}" width="${bw}" height="${use + 15}" fill="var(--signal-orange)" stroke="#141413" stroke-width="1"/>`;
+        }
+      }
+      svg.innerHTML = html;
+
+      // HH Chart
+      const hhSvg = document.getElementById('swiss-hh-svg');
+      let hhHtml = '';
+      const slots = 72;
+      const sbw = (plotW / slots) - 1.5;
+      for (let i = 0; i <= 3; i++) {
+        const y = padT + (h - padT) * (i / 3);
+        hhHtml += `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" class="swiss-grid"/>`;
+      }
+      hhHtml += `<rect x="${padL + 42 * (plotW/slots)}" y="${padT}" width="${(plotW/slots)*5}" height="${h - padT}" class="acid-band"/>`;
+      for (let i = 0; i < slots; i++) {
+        const x = padL + i * (plotW / slots);
+        const hr = (i % 48) / 2;
+        const load = (hr >= 18 && hr <= 20) ? 1.4 : (hr === 4.5 ? 1.1 : 0.22);
+        const bh = Math.round((load / 1.6) * (h - padT));
+        hhHtml += `<rect x="${x}" y="${h - bh}" width="${sbw}" height="${bh}" fill="var(--ink-black)"/>`;
+      }
+      hhSvg.innerHTML = hhHtml;
+    }
+
+    function renderSpecimens() {
+      const list = document.getElementById('specimen-list');
+      list.innerHTML = '';
+      specimens.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'specimen-card';
+        card.innerHTML = `
+          <div class="spec-header">
+            <span>${s.code} // ${s.src}</span>
+            <span class="spec-stamp">#${s.tag}</span>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--ink-mid);margin-bottom:4px;">${s.period}</div>
+          <div class="spec-comment">${s.note}</div>
+          <div class="spec-footer">
+            <span>ENERGY: <strong>${s.kwh}</strong></span>
+            <span style="color:var(--signal-orange);font-weight:700;">COST: ${s.gbp}</span>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function stampNewCard() {
+      specimens.unshift({
+        code: `SPEC-0${specimens.length + 1}`,
+        src: 'DAILY',
+        period: 'SAT 18 OCT – SUN 19 OCT',
+        note: 'Stamped directly from chart selection window',
+        kwh: '24.80 kWh',
+        gbp: '£6.42',
+        tag: 'EXPERIMENT'
+      });
+      renderSpecimens();
+    }
+
+    function toggleUnit(u) {
+      swissUnit = u;
+      document.getElementById('btn-gbp').classList.toggle('active', u === 'cost');
+      document.getElementById('btn-kwh').classList.toggle('active', u === 'kwh');
+      renderSwissCharts();
+    }
+
+    function showPane(id, btn) {
+      btn.parentElement.querySelectorAll('.mech-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.getElementById('pane-' + id).classList.add('active');
+    }
+
+    const hm = document.getElementById('swiss-heatmap');
+    for (let i = 0; i < 52 * 7; i++) {
+      const c = document.createElement('div');
+      c.style.aspectRatio = '1';
+      c.style.border = '1px solid #141413';
+      c.style.background = i === 99 ? 'var(--acid-yellow)' : 'var(--forest-green)';
+      hm.appendChild(c);
+    }
+
+    renderSwissCharts();
+    renderSpecimens();
+  </script>
+</body>
+</html>

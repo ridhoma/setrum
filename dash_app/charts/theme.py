@@ -1,4 +1,4 @@
-"""Shared Plotly theme for Setrum charts.
+"""Shared Plotly theme for Setrum charts — Option 1: Editorial Field Notes.
 
 Plotly can't read CSS custom properties, so the design tokens are mirrored
 here as Python constants. If you change a value in setrum.css `:root`,
@@ -15,49 +15,59 @@ Usage:
 from __future__ import annotations
 
 # ── Token mirrors (keep in sync with assets/setrum.css :root) ──────────────
-PAPER         = "#FCFAF6"
-SURFACE       = "#FFFFFF"
-INK_900       = "#1A1714"
-INK_700       = "#4A433D"
-INK_500       = "#847A6F"
-INK_300       = "#C9C0B5"
-INK_200       = "#DCD4C8"
-INK_100       = "#EFE9DE"
-RULE          = "#E8DFD0"
+PAPER         = "#FAF6F0"       # Archival Warm Paper
+SURFACE       = "#FFFDF9"       # Card surface & masthead
+SURFACE_ALT   = "#F3EDE2"       # Segmented controls, subtle fills
+CORKBOARD     = "#EDE3D2"       # Dotted corkboard & rail
+RULE          = "#E2D9C8"       # Hairline rule border
+BORDER_STRONG = "#C8BCA8"       # Strong divider border
 
-ORANGE        = "#CC785C"
-ORANGE_SOFT   = "#F1D9CA"
-ACCENT        = "#990F3D"
-COOL          = "#0D7680"
-COOL_SOFT     = "#D2E5E7"
-POSITIVE      = "#1A8A6E"
-WARNING       = "#B68D00"
-WARNING_SOFT  = "#F2E6BF"
+# Ink Hierarchy
+INK_900       = "#181512"       # Espresso Ink
+INK_700       = "#4A433B"
+INK_500       = "#7D7367"
+INK_300       = "#B5AA9C"
+INK_200       = "#C8BCA8"
+INK_100       = "#F3EDE2"
 
-# Sticky-note pastels (mirror of CSS --setrum-sticky-*). Reusable in
-# charts that want a pastel wash without inventing new tokens.
-PEACH         = "#FBE4D2"
-MINT          = "#D8EAD8"
-SKY           = "#D4E4EC"
-LILAC         = "#E2D8E8"
-CREAM         = "#F7E8C7"
+# Semantic Data & Signal Colors
+ORANGE        = "#D95D39"       # Terracotta Vermilion — Consumption Hero
+ORANGE_HOVER  = "#B84A29"
+ORANGE_SOFT   = "#FADEC9"
+COOL          = "#16697A"       # Deep Petrol Teal — Standing Charge
+COOL_SOFT     = "#D5E5ED"
+PEACH         = "#E89980"       # Warm Peach — VAT
+ACCENT        = "#990F3D"       # Editorial Claret — Active tabs, primary action
+ACCENT_HOVER  = "#7A0B30"
+ACCENT_SOFT   = "#F4D9E1"
+POSITIVE      = "#1E7E5A"
+POSITIVE_SOFT = "#DCEEE6"
+WARNING       = "#F4D35E"       # Warm Ochre Paper Tape
+WARNING_SOFT  = "#F9EBC8"
 
-FONT_SANS = "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
-FONT_MONO = "JetBrains Mono, SF Mono, Menlo, monospace"
+# Sticky-note pastels (mirror of CSS --setrum-sticky-*)
+CREAM         = "#F9EBC8"
+PEACH_PASTEL  = "#FADEC9"
+MINT          = "#D8E8DC"       # Sage
+SKY           = "#D5E5ED"
+LILAC         = "#E5DAE8"
 
-# Series roles. The orange = "data hero" rule lives here.
+# Typography
+FONT_DISPLAY  = "'Fraunces', Georgia, 'Times New Roman', serif"
+FONT_SANS     = "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+FONT_MONO     = "'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace"
+
+# Series roles. Terracotta = "data hero" rule lives here.
 DATA_PRIMARY   = ORANGE       # consumption (kWh / cost)
 DATA_SECONDARY = COOL         # standing charge — supporting cost
-DATA_TERTIARY  = ORANGE_SOFT  # VAT — visually tied to consumption (math says so)
+DATA_TERTIARY  = PEACH        # VAT — visually tied to consumption
 
-# Annotation overlay default — soft warm gold so it reads as paper-tape on
-# the chart without competing with the data colors.
-ANNOTATION_DEFAULT_FILL = WARNING_SOFT
-ANNOTATION_FILL_OPACITY = 0.45  # WARNING_SOFT is already pale; bump opacity
+# Annotation overlay default — warm ochre paper tape
+ANNOTATION_DEFAULT_FILL = WARNING
+ANNOTATION_FILL_OPACITY = 0.34
 
-# Day-separator gridlines on time-axis charts (HH day boundaries, daily
-# Monday markers). Lighter than the y-grid so they read as secondary.
-DAY_SEPARATOR_COLOR = INK_200
+# Day-separator gridlines on time-axis charts (HH day boundaries, daily Monday markers)
+DAY_SEPARATOR_COLOR = BORDER_STRONG
 
 
 def base_layout(**extra) -> dict:
@@ -94,7 +104,7 @@ def xaxis_style(**extra) -> dict:
 
 def yaxis_style(**extra) -> dict:
     base = dict(
-        gridcolor=INK_100, gridwidth=1,
+        gridcolor=RULE, gridwidth=1,
         zeroline=False, showline=False, ticks="",
         tickfont=dict(family=FONT_MONO, size=10, color=INK_500),
     )
@@ -121,5 +131,5 @@ def day_separator_shape(x) -> dict:
         x0=x, x1=x, xref="x",
         y0=0, y1=1, yref="paper",
         line=dict(color=DAY_SEPARATOR_COLOR, dash="dot", width=1),
-        opacity=1.0,
+        opacity=0.8,
     )

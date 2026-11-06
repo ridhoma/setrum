@@ -1,104 +1,72 @@
 /* ──────────────────────────────────────────────────────────────────────
-   Fonts — Inter (UI), Fraunces (display), JetBrains Mono (numerics)
+   Option 1: Editorial Field Notes — Design System & Stylesheet
+   Warm Archival Paper, Fraunces Serif + Plus Jakarta Sans + JetBrains Mono
    ────────────────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght,SOFT,WONK@9..144,400..800,30..100,0..1&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-/* ──────────────────────────────────────────────────────────────────────
-   Design tokens — single source of truth for the new design system.
-   Existing rules below (.setrum-header, .sticky-note, …) still use
-   hardcoded values for now; they will migrate to these tokens once the
-   /styleguide direction is signed off.
-   ────────────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 :root {
-    /* Layout (existing) */
-    --setrum-header-height: 64px;
-    --setrum-sidebar-width: 280px;
+    --setrum-header-height: 68px;
 
     /* Typography */
-    --setrum-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --setrum-font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --setrum-font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --setrum-font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
 
-    /* Type scale (rems, with -h-* line-height pairs) */
-    --setrum-text-display-1: 3rem;
-    --setrum-lh-display-1: 1.05;
-    --setrum-text-display-2: 2.25rem;
-    --setrum-lh-display-2: 1.10;
-    --setrum-text-h1: 1.75rem;
-    --setrum-lh-h1: 1.20;
-    --setrum-text-h2: 1.375rem;
-    --setrum-lh-h2: 1.30;
-    --setrum-text-h3: 1.125rem;
-    --setrum-lh-h3: 1.40;
-    --setrum-text-body: 0.9375rem;
-    --setrum-lh-body: 1.55;
-    --setrum-text-small: 0.8125rem;
-    --setrum-lh-small: 1.50;
-    --setrum-text-caption: 0.6875rem;
-    --setrum-lh-caption: 1.40;
-    --setrum-text-numeric-l: 2rem;
-    --setrum-lh-numeric-l: 1.10;
-    --setrum-text-numeric-m: 1.25rem;
-    --setrum-lh-numeric-m: 1.20;
+    /* Surfaces — Archival Warm Paper */
+    --setrum-bg-paper: #FAF6F0;
+    --setrum-bg-surface: #FFFDF9;
+    --setrum-bg-surface-alt: #F3EDE2;
+    --setrum-bg-elevated: #F3EDE2;
+    --setrum-bg-corkboard: #EDE3D2;
+    --setrum-rule: #E2D9C8;
+    --setrum-border-hairline: #E2D9C8;
+    --setrum-border-strong: #C8BCA8;
+    --setrum-bg-overlay: rgba(24, 21, 18, 0.35);
 
-    /* Surfaces — warm-tinted paper, never pure white on the canvas */
-    --setrum-bg-paper: #FCFAF6;
-    --setrum-bg-surface: #FFFFFF;
-    --setrum-bg-surface-alt: #F6F1E8;
-    --setrum-bg-corkboard: #F0E6D4;
-    --setrum-bg-overlay: rgba(26, 23, 20, 0.32);
+    /* Ink Hierarchy */
+    --setrum-ink-900: #181512;
+    --setrum-ink-700: #4A433B;
+    --setrum-ink-500: #7D7367;
+    --setrum-ink-400: #9B9083;
+    --setrum-ink-300: #B5AA9C;
+    --setrum-ink-200: #C8BCA8;
+    --setrum-ink-100: #F3EDE2;
 
-    /* Ink — warm grayscale */
-    --setrum-ink-900: #1A1714;
-    --setrum-ink-700: #4A433D;
-    --setrum-ink-500: #847A6F;
-    --setrum-ink-400: #A89E92;
-    --setrum-ink-300: #C9C0B5;
-    --setrum-ink-200: #DCD4C8;
-    --setrum-ink-100: #EFE9DE;
-    --setrum-rule: #E8DFD0;
-
-    /* Signal colors — used sparingly, FT-borrowed.
-       Roles: orange = "this is the data" (primary data series, hero KPI).
-              accent = "this is the action" (primary buttons, links).
-              cool   = secondary data series (standing charge, VAT).
-              positive/warning = status only (deltas, sync state). */
-    --setrum-orange: #CC785C;
-    /* Claude Orange — primary data accent */
-    --setrum-orange-hover: #B36247;
-    --setrum-orange-soft: #F1D9CA;
-    --setrum-accent: #990F3D;
+    /* Semantic Data & Signal Colors */
+    --setrum-orange: #D95D39;       /* Terracotta Vermilion — Consumption Hero */
+    --setrum-orange-hover: #B84A29;
+    --setrum-orange-soft: #FADEC9;
+    --setrum-cool: #16697A;         /* Deep Petrol Teal — Standing Charge */
+    --setrum-cool-soft: #D5E5ED;
+    --setrum-peach: #E89980;        /* Warm Peach — VAT */
+    --setrum-accent: #990F3D;       /* Editorial Claret — Active tabs, primary actions */
     --setrum-accent-hover: #7A0B30;
     --setrum-accent-soft: #F4D9E1;
-    --setrum-positive: #1A8A6E;
-    --setrum-positive-soft: #D6EBE2;
-    --setrum-cool: #0D7680;
-    --setrum-cool-soft: #D2E5E7;
-    --setrum-warning: #B68D00;
-    --setrum-warning-soft: #F2E6BF;
+    --setrum-positive: #1E7E5A;
+    --setrum-positive-soft: #DCEEE6;
+    --setrum-warning: #F4D35E;      /* Warm Ochre Paper Tape */
+    --setrum-warning-soft: #F9EBC8;
 
-    /* Sticky-note pastels — FigJam, slightly desaturated */
-    --setrum-sticky-peach: #FBE4D2;
-    --setrum-sticky-mint: #D8EAD8;
-    --setrum-sticky-sky: #D4E4EC;
-    --setrum-sticky-lilac: #E2D8E8;
-    --setrum-sticky-cream: #F7E8C7;
+    /* Sticky Note Pastels */
+    --setrum-sticky-cream: #F9EBC8;
+    --setrum-sticky-peach: #FADEC9;
+    --setrum-sticky-sage: #D8E8DC;
+    --setrum-sticky-mint: #D8E8DC;
+    --setrum-sticky-sky: #D5E5ED;
+    --setrum-sticky-lilac: #E5DAE8;
 
-    /* Radii — generous on the corkboard, restrained on data UI */
+    /* Shadows & Radii */
+    --setrum-shadow-card: 0 1px 3px rgba(24, 21, 18, 0.04), 0 4px 12px rgba(24, 21, 18, 0.03);
+    --setrum-shadow-sticky: 0 6px 16px rgba(24, 21, 18, 0.09), 0 1px 3px rgba(24, 21, 18, 0.06);
+    --setrum-shadow-float: 0 16px 40px rgba(24, 21, 18, 0.16);
     --setrum-radius-xs: 4px;
     --setrum-radius-sm: 6px;
     --setrum-radius-md: 10px;
-    --setrum-radius-lg: 16px;
-    --setrum-radius-xl: 22px;
+    --setrum-radius-lg: 14px;
     --setrum-radius-pill: 999px;
 
-    /* Shadows — data subtle, paper tactile */
-    --setrum-shadow-data: 0 1px 2px rgba(26, 23, 20, 0.04), 0 1px 3px rgba(26, 23, 20, 0.06);
-    --setrum-shadow-data-h: 0 2px 4px rgba(26, 23, 20, 0.06), 0 4px 10px rgba(26, 23, 20, 0.08);
-    --setrum-shadow-paper: 0 6px 18px rgba(26, 23, 20, 0.10), 0 1px 3px rgba(26, 23, 20, 0.08);
-    --setrum-shadow-modal: 0 20px 50px rgba(26, 23, 20, 0.20), 0 4px 12px rgba(26, 23, 20, 0.10);
-
-    /* Spacing scale (4px base, Tailwind-ish names) */
+    /* Spacing scale */
     --setrum-space-1: 4px;
     --setrum-space-2: 8px;
     --setrum-space-3: 12px;
@@ -108,7 +76,6 @@
     --setrum-space-8: 32px;
     --setrum-space-10: 40px;
     --setrum-space-12: 48px;
-    --setrum-space-16: 64px;
 
     /* Motion */
     --setrum-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -117,231 +84,275 @@
     --setrum-dur-slow: 320ms;
 }
 
-/* ──────────────────────────────────────────────────────────────────────
-   App shell — header on top, sidebar on left, main on the right
-   ────────────────────────────────────────────────────────────────────── */
-
-/* Apply system-wide base styles to the document. */
+/* Base Document */
 body {
-    background: var(--setrum-bg-paper);
+    background-color: var(--setrum-bg-paper);
     color: var(--setrum-ink-900);
     font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-body);
-    line-height: var(--setrum-lh-body);
+    font-size: 14.5px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
 }
 
 .setrum-shell {
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
+/* ── Editorial Masthead Header ────────────────────────────────────── */
+.masthead,
 .setrum-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: var(--setrum-header-height);
-    display: flex;
-    align-items: stretch;
-    /* children manage their own vertical placement */
-    gap: var(--setrum-space-8);
-    padding: 0 var(--setrum-space-6);
     background: var(--setrum-bg-surface);
     border-bottom: 1px solid var(--setrum-rule);
+    padding: 0 24px;
+    height: var(--setrum-header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
     z-index: 200;
 }
 
-.setrum-brand {
+.brand-group {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.brand-title {
+    font-family: var(--setrum-font-display);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--setrum-ink-900);
     display: flex;
     align-items: center;
-    /* brand stays vertically centered */
-    gap: var(--setrum-space-2);
-    min-width: var(--setrum-sidebar-width);
+    gap: 8px;
+    white-space: nowrap;
 }
 
-.setrum-brand-bolt {
-    font-size: 1.4rem;
-    color: var(--setrum-warning);
-    /* amber bolt — brand mark, distinct from data accent */
-    line-height: 1;
+.brand-bolt {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: var(--setrum-orange);
+    color: #fff;
+    font-size: 14px;
+    flex-shrink: 0;
 }
 
-.setrum-brand-name {
+.brand-name {
     font-family: var(--setrum-font-display);
-    font-size: 1.125rem;
-    font-weight: 500;
-    letter-spacing: -0.01em;
+    font-size: 22px;
+    font-weight: 600;
     color: var(--setrum-ink-900);
-    font-variation-settings: "SOFT" 30, "WONK" 0;
 }
 
-/* Tab folder — anchored to bottom-left of the header. Inactive tabs sit
-   flush with the header's bottom rule (looking like they're "behind");
-   the active tab uses the body's paper bg and pokes 1px below the rule
-   so it visually merges into the content area, popping forward. The
-   metaphor is a stack of paper folders — the active one is in front.
+.brand-subtitle {
+    font-family: var(--setrum-font-mono);
+    font-size: 9.5px;
+    line-height: 1.25;
+    color: var(--setrum-ink-500);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-left: 1px solid var(--setrum-rule);
+    padding-left: 10px;
+    max-width: 175px;
+    white-space: normal;
+}
 
-   Absolute positioning rather than flex alignment: dcc.Tabs renders
-   an empty tab-content panel under the tab row whose layout fights
-   `align-items: flex-end` and `justify-content: flex-start` on a flex
-   parent. Pinning the wrap directly removes the ambiguity. */
+/* Navigation Tabs */
+.nav-tabs-wrap,
 .setrum-tabs-wrap {
-    position: absolute;
-    left: calc(var(--setrum-sidebar-width) + var(--setrum-space-2));
-    /* aligns with body content left edge */
-    bottom: 0;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
+    height: 100%;
+    flex-shrink: 0;
+    margin: 0 8px;
 }
 
+.nav-tabs,
 .setrum-tabs {
-    height: auto !important;
-    border-bottom: none !important;
-}
-
-.setrum-tabs .tab-container,
-.setrum-tabs>div {
-    height: auto !important;
-    border-bottom: none !important;
     display: flex !important;
-    align-items: flex-end !important;
-    gap: 0 !important;
-    /* tabs touch; -1px overlap on neighbours */
-}
-
-.setrum-tabs .tab-container>*,
-.setrum-tabs>div>* {
-    flex: 0 0 auto !important;
-}
-
-.setrum-tab {
-    position: relative;
-    border: 1px solid var(--setrum-rule) !important;
+    height: 100% !important;
+    gap: 2px !important;
     border-bottom: none !important;
-    background: var(--setrum-ink-100) !important;
-    color: var(--setrum-ink-500) !important;
+}
+
+.nav-tabs .tab-container,
+.nav-tabs > div,
+.setrum-tabs .tab-container,
+.setrum-tabs > div {
+    display: flex !important;
+    align-items: stretch !important;
+    height: 100% !important;
+    border-bottom: none !important;
+    gap: 2px !important;
+}
+
+.nav-tab,
+.setrum-tab {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 3px solid transparent !important;
+    padding: 0 10px !important;
     font-family: var(--setrum-font-sans) !important;
-    font-size: var(--setrum-text-small) !important;
-    font-weight: 500 !important;
-    letter-spacing: 0 !important;
-    padding: 8px 20px !important;
-    margin: 0 0 0 -1px !important;
-    /* overlap left border with previous tab */
-    border-radius: var(--setrum-radius-md) var(--setrum-radius-md) 0 0 !important;
-    line-height: 1.4 !important;
-    width: auto !important;
-    /* defeat dcc.Tabs' equal-width default */
-    max-width: none !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--setrum-ink-500) !important;
+    cursor: pointer !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 5px !important;
+    transition: all 160ms ease !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
     white-space: nowrap !important;
-    bottom: 0;
-    transition: background var(--setrum-dur-fast) var(--setrum-ease),
-        color var(--setrum-dur-fast) var(--setrum-ease);
 }
 
+.nav-tab > span,
+.setrum-tab > span {
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    gap: 6px !important;
+}
+
+.nav-tab:hover,
 .setrum-tab:hover {
-    background: var(--setrum-bg-surface) !important;
-    color: var(--setrum-ink-700) !important;
-    z-index: 1 !important;
-    /* hover comes forward of siblings */
+    color: var(--setrum-ink-900) !important;
+    background: rgba(24, 21, 18, 0.03) !important;
 }
 
-/* Active = the document on top. Paper bg matches the content area below;
-   bottom: -1px makes the tab cover the header's hairline rule, so the
-   tab and the page underneath read as one continuous surface. */
+.nav-tab.active,
 .setrum-tab--active,
 .setrum-tab--active:hover {
-    background: var(--setrum-bg-paper) !important;
-    color: var(--setrum-ink-900) !important;
-    font-weight: 600 !important;
-    padding: 10px 22px 9px !important;
-    /* slightly raised + a touch wider */
-    bottom: -1px !important;
-    /* overlap header bottom rule */
-    z-index: 2 !important;
+    background: transparent !important;
+    color: var(--setrum-accent) !important;
+    border-bottom: 3px solid var(--setrum-accent) !important;
 }
 
-.setrum-body {
-    padding-top: var(--setrum-header-height);
-    min-height: 100vh;
+.tab-count {
+    font-family: var(--setrum-font-mono) !important;
+    font-size: 11px !important;
+    background: var(--setrum-bg-elevated) !important;
+    color: var(--setrum-ink-700) !important;
+    padding: 1px 6px !important;
+    border-radius: 99px !important;
+    margin-left: 4px !important;
+    font-weight: 500 !important;
+    display: inline-flex !important;
+    align-items: center !important;
 }
 
-.setrum-sidebar {
-    position: fixed;
-    top: var(--setrum-header-height);
-    left: 0;
-    width: var(--setrum-sidebar-width);
-    height: calc(100vh - var(--setrum-header-height));
-    padding: var(--setrum-space-6) var(--setrum-space-5);
-    background: var(--setrum-bg-surface-alt);
-    border-right: 1px solid var(--setrum-rule);
-    overflow-y: auto;
-    z-index: 100;
-    color: var(--setrum-ink-700);
+.nav-tab.active .tab-count,
+.setrum-tab--active .tab-count {
+    background: var(--setrum-accent-soft) !important;
+    color: var(--setrum-accent) !important;
 }
 
-.setrum-content {
-    margin-left: var(--setrum-sidebar-width);
-    padding: var(--setrum-space-6) var(--setrum-space-8);
-    min-width: 0;
+/* Masthead status on the right */
+.masthead-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
 }
 
-@media (max-width: 768px) {
-    .setrum-tabs-wrap {
-        display: none;
-    }
-
-    .setrum-sidebar {
-        position: static;
-        width: 100%;
-        height: auto;
-        border-right: none;
-        border-bottom: 1px solid var(--setrum-rule);
-    }
-
-    .setrum-content {
-        margin-left: 0;
-        padding: var(--setrum-space-4);
-    }
+.sync-pill-container {
+    display: inline-flex;
+    align-items: center;
 }
 
-/* Sidebar internal typography — captions in mono, hairline divider in ink-100. */
-.setrum-sidebar .text-muted {
-    color: var(--setrum-ink-500) !important;
-}
-
-.setrum-sidebar hr {
-    border-top: 1px solid var(--setrum-ink-100);
-    opacity: 1;
-}
-
-.setrum-sidebar .text-uppercase {
+.sync-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--setrum-positive-soft);
+    color: var(--setrum-positive);
     font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    letter-spacing: 0.1em;
-    color: var(--setrum-ink-500) !important;
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 5px 11px;
+    border-radius: var(--setrum-radius-pill);
+    white-space: nowrap;
+    border: 1px solid rgba(30, 126, 90, 0.20);
+    line-height: 1.2;
 }
 
-/* ── Status pill — token-driven, scoped to the sidebar.
-   Reuses the shape from the styleguide; one rule per state. ────────── */
+.sync-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+    display: inline-block;
+}
+
+.sync-pill--positive {
+    background: var(--setrum-positive-soft);
+    color: var(--setrum-positive);
+    border-color: rgba(30, 126, 90, 0.20);
+}
+
+.sync-pill--warning {
+    background: var(--setrum-warning-soft);
+    color: #947600;
+    border-color: rgba(244, 211, 94, 0.40);
+}
+
+.sync-pill--cool {
+    background: var(--setrum-cool-soft);
+    color: var(--setrum-cool);
+    border-color: rgba(22, 105, 122, 0.20);
+}
+
+.sync-pill--accent {
+    background: var(--setrum-accent-soft);
+    color: var(--setrum-accent);
+    border-color: rgba(153, 15, 61, 0.20);
+}
+
+.sync-pill--neutral {
+    background: var(--setrum-bg-elevated);
+    color: var(--setrum-ink-700);
+    border-color: var(--setrum-border-hairline);
+}
+
 .setrum-pill {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
     font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    font-size: 11.5px;
+    font-weight: 500;
     padding: 4px 10px;
-    border-radius: var(--setrum-radius-pill);
+    border-radius: 99px;
     border: 1px solid transparent;
-    line-height: 1;
+}
+    gap: 7px;
+    font-family: var(--setrum-font-mono);
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 99px;
+    border: 1px solid transparent;
 }
 
 .setrum-pill::before {
     content: "";
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: currentColor;
 }
@@ -349,19 +360,19 @@ body {
 .setrum-pill--positive {
     background: var(--setrum-positive-soft);
     color: var(--setrum-positive);
-    border-color: rgba(26, 138, 110, 0.20);
+    border-color: rgba(30, 126, 90, 0.20);
 }
 
 .setrum-pill--cool {
     background: var(--setrum-cool-soft);
     color: var(--setrum-cool);
-    border-color: rgba(13, 118, 128, 0.20);
+    border-color: rgba(22, 105, 122, 0.20);
 }
 
 .setrum-pill--warning {
     background: var(--setrum-warning-soft);
-    color: var(--setrum-warning);
-    border-color: rgba(182, 141, 0, 0.25);
+    color: #947600;
+    border-color: rgba(244, 211, 94, 0.40);
 }
 
 .setrum-pill--accent {
@@ -376,666 +387,578 @@ body {
     border-color: var(--setrum-ink-200);
 }
 
-/* ── Refresh button (bootstrap btn-primary override). The Refresh action
-   is the one moment the user actively pulls fresh data — it deserves
-   the action accent (claret), not the data accent (orange). ────────── */
-.setrum-sidebar .btn-primary {
-    background: var(--setrum-accent);
-    border-color: var(--setrum-accent);
-    color: #fff;
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
-    border-radius: var(--setrum-radius-md);
-    padding: 8px 14px;
-    transition: background var(--setrum-dur-fast) var(--setrum-ease);
-}
-
-.setrum-sidebar .btn-primary:hover,
-.setrum-sidebar .btn-primary:focus {
-    background: var(--setrum-accent-hover);
-    border-color: var(--setrum-accent-hover);
-    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
-}
-
-/* Sidebar progress bar — subtle, in the action accent so it ties to Refresh. */
-.setrum-sidebar .progress {
-    background: var(--setrum-ink-100);
-    height: 6px;
+.masthead-progress-bar {
+    width: 96px;
+    height: 7px;
     border-radius: var(--setrum-radius-pill);
-}
-
-.setrum-sidebar .progress-bar {
-    background: var(--setrum-accent);
-}
-
-/* In-chart selection readout: top-left of the chart, paper-tinted with a
-   token-driven shadow so it sits over the bars without competing. */
-.hh-readout {
-    position: absolute;
-    top: 12px;
-    left: 60px;
-    /* clear of plotly's y-axis labels */
-    padding: 6px 12px;
-    background: rgba(255, 255, 255, 0.94);
-    border: 1px solid var(--setrum-rule);
-    border-radius: var(--setrum-radius-md);
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
-    color: var(--setrum-ink-900);
-    box-shadow: var(--setrum-shadow-data);
-    z-index: 10;
-    display: inline-flex;
-    align-items: center;
-    backdrop-filter: blur(2px);
-}
-
-/* Edit (annotate) icon inside the readout. */
-.hh-readout-edit {
-    text-decoration: none !important;
-    font-size: 1rem;
-    line-height: 1;
-    cursor: pointer;
-}
-
-.hh-readout-edit:hover {
-    transform: scale(1.15);
-    transition: transform var(--setrum-dur-fast) var(--setrum-ease);
-}
-
-/* Floating annotation form — fixed to the viewport, paper card with the
-   modal-tier shadow so it floats clearly over the chart and KPI grid. */
-.ann-form-card {
-    position: fixed;
-    top: 84px;
-    right: var(--setrum-space-8);
-    width: 380px;
-    max-width: calc(100vw - 64px);
-    z-index: 1050;
-    /* above bootstrap modals' default backdrop */
-    background: var(--setrum-bg-surface);
-    border: 1px solid var(--setrum-ink-100);
-    border-radius: var(--setrum-radius-lg);
-    box-shadow: var(--setrum-shadow-modal);
+    background-color: var(--setrum-ink-100);
     overflow: hidden;
-}
-
-.ann-form-card .card-header {
-    background: var(--setrum-bg-surface-alt);
-    border-bottom: 1px solid var(--setrum-ink-100);
-    padding: var(--setrum-space-3) var(--setrum-space-4);
-    font-family: var(--setrum-font-display);
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--setrum-ink-900);
-    letter-spacing: -0.005em;
-}
-
-.ann-form-card .card-body {
-    padding: var(--setrum-space-4) !important;
-}
-
-/* Close (✕) icon in the form header. */
-.ann-close-btn {
-    text-decoration: none !important;
-    color: var(--setrum-ink-500) !important;
-    font-size: 1.1rem;
-    line-height: 1;
-    transition: color var(--setrum-dur-fast) var(--setrum-ease);
-}
-
-.ann-close-btn:hover {
-    color: var(--setrum-ink-900) !important;
-}
-
-/* ── Annotation form internals — labels, period display, save button ── */
-.ann-form-card .form-label,
-/* Manager modal width: matches the in-chart annotation form (~380px)
-   so the create/edit experience feels consistent across both surfaces. */
-#ann-mgr-modal .modal-dialog {
-    max-width: 400px;
-}
-
-/* Circular "+" button on the Annotations tab — replaces the "+ New" text
-   button. Same primary accent as before, but icon-only so the visual
-   weight stays minimal next to the section title. */
-.ann-mgr-new-btn-circle {
-    width: 32px !important;
-    height: 32px !important;
-    padding: 0 !important;
-    border-radius: 50% !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 1.15rem !important;
-    line-height: 1 !important;
-}
-
-#ann-mgr-modal .form-label {
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
-    color: var(--setrum-ink-700);
-    margin-bottom: var(--setrum-space-2);
-}
-
-.ann-form-card #ann-period-display,
-.ann-form-card #ann-kwh-display,
-.ann-form-card #ann-cost-display {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-small);
-    color: var(--setrum-ink-900);
-    font-feature-settings: "tnum" 1;
-}
-
-.ann-form-card .text-muted {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--setrum-ink-500) !important;
-}
-
-/* Primary "Save" inside the floating form uses action accent. */
-.ann-form-card .btn-primary {
-    background: var(--setrum-accent);
-    border-color: var(--setrum-accent);
-    color: #fff;
-    border-radius: var(--setrum-radius-md);
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
-    padding: 8px 14px;
-}
-
-.ann-form-card .btn-primary:hover:not(:disabled),
-.ann-form-card .btn-primary:focus:not(:disabled) {
-    background: var(--setrum-accent-hover);
-    border-color: var(--setrum-accent-hover);
-    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
-}
-
-.ann-form-card .btn-primary:disabled {
-    background: var(--setrum-ink-200);
-    border-color: var(--setrum-ink-200);
-    color: var(--setrum-ink-500);
-    opacity: 1;
-}
-
-/* ── Modal styling (manager + delete-confirm). dbc.Modal renders a
-   .modal-content panel inside .modal-dialog inside .modal. ─────────── */
-.modal-backdrop.show {
-    background: var(--setrum-ink-900);
-    opacity: 0.32;
-}
-
-.modal-content {
-    border: 1px solid var(--setrum-ink-100);
-    border-radius: var(--setrum-radius-lg);
-    box-shadow: var(--setrum-shadow-modal);
-    background: var(--setrum-bg-surface);
-}
-
-.modal-header {
-    border-bottom: 1px solid var(--setrum-ink-100);
-    padding: var(--setrum-space-4) var(--setrum-space-5);
-}
-
-.modal-title {
-    font-family: var(--setrum-font-display);
-    font-size: var(--setrum-text-h2);
-    line-height: var(--setrum-lh-h2);
-    font-weight: 500;
-    letter-spacing: -0.005em;
-    color: var(--setrum-ink-900);
-    font-variation-settings: "SOFT" 30, "WONK" 0;
-}
-
-.modal-body {
-    padding: var(--setrum-space-5);
-    color: var(--setrum-ink-700);
-}
-
-.modal-footer {
-    border-top: 1px solid var(--setrum-ink-100);
-    padding: var(--setrum-space-4) var(--setrum-space-5);
-    gap: var(--setrum-space-2);
-}
-
-/* Modal buttons (manager save/cancel, delete confirm/cancel). */
-.modal-footer .btn-primary {
-    background: var(--setrum-accent);
-    border-color: var(--setrum-accent);
-    border-radius: var(--setrum-radius-md);
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
-    padding: 8px 16px;
-}
-
-.modal-footer .btn-primary:hover,
-.modal-footer .btn-primary:focus {
-    background: var(--setrum-accent-hover);
-    border-color: var(--setrum-accent-hover);
-    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
-}
-
-.modal-footer .btn-danger {
-    /* Destructive confirm — explicit "this is permanent" red, not the
-       muted action accent. */
-    background: #c44b4b;
-    border-color: #c44b4b;
-    border-radius: var(--setrum-radius-md);
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
-    padding: 8px 16px;
-}
-
-.modal-footer .btn-danger:hover,
-.modal-footer .btn-danger:focus {
-    background: #a93939;
-    border-color: #a93939;
-    box-shadow: 0 0 0 3px rgba(196, 75, 75, 0.18);
-}
-
-.modal-footer .btn-secondary,
-.modal-footer .btn-outline-secondary {
-    background: var(--setrum-bg-surface);
-    border: 1px solid var(--setrum-ink-200);
-    color: var(--setrum-ink-700);
-    border-radius: var(--setrum-radius-md);
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
-    padding: 8px 16px;
-}
-
-.modal-footer .btn-secondary:hover,
-.modal-footer .btn-outline-secondary:hover {
-    background: var(--setrum-bg-surface-alt);
-    border-color: var(--setrum-ink-300);
-    color: var(--setrum-ink-900);
-}
-
-/* Form labels + radio buttons inside modals. */
-#ann-mgr-modal .form-check-label {
-    font-family: var(--setrum-font-sans);
-    color: var(--setrum-ink-700);
-}
-
-#ann-mgr-modal .form-control,
-#ann-mgr-modal .form-select,
-.ann-form-card .form-control,
-.ann-form-card .form-select {
-    border: 1px solid var(--setrum-ink-200);
-    border-radius: var(--setrum-radius-md);
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-body);
-    color: var(--setrum-ink-900);
-    background: var(--setrum-bg-surface);
-}
-
-#ann-mgr-modal .form-control:focus,
-#ann-mgr-modal .form-select:focus,
-.ann-form-card .form-control:focus,
-.ann-form-card .form-select:focus {
-    border-color: var(--setrum-accent);
-    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
-}
-
-#ann-mgr-error,
-.ann-form-card .text-danger {
-    color: var(--setrum-accent) !important;
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-}
-
-/* Tag dropdown (dcc.Dropdown multi) tweaks */
-.ann-form-card .Select-control,
-#ann-mgr-modal .Select-control {
-    border-radius: var(--setrum-radius-md);
-    border: 1px solid var(--setrum-ink-200);
-}
-
-.ann-form-card .Select-value,
-#ann-mgr-modal .Select-value {
-    background: var(--setrum-orange-soft);
-    border: 1px solid var(--setrum-orange);
-    color: var(--setrum-ink-900);
-    border-radius: var(--setrum-radius-pill);
-    font-size: var(--setrum-text-caption);
-}
-
-/* The full date-range-filter rule lives in the data-UI block lower in
-   this file (search for "Date range filter — token-driven"). */
-
-/* ──────────────────────────────────────────────────────────────────────
-   Annotations canvas — drag-positionable corkboard with sticky notes
-   ────────────────────────────────────────────────────────────────────── */
-
-.annotations-canvas-viewport {
-    position: relative;
-    height: calc(100vh - var(--setrum-header-height) - 9rem);
-    min-height: 480px;
-    overflow: hidden;
-    /* pan/zoom replaces native scrolling */
-    border-radius: var(--setrum-radius-lg);
-    border: 1px solid #D4CAB2;
-    /* Infinite dot-pattern paper: tiles the entire viewport. JS drives
-       background-position from (tx, ty) and background-size from scale, so
-       the dots feel pinned to canvas space and the canvas reads as endless. */
-    background:
-        radial-gradient(circle, rgba(26, 23, 20, 0.05) 1px, transparent 1px),
-        radial-gradient(circle, rgba(26, 23, 20, 0.04) 1px, transparent 1px),
-        var(--setrum-bg-corkboard);
-    background-size: 36px 36px, 56px 56px;
-    /* Trackpad gestures: stop the browser from interpreting two-finger swipes
-       as page back/forward or vertical scroll while we own this surface. */
-    overscroll-behavior: contain;
-    touch-action: none;
-}
-
-/* Pan/zoom stage — JS sets `transform: translate(tx, ty) scale(s)` here.
-   transform-origin must be top-left so cursor-anchored zoom math works. */
-.annotations-canvas-content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    transform-origin: 0 0;
-    will-change: transform;
-}
-
-.annotations-canvas {
-    /* Pure positioning context for absolutely-placed sticky notes. The dot
-       pattern lives at the viewport level so the surface feels infinite —
-       this div has no visual treatment of its own. The 4000×3000 size is
-       a soft anchor for default-position layout; notes can be dragged
-       anywhere, including beyond these bounds or into negative coords. */
-    position: relative;
-    width: 4000px;
-    height: 3000px;
-}
-
-/* Cursor states owned by the pan/zoom JS. */
-.annotations-canvas-viewport.is-space-panning,
-.annotations-canvas-viewport.is-space-panning .canvas-sticky {
-    cursor: grab;
-}
-
-.annotations-canvas-viewport.is-panning,
-.annotations-canvas-viewport.is-panning .canvas-sticky {
-    cursor: grabbing !important;
-}
-
-/* Bottom-right floating control pill. Lives outside the transformed layer
-   so it stays a fixed size regardless of zoom. */
-.canvas-zoom-controls {
-    position: absolute;
-    right: var(--setrum-space-4);
-    bottom: var(--setrum-space-4);
     display: flex;
-    align-items: center;
-    gap: 2px;
-    padding: 4px;
-    background: var(--setrum-bg-surface);
-    border: 1px solid var(--setrum-rule);
-    border-radius: var(--setrum-radius-pill);
-    box-shadow: var(--setrum-shadow-data-h);
-    z-index: 60;
-    user-select: none;
 }
 
-.canvas-zoom-controls .zoom-btn {
-    background: transparent;
-    border: none;
-    color: var(--setrum-ink-700);
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
-    line-height: 1;
-    height: 28px;
-    min-width: 28px;
-    padding: 0 8px;
-    border-radius: var(--setrum-radius-pill);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background var(--setrum-dur-fast) var(--setrum-ease),
-        color var(--setrum-dur-fast) var(--setrum-ease);
+.masthead-progress-bar .progress-bar {
+    height: 100%;
+    background-color: var(--setrum-accent) !important;
+    transition: width 180ms ease;
 }
 
-.canvas-zoom-controls .zoom-btn:hover {
-    background: var(--setrum-ink-100);
-    color: var(--setrum-ink-900);
-}
-
-.canvas-zoom-controls .zoom-readout {
+.masthead-progress-label {
     font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    min-width: 52px;
-    color: var(--setrum-ink-900);
-    font-feature-settings: "tnum" 1;
-}
-
-.canvas-zoom-controls .zoom-btn-text {
-    padding: 0 12px;
-    font-family: var(--setrum-font-sans);
-}
-
-.canvas-zoom-controls .zoom-divider {
-    width: 1px;
-    height: 18px;
-    background: var(--setrum-rule);
-    margin: 0 4px;
-}
-
-.canvas-empty {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    font-family: var(--setrum-font-sans);
+    font-size: 10px;
     color: var(--setrum-ink-500);
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* ── Sticky note — paper card with tactile shadow + slight tilt.
-   The corkboard is the one place we let the design relax: pastels,
-   tilts, hover lift. The data side stays restrained; this side has
-   personality on purpose. ───────────────────────────────────────── */
-.sticky-note {
-    background: var(--setrum-sticky-cream);
-    padding: var(--setrum-space-4);
-    border-radius: var(--setrum-radius-sm);
-    box-shadow: var(--setrum-shadow-paper);
-    transform: rotate(-1.2deg);
-    transition: transform var(--setrum-dur-base) var(--setrum-ease),
-        box-shadow var(--setrum-dur-base) var(--setrum-ease);
-    width: 240px;
-    min-height: 170px;
+/* ── Editorial Workbench Layout ──────────────────────────────────── */
+.setrum-workbench,
+.workbench {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    flex: 1;
+    min-height: calc(100vh - var(--setrum-header-height));
+    transition: grid-template-columns 220ms ease;
+    background: var(--setrum-bg-paper);
+}
+
+.setrum-workbench.rail-collapsed,
+.workbench.rail-collapsed {
+    grid-template-columns: 1fr 0px;
+}
+
+.setrum-content,
+.main-stage {
+    padding: 28px 32px 60px;
+    overflow-y: auto;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* ── Collapsible Right Field-Notes Rail ────────────────────────────── */
+.field-notes-rail {
+    background: var(--setrum-bg-corkboard);
+    background-image: radial-gradient(var(--setrum-border-strong) 1px, transparent 1px);
+    background-size: 18px 18px;
+    border-left: 1px solid var(--setrum-border-strong);
+    padding: 22px 18px;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    gap: var(--setrum-space-2);
-    color: var(--setrum-ink-900);
-    font-family: var(--setrum-font-sans);
+    gap: 14px;
+    width: 340px;
 }
 
-.canvas-sticky {
-    position: absolute;
-    cursor: grab;
-    user-select: none;
-    touch-action: none;
-    /* allow pointer drag without scrolling */
-}
-
-.canvas-sticky.dragging,
-.canvas-sticky.dragging:hover {
-    cursor: grabbing;
-    z-index: 50;
-    transform: rotate(0deg) scale(1.02);
-    box-shadow: 0 18px 36px rgba(26, 23, 20, 0.18), 0 4px 10px rgba(26, 23, 20, 0.10);
-    transition: none;
-}
-
-/* Selection outline — accent claret, sits clear of the sticky's shadow.
-   `outline` instead of `border` so the sticky's own dimensions don't shift. */
-.canvas-sticky.selected,
-.canvas-sticky.selected:hover {
-    outline: 2px solid var(--setrum-accent);
-    outline-offset: 3px;
-    z-index: 8;
-}
-
-.canvas-sticky.selected.dragging {
-    outline-color: var(--setrum-accent-hover);
-}
-
-/* Marquee rectangle — viewport-positioned, drawn in screen-space so it
-   doesn't scale with the canvas zoom. */
-.canvas-marquee {
-    position: absolute;
-    pointer-events: none;
-    background: rgba(153, 15, 61, 0.06);
-    border: 1px dashed var(--setrum-accent);
-    border-radius: var(--setrum-radius-xs);
-    z-index: 55;
+.setrum-workbench.rail-collapsed .field-notes-rail,
+.workbench.rail-collapsed .field-notes-rail {
     display: none;
 }
 
-/* Five rotating pastel/tilt combos via :nth-child. Tilts are smaller
-   than before (±1.4° max) so the board reads as a workspace, not a
-   yard-sale. Pastels come from --setrum-sticky-* tokens. */
-.sticky-note:nth-child(5n+1) {
-    background: var(--setrum-sticky-cream);
-    transform: rotate(-0.9deg);
+.rail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(250, 246, 240, 0.92);
+    backdrop-filter: blur(6px);
+    padding: 10px 12px;
+    border-radius: var(--setrum-radius-sm);
+    border: 1px solid var(--setrum-border-strong);
 }
 
-.sticky-note:nth-child(5n+2) {
-    background: var(--setrum-sticky-mint);
-    transform: rotate(1.1deg);
+.rail-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: -4px;
 }
 
-.sticky-note:nth-child(5n+3) {
-    background: var(--setrum-sticky-sky);
-    transform: rotate(-0.4deg);
+.rail-toggle-pins-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    padding: 5px 10px !important;
+    background: var(--setrum-bg-surface) !important;
+    color: var(--setrum-ink-700) !important;
+    border: 1px solid var(--setrum-border-strong) !important;
+    border-radius: var(--setrum-radius-sm) !important;
+    transition: all 140ms ease !important;
 }
 
-.sticky-note:nth-child(5n+4) {
-    background: var(--setrum-sticky-peach);
-    transform: rotate(1.4deg);
+.rail-toggle-pins-btn:hover {
+    background: var(--setrum-bg-surface-alt) !important;
+    color: var(--setrum-ink-900) !important;
 }
 
-.sticky-note:nth-child(5n+5) {
-    background: var(--setrum-sticky-lilac);
-    transform: rotate(-1.2deg);
+.rail-toggle-pins-btn.muted {
+    background: rgba(26, 23, 20, 0.04) !important;
+    color: var(--setrum-ink-500) !important;
+    border: 1px dashed var(--setrum-border-strong) !important;
 }
 
-.sticky-note:hover {
-    transform: rotate(0deg) translateY(-3px);
-    box-shadow: 0 14px 28px rgba(26, 23, 20, 0.16), 0 1px 3px rgba(26, 23, 20, 0.10);
-    z-index: 5;
+.rail-title {
+    font-family: var(--setrum-font-display);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--setrum-ink-900);
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-/* Decorative pin — warning-soft wax dot, ink-toned shadow. */
-.sticky-note::before {
+.rail-subtitle {
+    font-size: 11.5px;
+    color: var(--setrum-ink-700);
+    padding: 0 4px;
+}
+
+.rail-notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ── Editorial Section Headers ─────────────────────────────────────── */
+.editorial-section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--setrum-ink-900);
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+}
+
+.editorial-kicker {
+    font-family: var(--setrum-font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--setrum-orange);
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.editorial-h1 {
+    font-family: var(--setrum-font-display);
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--setrum-ink-900);
+    line-height: 1.15;
+    margin: 0;
+}
+
+.control-cluster {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.segmented-group {
+    display: inline-flex !important;
+    background: var(--setrum-bg-elevated);
+    padding: 3px;
+    border-radius: var(--setrum-radius-sm);
+    border: 1px solid var(--setrum-border-hairline);
+    gap: 2px;
+    align-items: center;
+}
+
+.segmented-group .form-check {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    min-height: auto !important;
+}
+
+.segmented-group .form-check-input,
+.segmented-group input.btn-check {
+    position: absolute !important;
+    clip: rect(0, 0, 0, 0) !important;
+    pointer-events: none !important;
+    margin: 0 !important;
+}
+
+.segmented-group .seg-btn,
+.segmented-group label.form-check-label {
+    border: none !important;
+    background: transparent !important;
+    padding: 4px 11px !important;
+    font-family: var(--setrum-font-mono) !important;
+    font-size: 11.5px !important;
+    color: var(--setrum-ink-700) !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+    transition: all 120ms ease !important;
+    user-select: none !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1.3 !important;
+    margin: 0 !important;
+}
+
+.segmented-group .seg-btn:hover,
+.segmented-group label.form-check-label:hover {
+    color: var(--setrum-ink-900) !important;
+}
+
+.segmented-group .seg-btn.active,
+.segmented-group label.form-check-label.active,
+.segmented-group input:checked + label.form-check-label {
+    background: var(--setrum-bg-surface) !important;
+    color: var(--setrum-ink-900) !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06) !important;
+}
+
+.btn-primary-editorial {
+    background: var(--setrum-accent);
+    color: #fff;
+    border: none;
+    padding: 7px 14px;
+    border-radius: var(--setrum-radius-sm);
+    font-family: var(--setrum-font-sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 150ms;
+}
+
+.btn-primary-editorial:hover {
+    background: var(--setrum-accent-hover);
+    color: #fff;
+}
+
+.btn-secondary-editorial {
+    background: var(--setrum-bg-surface);
+    color: var(--setrum-ink-700);
+    border: 1px solid var(--setrum-border-strong);
+    padding: 5px 10px;
+    border-radius: var(--setrum-radius-sm);
+    font-family: var(--setrum-font-sans);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 150ms;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    line-height: 1.2;
+}
+}
+
+.btn-secondary-editorial:hover {
+    background: var(--setrum-bg-surface-alt);
+    color: var(--setrum-ink-900);
+}
+
+.btn-secondary-editorial.active {
+    background: var(--setrum-ink-900);
+    color: var(--setrum-bg-surface);
+    border-color: var(--setrum-ink-900);
+}
+
+/* ── KPI Editorial Strip ─────────────────────────────────────────── */
+.kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-rule);
+    border-radius: var(--setrum-radius-md);
+    box-shadow: var(--setrum-shadow-card);
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.kpi-cell {
+    padding: 18px 22px;
+    border-right: 1px solid var(--setrum-rule);
+    position: relative;
+    background: var(--setrum-bg-surface);
+}
+
+.kpi-cell:last-child {
+    border-right: none;
+}
+
+.kpi-cell.hero::before {
     content: "";
     position: absolute;
-    top: -7px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--setrum-orange);
+}
+
+.kpi-label {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--setrum-ink-500);
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-family: var(--setrum-font-sans);
+}
+
+.kpi-value {
+    font-family: var(--setrum-font-mono);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--setrum-ink-900);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}
+
+.kpi-sub {
+    margin-top: 6px;
+    font-family: var(--setrum-font-mono);
+    font-size: 11.5px;
+    color: var(--setrum-ink-500);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.delta-badge {
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+.delta-down { background: var(--setrum-positive-soft); color: var(--setrum-positive); }
+.delta-up { background: var(--setrum-orange-soft); color: var(--setrum-orange-hover); }
+
+/* ── Chart Cards ─────────────────────────────────────────────────── */
+.chart-card {
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-rule);
+    border-radius: var(--setrum-radius-md);
+    padding: 20px 24px;
+    box-shadow: var(--setrum-shadow-card);
+    margin-bottom: 28px;
+    position: relative;
+}
+
+.chart-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.hh-chart-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.hh-chart-card-header .chart-title-wrap {
+    width: 100%;
+}
+
+.hh-control-cluster {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.chart-title-wrap h3,
+.chart-title-wrap h4 {
+    font-family: var(--setrum-font-display);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--setrum-ink-900);
+    margin: 0;
+}
+
+.chart-title-wrap p {
+    font-size: 12.5px;
+    color: var(--setrum-ink-500);
+    margin: 2px 0 0;
+}
+
+.chart-legend {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--setrum-ink-700);
+    font-family: var(--setrum-font-sans);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    display: inline-block;
+}
+
+/* Live Brush Readout */
+.hh-readout,
+.brush-readout {
+    position: absolute;
+    top: 12px;
+    left: 64px;
+    background: var(--setrum-ink-900);
+    color: var(--setrum-bg-surface);
+    padding: 8px 14px;
+    border-radius: var(--setrum-radius-sm);
+    font-family: var(--setrum-font-mono);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--setrum-shadow-float);
+    z-index: 10;
+    border: none;
+    animation: popIn 160ms ease;
+}
+
+@keyframes popIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.brush-readout-btn,
+.hh-readout .hh-readout-edit {
     background: var(--setrum-warning);
-    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18),
-        0 2px 4px rgba(26, 23, 20, 0.30);
+    color: var(--setrum-ink-900) !important;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-family: var(--setrum-font-sans);
+    font-weight: 700;
+    font-size: 11.5px;
+    cursor: pointer;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.brush-readout-btn:hover,
+.hh-readout .hh-readout-edit:hover {
+    background: #e6c552;
+    transform: none;
+}
+
+/* ── Sticky Note Cards (Corkboard & Rail) ──────────────────────────── */
+.sticky-card,
+.sticky-note {
+    background: var(--setrum-sticky-cream);
+    border: 1px solid rgba(24, 21, 18, 0.12);
+    border-radius: var(--setrum-radius-sm);
+    padding: 14px 15px;
+    box-shadow: var(--setrum-shadow-sticky);
+    position: relative;
+    cursor: grab;
+    transition: transform 150ms ease, box-shadow 150ms ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.sticky-card:hover,
+.sticky-note:hover {
+    transform: translateY(-2px) rotate(0deg) !important;
+    box-shadow: 0 10px 24px rgba(24, 21, 18, 0.14);
+    z-index: 20;
+}
+
+.sticky-card.cream, .sticky-note.cream { background: var(--setrum-sticky-cream); }
+.sticky-card.peach, .sticky-note.peach { background: var(--setrum-sticky-peach); }
+.sticky-card.sage,  .sticky-note.sage  { background: var(--setrum-sticky-sage); }
+.sticky-card.mint,  .sticky-note.mint  { background: var(--setrum-sticky-mint); }
+.sticky-card.sky,   .sticky-note.sky   { background: var(--setrum-sticky-sky); }
+.sticky-card.lilac, .sticky-note.lilac { background: var(--setrum-sticky-lilac); }
+
+.sticky-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.sticky-badge,
+.sticky-source-badge {
+    font-family: var(--setrum-font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(24, 21, 18, 0.08);
+    color: var(--setrum-ink-900);
+    text-transform: uppercase;
 }
 
 .sticky-period {
     font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
+    font-size: 11px;
     color: var(--setrum-ink-700);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 400;
+    margin-bottom: 6px;
 }
 
 .sticky-comment {
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-body);
-    line-height: 1.4;
-    flex-grow: 1;
-    word-wrap: break-word;
-    white-space: pre-wrap;
+    font-family: var(--setrum-font-display);
+    font-size: 15px;
+    line-height: 1.35;
     color: var(--setrum-ink-900);
+    margin-bottom: 10px;
+    word-wrap: break-word;
+    flex-grow: 1;
 }
 
+.sticky-metrics,
 .sticky-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(24, 21, 18, 0.16);
     font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
-    color: var(--setrum-ink-700);
-    font-feature-settings: "tnum" 1;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .sticky-tags {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    margin-top: auto;
+    margin-top: 8px;
 }
 
 .sticky-tag {
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-caption);
-    padding: 2px 8px;
-    background: rgba(26, 23, 20, 0.10);
-    border-radius: var(--setrum-radius-pill);
-    color: var(--setrum-ink-900);
-}
-
-/* Top-row toolbar — source badge on the left, edit/delete on the right. */
-.sticky-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--setrum-space-1);
-}
-
-.sticky-source-badge {
     font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    font-weight: 400;
-    letter-spacing: 0.1em;
-    padding: 2px 8px;
-    border-radius: var(--setrum-radius-xs);
-    background: rgba(26, 23, 20, 0.06);
+    font-size: 10.5px;
+    background: rgba(255, 255, 255, 0.65);
+    padding: 1px 7px;
+    border-radius: 99px;
     color: var(--setrum-ink-700);
-    text-transform: uppercase;
-}
-
-/* Source-specific tints live as small accents — barely shifted from the
-   base so the overall sticky color still dominates. */
-.sticky-source-daily {
-    background: rgba(26, 23, 20, 0.10);
-    color: var(--setrum-ink-900);
-}
-
-.sticky-source-hh {
-    background: rgba(26, 23, 20, 0.06);
-    color: var(--setrum-ink-700);
+    border: 1px solid rgba(24, 21, 18, 0.1);
 }
 
 .sticky-actions {
     display: flex;
-    gap: 2px;
-    opacity: 0.5;
-    transition: opacity var(--setrum-dur-fast) var(--setrum-ease);
+    gap: 4px;
+    opacity: 0.6;
+    transition: opacity 120ms ease;
 }
 
+.sticky-card:hover .sticky-actions,
 .sticky-note:hover .sticky-actions {
     opacity: 1;
 }
@@ -1046,938 +969,537 @@ body {
     line-height: 1;
     cursor: pointer;
     color: var(--setrum-ink-700) !important;
-    transition: transform var(--setrum-dur-fast) var(--setrum-ease);
+    transition: transform 120ms ease;
 }
 
 .sticky-action-btn:hover {
-    transform: scale(1.18);
+    transform: scale(1.15);
 }
 
-/* Annotations tab heading + helper text. */
-.setrum-content h2 {
-    font-family: var(--setrum-font-display);
-    font-size: var(--setrum-text-h1);
-    line-height: var(--setrum-lh-h1);
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    color: var(--setrum-ink-900);
-    font-variation-settings: "SOFT" 30, "WONK" 0;
-}
-
-/* Catch-all for primary buttons inside the main content area
-   (e.g. "+ New" annotation, future tab actions). Uses the action
-   accent — these are the user pulling the trigger on something. */
-.setrum-content .btn-primary {
-    background: var(--setrum-accent);
-    border-color: var(--setrum-accent);
-    color: #fff;
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
-    border-radius: var(--setrum-radius-md);
-    padding: 8px 14px;
-    transition: background var(--setrum-dur-fast) var(--setrum-ease);
-}
-
-.setrum-content .btn-primary:hover,
-.setrum-content .btn-primary:focus {
-    background: var(--setrum-accent-hover);
-    border-color: var(--setrum-accent-hover);
-    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
-}
-
-/* Headline KPI cards — paper surface, mono numerics, hairline border. */
-.summary-card {
-    border: 1px solid var(--setrum-ink-100);
-    border-radius: var(--setrum-radius-md);
-    background: var(--setrum-bg-surface);
-    box-shadow: var(--setrum-shadow-data);
-    height: 100%;
-    transition: border-color var(--setrum-dur-fast) var(--setrum-ease),
-        box-shadow var(--setrum-dur-fast) var(--setrum-ease);
-}
-
-.summary-card:hover {
-    border-color: var(--setrum-ink-200);
-    box-shadow: var(--setrum-shadow-data-h);
-}
-
-.summary-card .card-body {
-    padding: var(--setrum-space-4) var(--setrum-space-5) !important;
-}
-
-.summary-label {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--setrum-ink-500) !important;
-    margin-bottom: var(--setrum-space-2);
-    /* Don't use Bootstrap's .small that shrinks again; the token sets size. */
-}
-
-.summary-card h5 {
-    /* Slightly tighter than --setrum-text-numeric-m so 4-up KPI rows
-       fit values like "24.1p / kWh" without wrapping. */
-    font-family: var(--setrum-font-mono);
-    font-size: 1.0625rem;
-    line-height: 1.25;
-    font-weight: 500;
-    color: var(--setrum-ink-900);
-    font-feature-settings: "tnum" 1;
-    letter-spacing: -0.01em;
-    margin: 0;
-    white-space: nowrap;
+/* ── Corkboard Viewport & Canvas ──────────────────────────────────── */
+.corkboard-viewport,
+.annotations-canvas-viewport {
+    height: 620px;
+    background-color: var(--setrum-bg-corkboard);
+    background-image: radial-gradient(var(--setrum-border-strong) 1.25px, transparent 1.25px);
+    background-size: 22px 22px;
+    border: 1px solid var(--setrum-border-strong);
+    border-radius: var(--setrum-radius-lg);
+    position: relative;
     overflow: hidden;
-    text-overflow: ellipsis;
+    box-shadow: inset 0 2px 10px rgba(24, 21, 18, 0.06);
+    overscroll-behavior: contain;
+    touch-action: none;
 }
 
-/* ── Section titles for chart cards (Daily Cost, Half-Hourly Depth) ── */
-.setrum-content h3 {
-    font-family: var(--setrum-font-display);
-    font-size: var(--setrum-text-h1);
-    line-height: var(--setrum-lh-h1);
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    color: var(--setrum-ink-900);
-    font-variation-settings: "SOFT" 30, "WONK" 0;
-    margin-bottom: var(--setrum-space-4);
+.annotations-canvas-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    will-change: transform;
 }
 
-.setrum-content h4 {
-    font-family: var(--setrum-font-display);
-    font-size: var(--setrum-text-h2);
-    line-height: var(--setrum-lh-h2);
-    font-weight: 500;
-    letter-spacing: -0.005em;
-    color: var(--setrum-ink-900);
-    font-variation-settings: "SOFT" 50, "WONK" 0;
-    margin: 0;
+.annotations-canvas {
+    position: relative;
+    width: 4000px;
+    height: 3000px;
 }
 
-.setrum-content small.text-muted {
+.canvas-sticky {
+    position: absolute;
+    width: 240px;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+}
+
+.canvas-sticky.dragging {
+    cursor: grabbing;
+    z-index: 50;
+    transform: rotate(0deg) scale(1.02);
+    box-shadow: 0 18px 36px rgba(24, 21, 18, 0.18), 0 4px 10px rgba(24, 21, 18, 0.10);
+    transition: none;
+}
+
+.canvas-sticky.selected {
+    outline: 2px solid var(--setrum-accent);
+    outline-offset: 3px;
+    z-index: 8;
+}
+
+.canvas-zoom-controls {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-border-strong);
+    border-radius: 99px;
+    padding: 4px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--setrum-ink-500) !important;
+    font-size: 12px;
+    box-shadow: var(--setrum-shadow-card);
+    z-index: 60;
+    user-select: none;
 }
 
-/* ── £ / kWh view toggle — segmented pill with a sliding "thumb" ──────
-   The whole control is one pill-shaped track in a soft ink wash. The
-   active label sits on a paper-surface thumb (rounded, soft-shadowed) and
-   uses Claude Orange for emphasis — the data-hero color. The inactive
-   label is muted and rides on the track itself. The result reads as a
-   single object that swaps state, not two adjacent buttons. */
-.setrum-toggle .btn-group {
-    background: var(--setrum-ink-100);
-    border: 1px solid var(--setrum-ink-200);
-    border-radius: var(--setrum-radius-pill);
-    padding: 3px;
-    gap: 2px;
-}
-
-.setrum-toggle .btn-group .btn-outline-secondary {
-    border: 1px solid transparent !important;
-    background: transparent !important;
-    color: var(--setrum-ink-500) !important;
+.canvas-zoom-controls .zoom-btn {
+    background: transparent;
+    border: none;
+    color: var(--setrum-ink-700);
     font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-small);
+    font-size: 12px;
     font-weight: 500;
-    padding: 4px 14px !important;
-    border-radius: var(--setrum-radius-pill) !important;
-    box-shadow: none !important;
-    /* Bootstrap's .btn-group merges adjacent borders with margin-left: -1px;
-       override so the gap on the track is honoured. */
-    margin-left: 0 !important;
-    transition: color var(--setrum-dur-fast) var(--setrum-ease),
-        background var(--setrum-dur-fast) var(--setrum-ease),
-        box-shadow var(--setrum-dur-fast) var(--setrum-ease);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
 }
 
-/* The £ glyph gets the display serif so it reads as a typographic mark
-   rather than just a generic letter — small touch, big personality. */
-.setrum-toggle .btn-group .btn-outline-secondary:first-of-type {
-    font-family: var(--setrum-font-display);
-    font-size: 1rem;
-    font-variation-settings: "SOFT" 50, "WONK" 0;
-    line-height: 1;
+.canvas-zoom-controls .zoom-btn:hover {
+    background: var(--setrum-bg-elevated);
+    color: var(--setrum-ink-900);
 }
 
-.setrum-toggle .btn-group .btn-outline-secondary:hover {
-    color: var(--setrum-ink-900) !important;
-    background: transparent !important;
+.canvas-zoom-controls .zoom-divider {
+    width: 1px;
+    height: 14px;
+    background: var(--setrum-border-strong);
 }
 
-.setrum-toggle .btn-group .btn-outline-secondary.active {
-    background: var(--setrum-bg-surface) !important;
-    color: var(--setrum-orange) !important;
-    box-shadow: var(--setrum-shadow-data) !important;
+.highlighted-shape {
+    stroke: #D4B130 !important;
+    stroke-width: 2.5px !important;
+    opacity: 0.85 !important;
 }
 
-.setrum-toggle .btn-group .btn-outline-secondary:focus-visible {
-    outline: none;
-    box-shadow: var(--setrum-shadow-data),
-        0 0 0 3px var(--setrum-orange-soft) !important;
-}
-
-/* ── Date range filter — Google-Trends-style pill ────────────────────────
-   The filter is an inline-flex track holding the preset select, and — only
-   when "Custom" is picked — a date picker beside it. Width auto-fits, so a
-   simple "Last 30 days ▾" stays compact and doesn't drown the chart header.
-*/
+/* ── Date range filter — Segmented & Styled ───────────────────────── */
 .date-range-filter {
     display: inline-flex;
     align-items: center;
-    gap: var(--setrum-space-2);
+    gap: 8px;
     width: auto;
 }
 
 .date-range-filter .date-range-select {
     cursor: pointer;
     width: auto;
-    min-width: 132px;
-    padding-right: 32px;
-    /* room for native chevron */
-    border-radius: var(--setrum-radius-pill);
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-small);
+    min-width: 110px;
+    padding: 4px 28px 4px 10px;
+    border-radius: var(--setrum-radius-sm);
+    font-family: var(--setrum-font-mono);
+    font-size: 11.5px;
     color: var(--setrum-ink-900);
     background-color: var(--setrum-bg-surface);
-    border: 1px solid var(--setrum-ink-200);
-    transition: border-color var(--setrum-dur-fast) var(--setrum-ease),
-        box-shadow var(--setrum-dur-fast) var(--setrum-ease);
+    border: 1px solid var(--setrum-border-hairline);
+    transition: all 120ms ease;
 }
 
 .date-range-filter .date-range-select:hover {
-    border-color: var(--setrum-ink-300);
+    border-color: var(--setrum-border-strong);
 }
 
 .date-range-filter .date-range-select:focus {
     border-color: var(--setrum-accent);
-    box-shadow: 0 0 0 3px var(--setrum-accent-soft);
+    box-shadow: 0 0 0 2px var(--setrum-accent-soft);
 }
 
-.date-range-filter .DateInput_input,
-.date-range-filter .DateRangePickerInput {
-    font-family: var(--setrum-font-mono) !important;
-    font-size: var(--setrum-text-small) !important;
-    color: var(--setrum-ink-900) !important;
-    background: var(--setrum-bg-surface) !important;
-}
-
-.date-range-filter .DateInput_input {
-    padding: 6px 8px !important;
-    line-height: 1.2 !important;
-}
-
-.date-range-filter .DateRangePickerInput {
-    border: 1px solid var(--setrum-ink-200);
-    border-radius: var(--setrum-radius-pill);
-    overflow: hidden;
-}
-
-.date-range-filter .DateRangePickerInput__withBorder {
-    border: 1px solid var(--setrum-ink-200);
-    border-radius: var(--setrum-radius-pill);
-}
-
-/* DateInput is a fixed 130px by default — too wide for the inline pill.
-   Trim it so the two date boxes fit comfortably beside the preset. */
-.date-range-filter .DateInput {
-    width: 100px !important;
-}
-
-.date-range-filter .DateInput_input__focused {
-    border-bottom: 2px solid var(--setrum-accent) !important;
-}
-
-.date-range-filter .DateRangePickerInput_arrow_svg {
-    fill: var(--setrum-ink-400);
-}
-
-/* Calendar popup — also tokens. */
-.CalendarMonth_caption,
-.CalendarDay__default {
-    font-family: var(--setrum-font-sans) !important;
-    color: var(--setrum-ink-900) !important;
-}
-
-.CalendarDay__default {
-    border-color: var(--setrum-ink-100) !important;
-}
-
-.CalendarDay__selected,
-.CalendarDay__selected:active,
-.CalendarDay__selected:hover {
-    background: var(--setrum-accent) !important;
-    border-color: var(--setrum-accent) !important;
-    color: #fff !important;
-}
-
-.CalendarDay__selected_span,
-.CalendarDay__hovered_span {
-    background: var(--setrum-accent-soft) !important;
-    border-color: var(--setrum-accent-soft) !important;
-    color: var(--setrum-accent) !important;
-}
-
-.DateRangePicker_picker {
-    box-shadow: var(--setrum-shadow-paper);
+/* ── Modals & Floating Composer ──────────────────────────────────── */
+.modal-content,
+.composer-modal {
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-border-strong);
     border-radius: var(--setrum-radius-md);
-}
-
-/* In the inline-flex track, the picker should size to its content (two
-   ~100px date inputs + an arrow), not stretch to fill. */
-.date-range-filter .DateRangePicker,
-.date-range-filter .DateRangePickerInput {
-    width: auto;
-}
-
-.date-range-filter .date-range-custom-wrap {
-    display: flex;
-    align-items: center;
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   STYLEGUIDE — preview surface for the new design system. Scoped to the
-   `.sg-page` root; does not affect anything outside the /styleguide route.
-   ════════════════════════════════════════════════════════════════════════ */
-
-.sg-page {
-    background: var(--setrum-bg-paper);
+    box-shadow: var(--setrum-shadow-float);
     color: var(--setrum-ink-900);
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-body);
-    line-height: var(--setrum-lh-body);
-    min-height: 100vh;
-    padding: var(--setrum-space-12) var(--setrum-space-10);
 }
 
-.sg-page * {
-    box-sizing: border-box;
-}
-
-.sg-container {
-    max-width: 1180px;
-    margin: 0 auto;
-}
-
-.sg-page-header {
+.modal-header {
     border-bottom: 1px solid var(--setrum-rule);
-    padding-bottom: var(--setrum-space-8);
-    margin-bottom: var(--setrum-space-12);
+    padding: 16px 20px;
 }
 
-.sg-page-eyebrow {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--setrum-ink-500);
-    margin-bottom: var(--setrum-space-2);
-}
-
-.sg-page-title {
+.modal-title {
     font-family: var(--setrum-font-display);
-    font-size: var(--setrum-text-display-1);
-    line-height: var(--setrum-lh-display-1);
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    margin: 0 0 var(--setrum-space-3);
-    font-variation-settings: "SOFT" 30, "WONK" 0;
-}
-
-.sg-page-subtitle {
-    color: var(--setrum-ink-500);
-    font-size: 1.0625rem;
-    max-width: 60ch;
-}
-
-.sg-section {
-    margin-bottom: var(--setrum-space-16);
-}
-
-.sg-section-header {
-    display: flex;
-    align-items: baseline;
-    gap: var(--setrum-space-4);
-    margin-bottom: var(--setrum-space-6);
-    border-bottom: 1px solid var(--setrum-ink-100);
-    padding-bottom: var(--setrum-space-3);
-}
-
-.sg-section-num {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-small);
-    color: var(--setrum-ink-400);
-    letter-spacing: 0.08em;
-}
-
-.sg-section-title {
-    font-family: var(--setrum-font-display);
-    font-size: var(--setrum-text-h1);
-    line-height: var(--setrum-lh-h1);
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    margin: 0;
-    flex: 1;
-    font-variation-settings: "SOFT" 50, "WONK" 0;
-}
-
-.sg-section-blurb {
-    color: var(--setrum-ink-500);
-    margin: 0 0 var(--setrum-space-6);
-    max-width: 70ch;
-}
-
-.sg-subsection-title {
-    font-size: var(--setrum-text-small);
+    font-size: 20px;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--setrum-ink-700);
-    margin: var(--setrum-space-8) 0 var(--setrum-space-3);
+    color: var(--setrum-ink-900);
 }
 
-/* ── Typography ramp ───────────────────────────────────── */
-.sg-type-row {
-    display: grid;
-    grid-template-columns: 180px 1fr 200px;
-    align-items: baseline;
-    gap: var(--setrum-space-6);
-    padding: var(--setrum-space-4) 0;
-    border-bottom: 1px dashed var(--setrum-ink-100);
+.modal-body {
+    padding: 20px;
 }
 
-.sg-type-row:last-child {
-    border-bottom: none;
+.modal-footer {
+    border-top: 1px solid var(--setrum-rule);
+    padding: 14px 20px;
 }
 
-.sg-type-name {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-small);
-    color: var(--setrum-ink-500);
-    letter-spacing: 0.04em;
-}
-
-.sg-type-meta {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    color: var(--setrum-ink-400);
-    text-align: right;
-}
-
-.sg-type-display-1 {
-    font-family: var(--setrum-font-display);
-    font-size: var(--setrum-text-display-1);
-    line-height: var(--setrum-lh-display-1);
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    font-variation-settings: "SOFT" 30, "WONK" 0;
-    margin: 0;
-}
-
-.sg-type-display-2 {
-    font-family: var(--setrum-font-display);
-    font-size: var(--setrum-text-display-2);
-    line-height: var(--setrum-lh-display-2);
-    font-weight: 500;
-    letter-spacing: -0.015em;
-    font-variation-settings: "SOFT" 50, "WONK" 0;
-    margin: 0;
-}
-
-.sg-type-h1 {
-    font-family: var(--setrum-font-display);
-    font-size: var(--setrum-text-h1);
-    line-height: var(--setrum-lh-h1);
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    margin: 0;
-}
-
-.sg-type-h2 {
+.form-control,
+.form-select,
+.form-input {
+    border: 1px solid var(--setrum-border-strong);
+    border-radius: var(--setrum-radius-sm);
+    background: var(--setrum-bg-paper);
     font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-h2);
-    line-height: var(--setrum-lh-h2);
-    font-weight: 600;
-    letter-spacing: -0.005em;
-    margin: 0;
-}
-
-.sg-type-h3 {
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-h3);
-    line-height: var(--setrum-lh-h3);
-    font-weight: 600;
-    margin: 0;
-}
-
-.sg-type-body {
-    font-size: var(--setrum-text-body);
-    line-height: var(--setrum-lh-body);
-    margin: 0;
-}
-
-.sg-type-small {
-    font-size: var(--setrum-text-small);
-    line-height: var(--setrum-lh-small);
-    color: var(--setrum-ink-700);
-    margin: 0;
-}
-
-.sg-type-caption {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    line-height: var(--setrum-lh-caption);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--setrum-ink-500);
-    margin: 0;
-}
-
-.sg-type-numeric-l {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-numeric-l);
-    line-height: var(--setrum-lh-numeric-l);
-    font-weight: 500;
-    font-feature-settings: "tnum" 1;
-    margin: 0;
-}
-
-.sg-type-mono {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-small);
-    margin: 0;
-}
-
-/* ── Color swatches ────────────────────────────────────── */
-.sg-swatch-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: var(--setrum-space-3);
-}
-
-.sg-swatch-card {
-    background: var(--setrum-bg-surface);
-    border: 1px solid var(--setrum-ink-100);
-    border-radius: var(--setrum-radius-md);
-    overflow: hidden;
-    transition: border-color var(--setrum-dur-fast) var(--setrum-ease);
-}
-
-.sg-swatch-card:hover {
-    border-color: var(--setrum-ink-300);
-}
-
-.sg-swatch-chip {
-    height: 70px;
-    border-bottom: 1px solid var(--setrum-ink-100);
-}
-
-.sg-swatch-meta {
-    padding: var(--setrum-space-3);
-}
-
-.sg-swatch-name {
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
+    font-size: 13.5px;
     color: var(--setrum-ink-900);
-    margin-bottom: 2px;
+    padding: 8px 12px;
 }
 
-.sg-swatch-token {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    color: var(--setrum-ink-500);
-    word-break: break-all;
-}
-
-.sg-swatch-hex {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    color: var(--setrum-ink-700);
-    text-transform: uppercase;
-    margin-top: 2px;
-}
-
-/* ── Radius / shadow / spacing demos ───────────────────── */
-.sg-demo-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--setrum-space-4);
-    align-items: flex-end;
-}
-
-.sg-radius-tile,
-.sg-shadow-tile {
-    background: var(--setrum-bg-surface);
-    border: 1px solid var(--setrum-ink-100);
-    width: 110px;
-    height: 90px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
-
-.sg-shadow-tile {
-    border: none;
-}
-
-.sg-tile-label {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    color: var(--setrum-ink-500);
-}
-
-.sg-tile-value {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    color: var(--setrum-ink-900);
-}
-
-.sg-spacing-bar {
-    background: var(--setrum-accent);
-    height: 18px;
-    border-radius: 2px;
-}
-
-.sg-spacing-row {
-    display: grid;
-    grid-template-columns: 60px 1fr 60px;
-    gap: var(--setrum-space-3);
-    align-items: center;
-    padding: var(--setrum-space-2) 0;
-}
-
-/* ── Buttons ───────────────────────────────────────────── */
-.sg-btn {
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
-    line-height: 1;
-    padding: 10px 18px;
-    border-radius: var(--setrum-radius-md);
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: background var(--setrum-dur-fast) var(--setrum-ease),
-        border-color var(--setrum-dur-fast) var(--setrum-ease),
-        transform var(--setrum-dur-fast) var(--setrum-ease);
-}
-
-.sg-btn:active {
-    transform: translateY(1px);
-}
-
-.sg-btn-primary {
-    background: var(--setrum-accent);
-    color: #fff;
-}
-
-.sg-btn-primary:hover {
-    background: var(--setrum-accent-hover);
-}
-
-.sg-btn-secondary {
-    background: var(--setrum-bg-surface);
-    color: var(--setrum-ink-900);
-    border-color: var(--setrum-ink-200);
-}
-
-.sg-btn-secondary:hover {
-    border-color: var(--setrum-ink-400);
-    background: var(--setrum-bg-surface-alt);
-}
-
-.sg-btn-danger {
-    background: transparent;
-    color: var(--setrum-accent);
-    border-color: var(--setrum-accent-soft);
-}
-
-.sg-btn-danger:hover {
-    background: var(--setrum-accent-soft);
-}
-
-.sg-btn-ghost {
-    background: transparent;
-    color: var(--setrum-ink-700);
-}
-
-.sg-btn-ghost:hover {
-    background: var(--setrum-ink-100);
-    color: var(--setrum-ink-900);
-}
-
-/* ── Inputs ────────────────────────────────────────────── */
-.sg-input,
-.sg-select {
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-body);
-    color: var(--setrum-ink-900);
-    background: var(--setrum-bg-surface);
-    border: 1px solid var(--setrum-ink-200);
-    border-radius: var(--setrum-radius-md);
-    padding: 10px 14px;
-    width: 100%;
-    transition: border-color var(--setrum-dur-fast) var(--setrum-ease),
-        box-shadow var(--setrum-dur-fast) var(--setrum-ease);
-}
-
-.sg-input:focus,
-.sg-select:focus {
-    outline: none;
+.form-control:focus,
+.form-select:focus,
+.form-input:focus {
     border-color: var(--setrum-accent);
     box-shadow: 0 0 0 3px var(--setrum-accent-soft);
-}
-
-.sg-input-label {
-    display: block;
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
-    color: var(--setrum-ink-700);
-    margin-bottom: var(--setrum-space-2);
-}
-
-.sg-input-field {
-    margin-bottom: var(--setrum-space-4);
-}
-
-/* ── KPI card ──────────────────────────────────────────── */
-.sg-kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--setrum-space-4);
-}
-
-.sg-kpi-card {
     background: var(--setrum-bg-surface);
-    border: 1px solid var(--setrum-ink-100);
+}
+
+/* Floating annotation form */
+.ann-form-card {
+    position: fixed;
+    top: 84px;
+    right: 24px;
+    width: 380px;
+    max-width: calc(100vw - 48px);
+    z-index: 1050;
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-border-strong);
     border-radius: var(--setrum-radius-md);
-    padding: var(--setrum-space-5);
-    box-shadow: var(--setrum-shadow-data);
+    box-shadow: var(--setrum-shadow-float);
+    overflow: hidden;
 }
 
-.sg-kpi-label {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--setrum-ink-500);
-    margin-bottom: var(--setrum-space-3);
-}
-
-.sg-kpi-value {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-numeric-l);
-    line-height: var(--setrum-lh-numeric-l);
-    font-weight: 500;
+.ann-form-card .card-header {
+    background: var(--setrum-bg-elevated);
+    border-bottom: 1px solid var(--setrum-rule);
+    padding: 12px 16px;
+    font-family: var(--setrum-font-display);
+    font-size: 16px;
+    font-weight: 600;
     color: var(--setrum-ink-900);
-    font-feature-settings: "tnum" 1;
-    margin-bottom: var(--setrum-space-2);
 }
 
-.sg-kpi-delta {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    color: var(--setrum-ink-500);
+.ann-close-btn {
+    text-decoration: none !important;
+    color: var(--setrum-ink-500) !important;
+    font-size: 1.1rem;
+    line-height: 1;
 }
 
-.sg-kpi-delta.up {
-    color: var(--setrum-positive);
+.ann-close-btn:hover {
+    color: var(--setrum-ink-900) !important;
 }
 
-.sg-kpi-delta.down {
-    color: var(--setrum-accent);
+/* ── Data Health Styles ──────────────────────────────────────────── */
+.health-calendar-container {
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-rule);
+    border-radius: var(--setrum-radius-md);
+    padding: 20px 24px;
+    box-shadow: var(--setrum-shadow-card);
 }
 
-/* ── Status pill ───────────────────────────────────────── */
-.sg-pill {
-    display: inline-flex;
+.health-tiles-grid {
+    display: grid;
+    grid-template-rows: repeat(7, 12px);
+    grid-auto-flow: column;
+    grid-auto-columns: 12px;
+    gap: 3px;
+}
+
+.health-tile {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    transition: transform 0.1s ease;
+    cursor: pointer;
+}
+
+.health-tile:hover {
+    transform: scale(1.35);
+    z-index: 10;
+}
+
+.health-tile--missing,
+.health-tile--empty {
+    background-color: var(--setrum-rule);
+}
+
+.health-tile--partial {
+    background-color: #E6A817;
+}
+
+.health-tile--complete {
+    background-color: var(--setrum-positive);
+}
+
+.health-legend {
+    display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
+    font-size: 11px;
+    color: var(--setrum-ink-500);
+}
+
+.health-table-card {
+    background: var(--setrum-bg-surface);
+    border: 1px solid var(--setrum-rule);
+    border-radius: var(--setrum-radius-md);
+    box-shadow: var(--setrum-shadow-card);
+}
+
+.health-table-card .table th {
+    font-family: var(--setrum-font-mono);
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 4px 10px;
+    letter-spacing: 0.05em;
+    color: var(--setrum-ink-500);
+    border-bottom: 1px solid var(--setrum-rule);
+    background-color: var(--setrum-bg-paper);
+}
+
+.health-pill-btn {
     border-radius: var(--setrum-radius-pill);
-    border: 1px solid transparent;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 12px;
 }
 
-.sg-pill::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
+/* ── Responsive adjustments ──────────────────────────────────────── */
+@media (max-width: 992px) {
+    .setrum-workbench,
+    .workbench {
+        grid-template-columns: 1fr;
+    }
+    .field-notes-rail {
+        display: none;
+    }
+    .kpi-strip {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
-.sg-pill-positive {
-    background: var(--setrum-positive-soft);
-    color: var(--setrum-positive);
-    border-color: rgba(26, 138, 110, 0.20);
+@media (max-width: 576px) {
+    .kpi-strip {
+        grid-template-columns: 1fr;
+    }
+    .brand-subtitle {
+        display: none;
+    }
 }
 
-.sg-pill-cool {
-    background: var(--setrum-cool-soft);
-    color: var(--setrum-cool);
-    border-color: rgba(13, 118, 128, 0.20);
+/* ── 2-Column Bottom Row: 24-Hour Load Profile Table + HH Chart ──── */
+.consumption-bottom-grid {
+    display: grid;
+    grid-template-columns: minmax(380px, 5fr) minmax(460px, 7fr);
+    gap: 24px;
+    align-items: stretch;
+    margin-bottom: 28px;
 }
 
-.sg-pill-warning {
-    background: var(--setrum-warning-soft);
-    color: var(--setrum-warning);
-    border-color: rgba(182, 141, 0, 0.25);
+@media (max-width: 1180px) {
+    .consumption-bottom-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
-.sg-pill-accent {
-    background: var(--setrum-accent-soft);
-    color: var(--setrum-accent);
-    border-color: rgba(153, 15, 61, 0.20);
-}
-
-.sg-pill-neutral {
-    background: var(--setrum-ink-100);
-    color: var(--setrum-ink-700);
-    border-color: var(--setrum-ink-200);
-}
-
-/* ── Sticky note ───────────────────────────────────────── */
-.sg-board {
-    background: var(--setrum-bg-corkboard);
-    background-image:
-        radial-gradient(circle at 22% 30%, rgba(26, 23, 20, 0.05) 1px, transparent 1px),
-        radial-gradient(circle at 70% 80%, rgba(26, 23, 20, 0.04) 1px, transparent 1px);
-    background-size: 36px 36px, 56px 56px;
-    border-radius: var(--setrum-radius-lg);
-    padding: var(--setrum-space-8);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--setrum-space-6);
-    border: 1px solid #d4cab2;
-}
-
-.sg-sticky {
-    width: 220px;
-    min-height: 170px;
-    padding: var(--setrum-space-4);
-    border-radius: var(--setrum-radius-sm);
-    box-shadow: var(--setrum-shadow-paper);
-    display: flex;
-    flex-direction: column;
-    gap: var(--setrum-space-2);
-    color: var(--setrum-ink-900);
-    transition: transform var(--setrum-dur-base) var(--setrum-ease),
-        box-shadow var(--setrum-dur-base) var(--setrum-ease);
-    position: relative;
-}
-
-.sg-sticky:hover {
-    transform: rotate(0deg) translateY(-3px);
-    box-shadow: 0 12px 28px rgba(26, 23, 20, 0.16), 0 1px 3px rgba(26, 23, 20, 0.10);
-    z-index: 2;
-}
-
-.sg-sticky.peach {
-    background: var(--setrum-sticky-peach);
-    transform: rotate(-1.2deg);
-}
-
-.sg-sticky.mint {
-    background: var(--setrum-sticky-mint);
-    transform: rotate(0.8deg);
-}
-
-.sg-sticky.sky {
-    background: var(--setrum-sticky-sky);
-    transform: rotate(-0.4deg);
-}
-
-.sg-sticky.lilac {
-    background: var(--setrum-sticky-lilac);
-    transform: rotate(1.4deg);
-}
-
-.sg-sticky.cream {
-    background: var(--setrum-sticky-cream);
-    transform: rotate(-0.9deg);
-}
-
-.sg-sticky-source {
+.hourly-unit-badge {
     font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--setrum-ink-700);
-    align-self: flex-start;
-    background: rgba(26, 23, 20, 0.06);
-    padding: 2px 8px;
-    border-radius: var(--setrum-radius-xs);
-}
-
-.sg-sticky-period {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    text-transform: uppercase;
+    font-size: 10.5px;
+    font-weight: 600;
     letter-spacing: 0.06em;
     color: var(--setrum-ink-700);
+    background: var(--setrum-bg-surface-alt);
+    border: 1px solid var(--setrum-rule);
+    padding: 4px 9px;
+    border-radius: var(--setrum-radius-sm);
+    white-space: nowrap;
 }
 
-.sg-sticky-comment {
-    font-family: var(--setrum-font-sans);
-    font-size: var(--setrum-text-body);
-    line-height: 1.4;
-    flex-grow: 1;
+.hourly-table-scroll {
+    border: 1px solid var(--setrum-rule);
+    border-radius: var(--setrum-radius-sm);
+    background: var(--setrum-bg-paper);
+    overflow: visible;
 }
 
-.sg-sticky-stats {
+.hourly-profile-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
     font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-small);
-    font-weight: 500;
+    font-size: 11.5px;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+}
+
+.hourly-profile-table thead th {
+    background: var(--setrum-bg-surface-alt);
     color: var(--setrum-ink-700);
-    font-feature-settings: "tnum" 1;
-}
-
-.sg-sticky-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-}
-
-.sg-sticky-tag {
-    font-size: var(--setrum-text-caption);
-    padding: 2px 8px;
-    background: rgba(26, 23, 20, 0.10);
-    border-radius: var(--setrum-radius-pill);
-}
-
-/* ── Chart container ───────────────────────────────────── */
-.sg-chart-frame {
-    background: var(--setrum-bg-surface);
-    border: 1px solid var(--setrum-ink-100);
-    border-radius: var(--setrum-radius-md);
-    padding: var(--setrum-space-5);
-    box-shadow: var(--setrum-shadow-data);
-}
-
-.sg-chart-title {
-    font-family: var(--setrum-font-display);
-    font-size: var(--setrum-text-h2);
-    line-height: var(--setrum-lh-h2);
-    font-weight: 500;
-    letter-spacing: -0.005em;
-    margin: 0;
-}
-
-.sg-chart-meta {
-    font-family: var(--setrum-font-mono);
-    font-size: var(--setrum-text-caption);
-    color: var(--setrum-ink-500);
+    font-size: 9.5px;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-top: 2px;
+    letter-spacing: 0.03em;
+    padding: 6px 6px;
+    white-space: nowrap;
+    border-bottom: 1.5px solid var(--setrum-ink-900);
+}
+
+.hourly-profile-table tbody tr {
+    border-bottom: 1px solid var(--setrum-rule);
+    background: var(--setrum-bg-surface);
+    transition: background-color 120ms ease;
+}
+
+.hourly-profile-table tbody tr:hover {
+    background-color: var(--setrum-bg-paper);
+}
+
+.hourly-profile-table td {
+    padding: 2px 6px;
+    color: var(--setrum-ink-700);
+}
+
+.hourly-col-hour {
+    text-align: left;
+    font-weight: 600;
+    color: var(--setrum-ink-900) !important;
+    border-right: 1px solid var(--setrum-rule);
+    width: 13%;
+    padding-left: 10px !important;
+}
+
+.hourly-col-val {
+    text-align: right;
+    width: 29%;
+    border-right: 1px solid rgba(226, 217, 200, 0.55);
+}
+
+.hourly-col-val:last-child {
+    border-right: none;
+}
+
+.hourly-cell-track {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 19px;
+    padding: 0 4px;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.hourly-bar-fill {
+    position: absolute;
+    left: 0;
+    top: 1px;
+    bottom: 1px;
+    border-radius: 2px;
+    pointer-events: none;
+    transition: width 160ms ease;
+}
+
+.hourly-bar-fill--primary {
+    background: rgba(217, 93, 57, 0.25);
+    border-right: 1px solid rgba(217, 93, 57, 0.38);
+}
+
+.hourly-bar-fill--avg {
+    background: rgba(22, 105, 122, 0.17);
+    border-right: 1px solid rgba(22, 105, 122, 0.30);
+}
+
+.hourly-cell-text {
+    position: relative;
+    z-index: 1;
+}
+
+.hourly-col-latest {
+    color: var(--setrum-ink-900) !important;
+    font-weight: 600;
+}
+
+.hourly-col-peak {
+    color: var(--setrum-accent) !important;
+    font-weight: 700;
+}
+
+.hourly-col-peak .hourly-bar-fill--primary {
+    background: rgba(153, 15, 61, 0.18);
+    border-right: 1px solid rgba(153, 15, 61, 0.35);
+}
+
+.hourly-profile-table tfoot td {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    background: var(--setrum-bg-surface-alt);
+    border-top: 1.5px solid var(--setrum-ink-900);
+    font-weight: 700;
+    color: var(--setrum-ink-900);
+    padding: 7px 10px;
+}
+
+/* ── Interactive Date Picker in 24-Hour Table Header ─────────────── */
+.hourly-th-datepicker {
+    padding: 3px 6px !important;
+    vertical-align: middle;
+}
+
+.hourly-dp-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.hourly-th-datepicker .dash-datepicker-input-wrapper {
+    background: var(--setrum-bg-surface) !important;
+    border: 1px solid var(--setrum-border-strong) !important;
+    border-radius: 5px !important;
+    padding: 2px 8px !important;
+    min-height: 0 !important;
+    height: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.hourly-th-datepicker .dash-datepicker-input-wrapper:hover,
+.hourly-th-datepicker .dash-datepicker-input-wrapper:focus-within {
+    border-color: var(--setrum-accent) !important;
+    box-shadow: 0 0 0 2px rgba(153, 15, 61, 0.12) !important;
+}
+
+.hourly-th-datepicker .dash-datepicker-input {
+    font-family: var(--setrum-font-mono) !important;
+    font-size: 10.5px !important;
+    line-height: 1.2 !important;
+    font-weight: 700 !important;
+    color: var(--setrum-ink-900) !important;
+    width: 72px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 18px !important;
+    cursor: pointer !important;
+}
+
+.dash-datepicker-content {
+    z-index: 1060 !important;
+    font-family: var(--setrum-font-mono) !important;
+    border: 1px solid var(--setrum-border-strong) !important;
+    background: var(--setrum-bg-surface) !important;
+    box-shadow: var(--setrum-shadow-float) !important;
+}
+
+.dash-datepicker-calendar-day-selected,
+.dash-datepicker-calendar td[aria-selected="true"] {
+    background-color: var(--setrum-accent) !important;
+    color: #fff !important;
 }

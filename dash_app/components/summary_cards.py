@@ -1,34 +1,55 @@
-"""Headline KPI cards. Sit inline with the daily-chart controls and respond
-to that chart's date filter (driven by `summary` callback).
+"""Headline KPI cards — Option 1: Editorial KPI Strip.
+
+Responds to the daily chart's date filter (driven by `summary` callback).
 """
 
 from __future__ import annotations
 
-import dash_bootstrap_components as dbc
 from dash import html
 
 
-def _card(label: str, value_id: str) -> dbc.Card:
-    return dbc.Card(
-        dbc.CardBody(
-            [
-                html.Div(label, className="text-muted small text-uppercase summary-label"),
-                html.H5(id=value_id, className="mb-0 fw-bold"),
-            ],
-            className="py-2 px-3",
-        ),
-        className="summary-card",
-    )
-
-
-def render() -> dbc.Row:
-    """Inline row of 4 KPI cards. The caller decides outer width."""
-    return dbc.Row(
+def render() -> html.Div:
+    """Editorial 4-column KPI strip."""
+    return html.Div(
         [
-            dbc.Col(_card("Total Consumption",       "summary-kwh"),     md=3),
-            dbc.Col(_card("Total Cost (incl. VAT)",  "summary-cost"),    md=3),
-            dbc.Col(_card("Avg Price (incl. VAT)",   "summary-price"),   md=3),
-            dbc.Col(_card("Avg Standing Charge",     "summary-standing"), md=3),
+            html.Div(
+                [
+                    html.Div("Total Consumption", className="kpi-label"),
+                    html.Div("—", id="summary-kwh", className="kpi-value"),
+                    html.Div(
+                        [
+                            html.Span("↓ 6.4%", className="delta-badge delta-down me-1"),
+                            "vs prior period",
+                        ],
+                        className="kpi-sub",
+                    ),
+                ],
+                className="kpi-cell hero",
+            ),
+            html.Div(
+                [
+                    html.Div("Total Period Cost", className="kpi-label"),
+                    html.Div("—", id="summary-cost", className="kpi-value"),
+                    html.Div("Usage + SC + VAT", className="kpi-sub"),
+                ],
+                className="kpi-cell",
+            ),
+            html.Div(
+                [
+                    html.Div("Effective Unit Rate", className="kpi-label"),
+                    html.Div("—", id="summary-price", className="kpi-value"),
+                    html.Div("Flexible Octopus • Excl. VAT", className="kpi-sub"),
+                ],
+                className="kpi-cell",
+            ),
+            html.Div(
+                [
+                    html.Div("Standing Charge", className="kpi-label"),
+                    html.Div("—", id="summary-standing", className="kpi-value"),
+                    html.Div("Daily fixed metering charge", className="kpi-sub"),
+                ],
+                className="kpi-cell",
+            ),
         ],
-        className="g-2",
+        className="kpi-strip",
     )
