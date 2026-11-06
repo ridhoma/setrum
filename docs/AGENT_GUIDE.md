@@ -21,6 +21,11 @@ Read `PRODUCT.md` for *what* the product is and `ARCHITECTURE.md` for
 5. `dash_app/callbacks/__init__.py` — the list of every callback
    module. If a callback doesn't appear here, it isn't registered.
 
+> [!IMPORTANT]
+> **Strict Port Usage Rule:**
+> - **Port 8050 is RESERVED for Docker production deployment.** The live app runs continuously in Docker on `:8050` (`http://localhost:8050` and LAN `http://<mac-name>.local:8050`). NEVER bind, probe, or run local dev servers on port 8050.
+> - **Port 8051 is for local development:** Any local run (`uv run python run.py`), test server, Playwright session, or curl probe MUST use **port 8051** (e.g. `uv run python run.py --port 8051`).
+
 Now you can be useful.
 
 ---
@@ -360,10 +365,9 @@ This catches schema / typo bugs before they hit the UI.
 When you create a test annotation in DB to verify a flow, delete it
 afterward via SQL. The user notices garbage rows in their data.
 
-### 5.4 Kill the server before they restart
+### 5.4 Kill the local dev server before they restart
 
-When the user says "restart it" or "I'll restart", run `pkill -f
-run.py` so port 8050 is free. They'll thank you for it.
+When the user says "restart it" or "I'll restart", run `pkill -f run.py` so port 8051 is free. They'll thank you for it. (Remember: the production app is deployed in Docker on port 8050; local dev must always use port 8051).
 
 ### 5.5 Auto-mode means just go
 
@@ -408,8 +412,8 @@ empty tab-content panel `dcc.Tabs` adds underneath the trigger row, etc.
 **Static screenshot** — for "is the layout right" checks. Cheapest mode:
 
 ```bash
-# App must be running on :8050. Tight viewport = fewer image tokens.
-uv run playwright screenshot http://127.0.0.1:8050 /tmp/setrum.png \
+# App must be running locally on :8051 (port 8050 is strictly reserved for production Docker deployment). Tight viewport = fewer image tokens.
+uv run playwright screenshot http://127.0.0.1:8051 /tmp/setrum.png \
     --viewport-size=1600,900 --wait-for-timeout=1500
 # then Read /tmp/setrum.png
 ```
@@ -426,7 +430,7 @@ from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
     page = p.chromium.launch().new_page()
     page.on("console", lambda m: print("[js]", m.text))   # surface JS errors
-    page.goto("http://127.0.0.1:8050")
+    page.goto("http://127.0.0.1:8051")
     page.click("text=Annotations")
     page.locator("#canvas-sticky-21").click()
     page.keyboard.down("Shift")

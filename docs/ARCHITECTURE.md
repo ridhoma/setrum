@@ -743,11 +743,19 @@ echo 'OCTOPUS_ACCOUNT_NUMBER=A-XXXX'  >> .env
 
 # Run local dev
 uv run python run.py
-# → http://127.0.0.1:8051 (port 8050 is reserved for production Docker)
+# → http://127.0.0.1:8051
+
+# Production Deployment (Docker)
+docker compose up -d
+# → http://0.0.0.0:8050 (and LAN http://<mac-name>.local:8050)
 ```
 
-`run.py --port 8051 --debug` for development. `init_db()` runs on every
-start (idempotent).
+`run.py --port 8051 --debug` for local development. `init_db()` runs on every start (idempotent).
+
+> [!IMPORTANT]
+> **Port Separation:**
+> - **Port 8050** is reserved exclusively for the Docker production deployment.
+> - **Port 8051** is for all local development, manual probes, and Playwright tests. Never bind port 8050 locally.
 
 ---
 

@@ -1,8 +1,8 @@
 """Setrum Dash entrypoint.
 
 Can be run via:
-  Dev:  `uv run python run.py`
-  Prod: `uv run gunicorn "run:server" --bind 0.0.0.0:8050 --workers 2`
+  Dev:  `uv run python run.py` (defaults to port 8051; port 8050 is reserved for Docker)
+  Prod: Docker deployment (runs on port 8050)
 """
 
 from __future__ import annotations
