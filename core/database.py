@@ -1,10 +1,14 @@
 import sqlite3
 import os
 
-DB_NAME = os.environ.get("SETRUM_DB_PATH", "setrum.db")
+DEFAULT_DB_PATH = os.path.expanduser("~/.setrum/data/setrum.db")
+DB_NAME = os.environ.get("SETRUM_DB_PATH", DEFAULT_DB_PATH)
 
 def get_connection():
     """Returns a connection to the local SQLite database."""
+    db_dir = os.path.dirname(os.path.abspath(DB_NAME))
+    if db_dir:
+        os.makedirs(db_dir, exist_ok=True)
     conn = sqlite3.connect(DB_NAME)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
