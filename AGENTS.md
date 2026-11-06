@@ -17,4 +17,4 @@
 - **Do not commit or push without explicit user instruction:** Never run `git commit`, `git push`, or destructive operations (`git reset --hard`, `git clean -fd`) autonomously.
 - **Stage explicitly:** Avoid `git add .` or `git add -A`; stage individual files explicitly.
 - **Zero secrets & data leaks:** Never stage `.env`, credentials, secrets, or `.db` files.
-- See [.gemini/rules/github-practices.md](file:///Users/ridho-akbar/Projects/setrum/.gemini/rules/github-practices.md) for full guidelines.
+- See [.gemini/rules/github-practices.md](file:///Users/ridho-akbar/Workspace/setrum/.gemini/rules/github-practices.md) for full guidelines.
