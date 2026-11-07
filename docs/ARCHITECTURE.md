@@ -731,35 +731,120 @@ User pointerdown on a sticky note
 
 ---
 
-## 9. Running the app
+## 9. Deployment & Running the App
 
-```bash
-# Setup
-uv sync
-
-# Configure (.env)
-echo 'OCTOPUS_API_KEY=sk_live_xxxxx' >  .env
-echo 'OCTOPUS_ACCOUNT_NUMBER=A-XXXX'  >> .env
-
-# Run local dev
-uv run python run.py
-# → http://127.0.0.1:8051
-
-# Production Deployment (Docker)
-docker compose up -d
-# → http://0.0.0.0:8050 (and LAN http://<mac-name>.local:8050)
-```
-
-`run.py --port 8051 --debug` for local development. `init_db()` runs on every start (idempotent).
+### Port Separation & Environment Policy
 
 > [!IMPORTANT]
-> **Port Separation:**
-> - **Port 8050** is reserved exclusively for the Docker production deployment.
-> - **Port 8051** is for all local development, manual probes, and Playwright tests. Never bind port 8050 locally.
+> **Strict Port Separation:**
+> - **Port 8050** is reserved exclusively for the Docker production deployment (`http://localhost:8050` and LAN `http://<mac-name>.local:8050`). Never bind local development servers to 8050.
+> - **Port 8051** is default for local development (`uv run python run.py`), manual probes, and tests.
+
+### Running Local Development
+
+```bash
+# 1. Install dependencies
+uv sync
+
+# 2. Configure credentials (see Section 10 for choices: .env, ~/.setrum/.env, or Keychain)
+cp .env.example .env
+# Edit .env with your OCTOPUS_API_KEY and OCTOPUS_ACCOUNT_NUMBER
+
+# 3. Start local development server (defaults to port 8051)
+uv run python run.py
+# → http://127.0.0.1:8051
+```
+
+- Pass `--port 8051 --debug` for auto-reloading during UI development.
+- `init_db()` runs automatically on startup; it creates `~/.setrum/data/` and all database schemas if they do not exist.
+
+### Production Deployment (Docker)
+
+The production daemon runs via Docker Compose on port 8050:
+
+```bash
+# Build & start background daemon
+docker compose up -d --build
+
+# Inspect logs
+docker logs -f setrum
+
+# Restart after configuration updates
+docker compose restart
+```
+
+#### Persistence & Container Setup
+- **Database Volume:** The container maps `~/.setrum/data:/app/data`. Application state (`setrum.db`) persists in the user's home directory across container rebuilds.
+- **Cache Volume:** In-container background callbacks write to a temporary diskcache directory (`/tmp/setrum-cache`).
+- **Restart Policy:** Configured with `restart: unless-stopped` for continuous background operation.
+- **Health Check:** Exposes `/health` on `0.0.0.0:8050/health` returning `{"status": "ok", "app": "setrum"}`.
 
 ---
 
-## 10. Known limitations
+## 10. Credential Management
+
+Setrum requires two credentials to interface with Octopus Energy:
+- `OCTOPUS_API_KEY`: Octopus REST API key (`sk_live_...`).
+- `OCTOPUS_ACCOUNT_NUMBER`: Account identifier (`A-...`).
+
+### Security Rules
+- **Zero Git Leaks:** Never commit `.env`, credentials, secrets, or `.db` files. Both `.env` and `setrum.db` are strictly gitignored.
+- Credentials must never be logged or echoed in command outputs.
+
+### Precedence Hierarchy (`core/credentials.py`)
+
+When Setrum accesses credentials (via `get_octopus_api_key()` or `get_octopus_account_number()`), it evaluates sources in order:
+
+```mermaid
+flowchart TD
+    Start["Request Credential"] --> Env["1. Environment Variables / Local .env"]
+    Env -- "Found" --> Done["Return Credential"]
+    Env -- "Not Found" --> Ext["2. External ~/.setrum/.env"]
+    Ext -- "Found" --> Done
+    Ext -- "Not Found" --> Keychain{"3. macOS Keychain (Darwin only)"}
+    Keychain -- "Found" --> Done
+    Keychain -- "Not Found" --> Fail["Return None / Prompt Setup"]
+```
+
+1. **Local `.env` (Project root):** Loaded via `python-dotenv`. Ideal for standard local developer setups.
+2. **External `~/.setrum/.env`:** Loaded from user home directory. Completely isolated outside the Git workspace; eliminates any risk of accidental git staging.
+3. **macOS Keychain (Local macOS only):** Queried via the macOS `security` CLI under service `setrum`.
+
+### Setup Options for New Users
+
+When a new user clones the repository from GitHub, `~/.setrum/data/` and the database schema are provisioned **automatically** on first boot. For credentials, users choose one of the following methods:
+
+#### Method A: Standard Project `.env` (Simplest for fresh clones)
+```bash
+cp .env.example .env
+# Fill in OCTOPUS_API_KEY and OCTOPUS_ACCOUNT_NUMBER
+```
+Both `uv run python run.py` and `docker compose up -d` detect `.env` out of the box.
+
+#### Method B: External `~/.setrum/.env` (Isolated Secrets)
+Create `~/.setrum/.env` outside the workspace:
+```bash
+mkdir -p ~/.setrum
+cat <<EOF > ~/.setrum/.env
+OCTOPUS_API_KEY=sk_live_replace_me
+OCTOPUS_ACCOUNT_NUMBER=A-XXXXXXXX
+EOF
+chmod 600 ~/.setrum/.env
+```
+`docker-compose.yml` includes `~/.setrum/.env` under `env_file` with `required: false`. If present, Docker automatically mounts and consumes it.
+
+#### Method C: macOS Keychain CLI
+```bash
+uv run python -m core.credentials
+# Prompts securely with hidden input and stores directly in Keychain
+```
+> [!NOTE]
+> **Docker & Keychain Boundary:**
+> Docker on macOS runs inside a LinuxKit VM and cannot access the host's macOS Keychain. When deploying via Docker, provide credentials via **Method A (`.env`)** or **Method B (`~/.setrum/.env`)**.
+
+---
+
+## 11. Known limitations
 
 - **Single user / single account**, derived from one Octopus account
   number set in `.env`.
