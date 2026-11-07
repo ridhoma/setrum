@@ -106,6 +106,12 @@ def render_main() -> html.Div:
                 interval=6 * 3600 * 1000,  # 6 hours in ms
                 n_intervals=0,
             ),
+            dcc.Interval(
+                id="sync-poll-interval",
+                interval=2000,  # 2 seconds fast-polling when a sync is running
+                disabled=True,
+                n_intervals=0,
+            ),
             header.render(),
             workbench,
         ],

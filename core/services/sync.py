@@ -42,9 +42,9 @@ def _conn(conn: sqlite3.Connection | None) -> Iterator[sqlite3.Connection]:
         new_conn.close()
 
 
-def _is_actively_running(max_age_minutes: int = 5) -> bool:
+def _is_actively_running(max_age_minutes: int = 5, conn: sqlite3.Connection | None = None) -> bool:
     """Return True if a sync job is currently marked RUNNING and started recently."""
-    with _conn(None) as c:
+    with _conn(conn) as c:
         row = c.execute(
             "SELECT status, last_run_at FROM job_runs WHERE endpoint_name = ?",
             (orchestrator.SYNC_JOB_NAME,),
@@ -85,24 +85,45 @@ def run_sync(progress_cb: Optional[ProgressCb] = None) -> dict:
             return {"status": "ERROR", "error": str(e)}
 
 
-def get_sync_status(conn: sqlite3.Connection | None = None) -> dict:
-    """Surface the latest `_sync` job_runs row plus a derived staleness flag."""
+def get_sync_status(conn: sqlite3.Connection | None = None, max_age_minutes: int = 5) -> dict:
+    """Surface the latest `_sync` job_runs row plus a derived staleness flag.
+
+    If the status is marked RUNNING but has exceeded `max_age_minutes` (e.g. from
+    a crash or restarted worker), automatically marks the run as ERROR / timed out
+    in the database and sets `is_stale=True`.
+    """
     with _conn(conn) as c:
         row = c.execute(
             "SELECT * FROM job_runs WHERE endpoint_name = ?",
             (orchestrator.SYNC_JOB_NAME,),
         ).fetchone()
-    if row is None:
-        return {
-            "status": "NEVER_RUN",
-            "last_run_at": None,
-            "last_successful_timestamp": None,
-            "error_message": None,
-            "is_stale": True,
-        }
-    out = dict(row)
-    out["is_stale"] = _is_stale(out.get("last_run_at")) or out.get("status") == "ERROR"
-    return out
+        if row is None:
+            return {
+                "status": "NEVER_RUN",
+                "last_run_at": None,
+                "last_successful_timestamp": None,
+                "error_message": None,
+                "is_stale": True,
+            }
+        out = dict(row)
+        if out.get("status") == "RUNNING":
+            if not _is_actively_running(max_age_minutes=max_age_minutes, conn=c):
+                err_msg = "Sync timed out or process was restarted mid-sync"
+                out["status"] = "ERROR"
+                out["error_message"] = err_msg
+                out["is_stale"] = True
+                try:
+                    c.execute(
+                        "UPDATE job_runs SET status = 'ERROR', error_message = ? WHERE endpoint_name = ? AND status = 'RUNNING'",
+                        (err_msg, orchestrator.SYNC_JOB_NAME),
+                    )
+                    c.commit()
+                except Exception as e:
+                    logger.warning("Failed to update stale job_runs status in database: %s", e)
+                return out
+
+        out["is_stale"] = _is_stale(out.get("last_run_at")) or out.get("status") == "ERROR"
+        return out
 
 
 def _is_stale(last_run_at: str | None, hours: float = DEFAULT_SYNC_INTERVAL_HOURS) -> bool:

@@ -57,6 +57,7 @@ def auto_sync_on_open_or_interval(
         (Output("refresh-btn", "children"),  "Syncing…", "↻ Sync Octopus"),
         (Output("sync-progress-bar", "style"),
          {"display": "flex"}, {"display": "none"}),
+        (Output("sync-poll-interval", "disabled", allow_duplicate=True), False, True),
     ],
     progress=[
         Output("sync-progress-bar", "value"),
@@ -81,6 +82,32 @@ def on_refresh(set_progress, n_clicks: int | None, current_version: int | None):
     # On completion, wipe the progress label/bar so the sidebar doesn't keep
     # showing the last in-flight step (e.g. "Syncing transform (1/1)…").
     return (current_version or 0) + 1, "", 0
+
+
+@callback(
+    Output(stores.DATA_VERSION, "data", allow_duplicate=True),
+    Output("sync-poll-interval", "disabled", allow_duplicate=True),
+    Input("sync-poll-interval", "n_intervals"),
+    State(stores.DATA_VERSION, "data"),
+    prevent_initial_call=True,
+)
+def poll_sync_completion(n_intervals: int | None, current_version: int | None):
+    """Polls sync status every 2 seconds while a background sync is active.
+
+    Once the sync transitions to COMPLETE or ERROR:
+    - Bumps DATA_VERSION so charts re-fetch with newly synced data.
+    - Disables fast polling interval so the client isn't pointlessly polling.
+    """
+    if not n_intervals:
+        return no_update, no_update
+
+    status = sync_service.get_sync_status()
+    s = status.get("status")
+
+    if s == "RUNNING":
+        return no_update, False
+
+    return (current_version or 0) + 1, True
 
 
 def _humanize_delta(then_iso: str | None) -> str:
@@ -112,10 +139,12 @@ def _humanize_delta(then_iso: str | None) -> str:
 
 @callback(
     Output("sync-status-pill", "children"),
+    Output("sync-poll-interval", "disabled"),
     Input(stores.DATA_VERSION, "data"),
     Input(stores.ACTIVE_ACCOUNT_ID, "data"),
+    Input("sync-poll-interval", "n_intervals"),
 )
-def render_status_pill(_dv: int, account_id: int | None):
+def render_status_pill(_dv: int, account_id: int | None, _n_poll: int | None = None):
     """Pill summarises *data freshness* and *last sync time* separately.
 
     Octopus consumption data lags ~1 day, so a successful sync today still
@@ -148,10 +177,13 @@ def render_status_pill(_dv: int, account_id: int | None):
 
     if s == "RUNNING":
         label, variant = "Syncing Octopus…", "cool"
+        poll_disabled = False
     elif s == "ERROR":
         label, variant = f"Sync failed • {_humanize_delta(last_run)}", "accent"
+        poll_disabled = True
     elif s in (None, "NEVER_RUN"):
         label, variant = "Never synced", "warning"
+        poll_disabled = True
     else:
         is_stale = bool(status.get("is_stale"))
         variant = "warning" if is_stale else "positive"
@@ -162,12 +194,13 @@ def render_status_pill(_dv: int, account_id: int | None):
             label = f"{base_label} • {compact_latest}"
         else:
             label = f"{base_label} • Synced {_humanize_delta(last_run)}"
+        poll_disabled = True
 
     tooltip = f"Latest telemetry: {latest or 'None'} · Last synced: {_humanize_delta(last_run)}"
     if err:
         tooltip = f"{err} · {tooltip}"
 
-    return html.Div(
+    pill_div = html.Div(
         [
             html.Span(className="sync-dot"),
             html.Span(label, id="sync-text"),
@@ -176,3 +209,5 @@ def render_status_pill(_dv: int, account_id: int | None):
         className=f"sync-pill sync-pill--{variant}",
         title=tooltip,
     )
+
+    return pill_div, poll_disabled
