@@ -8,6 +8,7 @@ and surfaces a structured result + status reads from `job_runs`.
 from __future__ import annotations
 
 import datetime
+import fcntl
 import logging
 import os
 import sqlite3
@@ -19,7 +20,7 @@ from typing import Callable, Iterator, Optional
 import pandas as pd
 
 from core import orchestrator
-from core.database import get_connection
+from core.database import DB_NAME, get_connection
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,43 @@ ProgressCb = Callable[[str, int, int], None]
 DEFAULT_SYNC_INTERVAL_HOURS = float(os.environ.get("SETRUM_SYNC_INTERVAL_HOURS", "6"))
 _sync_lock = threading.Lock()
 _scheduler_started = False
+
+
+@contextmanager
+def _interprocess_sync_lock(blocking: bool = False) -> Iterator[bool]:
+    """OS-level file lock to prevent multiple Gunicorn workers or local processes
+    from running sync jobs concurrently on SQLite.
+    """
+    lock_dir = os.path.dirname(os.path.abspath(DB_NAME))
+    lock_file = os.path.join(lock_dir, ".setrum_sync.lock")
+    try:
+        os.makedirs(lock_dir, exist_ok=True)
+        fd = os.open(lock_file, os.O_CREAT | os.O_RDWR)
+    except Exception as e:
+        logger.warning("Could not open sync lock file %s: %s", lock_file, e)
+        yield True
+        return
+
+    flags = fcntl.LOCK_EX if blocking else (fcntl.LOCK_EX | fcntl.LOCK_NB)
+    acquired = False
+    try:
+        fcntl.flock(fd, flags)
+        acquired = True
+    except (BlockingIOError, OSError):
+        acquired = False
+
+    try:
+        yield acquired
+    finally:
+        if acquired:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_UN)
+            except OSError:
+                pass
+        try:
+            os.close(fd)
+        except OSError:
+            pass
 
 
 @contextmanager
@@ -67,9 +105,10 @@ def _is_actively_running(max_age_minutes: int = 5, conn: sqlite3.Connection | No
 def run_sync(progress_cb: Optional[ProgressCb] = None, trigger_source: str = "Manual Sync") -> dict:
     """Run a forward-fill sync.
 
-    Returns `{"status": "COMPLETE" | "ERROR", "error": str | None}`. Never
-    raises — UI callbacks expect to display the outcome regardless.
-    If another thread/worker is already running a sync, waits for it to finish.
+    Returns `{"status": "COMPLETE" | "ERROR" | "SKIPPED", "error": str | None}`.
+    Never raises — UI callbacks expect to display the outcome regardless.
+    Uses both an in-memory lock and an inter-process file lock to prevent
+    concurrent sync execution across multiple Gunicorn workers or local processes.
     """
     if _is_actively_running():
         for _ in range(120):
@@ -77,12 +116,25 @@ def run_sync(progress_cb: Optional[ProgressCb] = None, trigger_source: str = "Ma
                 return {"status": "COMPLETE", "error": None}
             time.sleep(0.5)
 
+    is_auto = (trigger_source == "Auto Sync")
     with _sync_lock:
-        try:
-            orchestrator.auto_catch_up(progress_cb=progress_cb, trigger_source=trigger_source)
-            return {"status": "COMPLETE", "error": None}
-        except Exception as e:
-            return {"status": "ERROR", "error": str(e)}
+        with _interprocess_sync_lock(blocking=not is_auto) as acquired:
+            if not acquired:
+                if is_auto:
+                    logger.info("Another process/worker is holding sync lock. Skipping duplicate auto-sync.")
+                    return {"status": "SKIPPED", "error": None}
+                # For manual sync, wait for active job to release
+                for _ in range(120):
+                    if not _is_actively_running():
+                        break
+                    time.sleep(0.5)
+                return {"status": "COMPLETE", "error": None}
+
+            try:
+                orchestrator.auto_catch_up(progress_cb=progress_cb, trigger_source=trigger_source)
+                return {"status": "COMPLETE", "error": None}
+            except Exception as e:
+                return {"status": "ERROR", "error": str(e)}
 
 
 def get_sync_status(conn: sqlite3.Connection | None = None, max_age_minutes: int = 5) -> dict:

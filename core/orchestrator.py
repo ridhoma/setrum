@@ -244,10 +244,13 @@ def transform_analytics():
             for model in MODELS:
                 table_name = model["table_name"]
                 query = model["query"]
+                stage_table = f"{table_name}__stage"
                 
                 print(f"   Building {table_name}...")
+                cursor.execute(f"DROP TABLE IF EXISTS {stage_table}")
+                cursor.execute(f"CREATE TABLE {stage_table} AS {query}")
                 cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
-                cursor.execute(f"CREATE TABLE {table_name} AS {query}")
+                cursor.execute(f"ALTER TABLE {stage_table} RENAME TO {table_name}")
                 cnt = cursor.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
                 model_counts[table_name] = cnt
             
