@@ -239,7 +239,7 @@ def transform_analytics():
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("BEGIN")
+            cursor.execute("BEGIN IMMEDIATE")
             
             for model in MODELS:
                 table_name = model["table_name"]
