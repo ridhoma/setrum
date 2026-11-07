@@ -312,5 +312,72 @@ def render() -> html.Div:
                 ],
                 className="dh-bottom-grid",
             ),
+
+            # Full-Width Backend Process & Pipeline Run Log Card (Last 100 runs retention)
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.Div(
+                                        [
+                                            html.H3(
+                                                "Backend Process & Pipeline Run Log",
+                                                className="mb-0",
+                                            ),
+                                            html.Span(
+                                                "Last 100 runs retained",
+                                                id="health-log-retention-badge",
+                                                className="dh-log-retention-pill",
+                                            ),
+                                        ],
+                                        className="d-flex align-items-center gap-2 flex-wrap",
+                                    ),
+                                    html.P(
+                                        "Audit log of Octopus Energy API fetches, SQLite ELT mart materializations, and sync/backfill runs",
+                                        className="text-muted small mb-0",
+                                    ),
+                                ],
+                                className="chart-title-wrap flex-grow-1",
+                            ),
+                            html.Div(
+                                [
+                                    dbc.RadioItems(
+                                        id="health-log-filter-select",
+                                        options=[
+                                            {"label": "All Runs", "value": "all"},
+                                            {"label": "Octopus Fetch", "value": "fetch"},
+                                            {"label": "ELT Marts", "value": "elt"},
+                                            {"label": "Sync / Backfill", "value": "orchestrator"},
+                                            {"label": "Errors", "value": "error"},
+                                        ],
+                                        value="all",
+                                        class_name="segmented-group",
+                                        input_class_name="btn-check",
+                                        label_class_name="seg-btn",
+                                        label_checked_class_name="active",
+                                    ),
+                                    dbc.Button(
+                                        "↻ Refresh",
+                                        id="health-log-refresh-btn",
+                                        size="sm",
+                                        color="light",
+                                        className="dh-preset-chip",
+                                        title="Refresh process run logs",
+                                    ),
+                                ],
+                                className="dh-controls-row",
+                            ),
+                        ],
+                        className="chart-card-header daily-chart-card-header",
+                    ),
+                    html.Div(
+                        id="health-process-logs-container",
+                        className="dh-process-logs-scroll",
+                    ),
+                ],
+                className="chart-card mb-4",
+            ),
         ],
     )

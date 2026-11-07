@@ -1642,6 +1642,94 @@ body {
     width: 100%;
 }
 
+/* ── Backend Process & Pipeline Run Log (Data Health) ────────────── */
+.dh-log-retention-pill {
+    font-family: var(--setrum-font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--setrum-ink-700);
+    background: var(--setrum-bg-surface-alt);
+    border: 1px solid var(--setrum-rule);
+    padding: 2px 9px;
+    border-radius: 99px;
+    white-space: nowrap;
+}
+
+.dh-process-logs-scroll {
+    max-height: 440px;
+    overflow-y: auto;
+    overflow-x: auto;
+    border: 1px solid var(--setrum-rule);
+    border-radius: var(--setrum-radius-sm);
+    background: var(--setrum-bg-surface);
+}
+
+.dh-process-log-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--setrum-bg-surface-alt);
+}
+
+.dh-log-ts {
+    font-family: var(--setrum-font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--setrum-ink-900);
+}
+
+.dh-proc-badge {
+    font-family: var(--setrum-font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.dh-proc-badge--fetch {
+    background: rgba(22, 105, 122, 0.14);
+    color: #16697A;
+    border: 1px solid rgba(22, 105, 122, 0.28);
+}
+
+.dh-proc-badge--elt {
+    background: rgba(153, 15, 61, 0.12);
+    color: var(--setrum-accent);
+    border: 1px solid rgba(153, 15, 61, 0.25);
+}
+
+.dh-proc-badge--orchestrator {
+    background: rgba(24, 21, 18, 0.08);
+    color: var(--setrum-ink-900);
+    border: 1px solid rgba(24, 21, 18, 0.18);
+}
+
+.dh-status-pill--neutral {
+    background: var(--setrum-bg-surface-alt);
+    color: var(--setrum-ink-700);
+    border: 1px solid var(--setrum-rule);
+}
+
+.dh-log-details {
+    font-family: var(--setrum-font-mono);
+    font-size: 11.5px;
+    color: var(--setrum-ink-700);
+    line-height: 1.4;
+}
+
+.dh-log-details--err {
+    color: #B42318;
+    font-weight: 600;
+}
+
+.dh-log-row--err {
+    background: rgba(250, 219, 216, 0.22);
+}
+
 /* ── Responsive adjustments ──────────────────────────────────────── */
 @media (max-width: 992px) {
     html,

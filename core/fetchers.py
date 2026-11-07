@@ -4,7 +4,12 @@ import pandas as pd
 from datetime import timedelta
 from core.credentials import get_octopus_account_number, get_octopus_api_key
 from core.database import get_connection, upsert_dataframe
-from core.queries import update_job_status, get_job_state
+from core.queries import (
+    finish_process_log,
+    get_job_state,
+    start_process_log,
+    update_job_status,
+)
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 
@@ -41,13 +46,41 @@ def _fetch_paginated_chunk(url, period_from, period_to):
     return results
 
 def _chunked_fetch(endpoint_name, fetch_url, start_date, end_date, formatter_func, db_table, conflict_cols):
+    if db_table == 'source_consumptions':
+        process_type = 'FETCH_CONSUMPTIONS'
+    elif db_table == 'source_electricity_standard_unit_rates':
+        process_type = 'FETCH_UNIT_RATES'
+    elif db_table == 'source_electricity_standing_charges':
+        process_type = 'FETCH_STANDING_CHARGES'
+    else:
+        process_type = 'FETCH_API'
+
     update_job_status(endpoint_name, 'RUNNING')
+    total_rows = 0
+    chunks_count = 0
+    start_str = str(start_date)[:16]
+    end_str = str(end_date)[:16]
+    log_id, t0 = start_process_log(
+        process_type,
+        endpoint_name,
+        target_table=db_table,
+        details=f"Fetching window {start_str} → {end_str}…",
+    )
     try:
         current_start = pd.to_datetime(start_date, utc=True)
         final_end = pd.to_datetime(end_date, utc=True)
+        start_fmt = current_start.strftime('%Y-%m-%d')
+        end_fmt = final_end.strftime('%Y-%m-%d')
         
         if (final_end - current_start).total_seconds() < 60:
             update_job_status(endpoint_name, 'SUCCESS')
+            finish_process_log(
+                log_id,
+                t0,
+                status='SKIPPED',
+                rows_affected=0,
+                details=f"Already up to date ({start_fmt} → {end_fmt})",
+            )
             print(f"✅ [{endpoint_name}] Already up to date.")
             return
             
@@ -59,12 +92,14 @@ def _chunked_fetch(endpoint_name, fetch_url, start_date, end_date, formatter_fun
 
         while current_start < final_end:
             chunk_end = min(current_start + timedelta(days=step_days), final_end)
+            chunks_count += 1
             
             print(f"[{endpoint_name}] Syncing {current_start.strftime('%Y-%m-%d')} to {chunk_end.strftime('%Y-%m-%d')}...")
             results = _fetch_paginated_chunk(fetch_url, current_start, chunk_end)
             
             if results:
                 df = formatter_func(results)
+                total_rows += len(df)
                 with get_connection() as conn:
                     upsert_dataframe(conn, df, db_table, conflict_cols)
                     
@@ -89,10 +124,22 @@ def _chunked_fetch(endpoint_name, fetch_url, start_date, end_date, formatter_fun
             current_start = chunk_end
         
         update_job_status(endpoint_name, 'SUCCESS')
+        if total_rows > 0:
+            summary_msg = f"Upserted {total_rows:,} records across {chunks_count} chunk(s) ({start_fmt} → {end_fmt})"
+        else:
+            summary_msg = f"Checked {start_fmt} → {end_fmt} (0 new records available from Octopus API)"
+        finish_process_log(log_id, t0, status='SUCCESS', rows_affected=total_rows, details=summary_msg)
         print(f"✅ [{endpoint_name}] Catch-up Process Complete.")
     
     except Exception as e:
         update_job_status(endpoint_name, f'ERROR: {str(e)}')
+        finish_process_log(
+            log_id,
+            t0,
+            status='ERROR',
+            rows_affected=total_rows,
+            details=f"Failed ({start_str[:10]} → {end_str[:10]}): {str(e)}",
+        )
         print(f"❌ [{endpoint_name}] Sync Failed: {e}")
 
 def fetch_consumptions(start_date, end_date, mpan, serial_number):
@@ -125,6 +172,12 @@ def fetch_tariff_pricing(start_date, end_date, tariff_code):
     
     print(f"[{product_code}] Synchronizing Product Detail...")
     update_job_status(f'product_{product_code}', 'RUNNING')
+    prod_log_id, prod_t0 = start_process_log(
+        'FETCH_PRODUCT',
+        f'product_{product_code}',
+        target_table='source_products',
+        details=f"Synchronizing product catalog metadata for {product_code}…",
+    )
     try:
         prod_resp = requests.get(f"{BASE_URL}/products/{product_code}/", timeout=20)
         if prod_resp.status_code == 200:
@@ -138,9 +191,27 @@ def fetch_tariff_pricing(start_date, end_date, tariff_code):
             with get_connection() as conn:
                 upsert_dataframe(conn, df_prod, 'source_products', ['product_code'])
             update_job_status(f'product_{product_code}', 'SUCCESS')
+            finish_process_log(
+                prod_log_id,
+                prod_t0,
+                status='SUCCESS',
+                rows_affected=1,
+                details=f"Saved product metadata for {product_code} ({p.get('full_name') or 'Octopus Product'})",
+            )
             print(f"✅ [{product_code}] Core Product Catalog Saved")
+        else:
+            err_msg = f"HTTP {prod_resp.status_code} fetching product {product_code}"
+            update_job_status(f'product_{product_code}', f'ERROR: {err_msg}')
+            finish_process_log(prod_log_id, prod_t0, status='ERROR', rows_affected=0, details=err_msg)
     except Exception as e:
         update_job_status(f'product_{product_code}', f'ERROR: {str(e)}')
+        finish_process_log(
+            prod_log_id,
+            prod_t0,
+            status='ERROR',
+            rows_affected=0,
+            details=f"Product fetch failed for {product_code}: {str(e)}",
+        )
         
     def format_rates(results):
         df = pd.DataFrame(results)
@@ -176,13 +247,19 @@ def fetch_accounts():
         return
 
     update_job_status('accounts', 'RUNNING')
+    acc_log_id, acc_t0 = start_process_log(
+        'FETCH_ACCOUNTS',
+        'accounts',
+        target_table='source_accounts, source_electricity_meters, source_electricity_agreements',
+        details=f"Synchronizing Octopus account {account_number}…",
+    )
     try:
         print("[accounts] Synchronizing Account Details...")
         url = f"{BASE_URL}/accounts/{account_number}/"
         response = requests.get(url, auth=get_auth(), timeout=20)
         
         if response.status_code != 200:
-            raise Exception(f"Failed to fetch accounts")
+            raise Exception(f"Failed to fetch accounts (HTTP {response.status_code})")
             
         data = response.json()
         account_number_val = data.get('number')
@@ -233,8 +310,23 @@ def fetch_accounts():
             if not df_agreements.empty:
                 upsert_dataframe(conn, df_agreements, 'source_electricity_agreements', ['account_number', 'account_id', 'mpan', 'tariff_code', 'valid_from'])
 
+        total_rows = len(accounts_data) + len(meters_data) + len(agreements_data)
         update_job_status('accounts', 'SUCCESS')
+        finish_process_log(
+            acc_log_id,
+            acc_t0,
+            status='SUCCESS',
+            rows_affected=total_rows,
+            details=f"Upserted {len(accounts_data)} properties, {len(meters_data)} meters, {len(agreements_data)} tariff agreements",
+        )
         print(f"✅ [accounts] Sync Complete")
     except Exception as e:
         update_job_status('accounts', f'ERROR: {str(e)}')
+        finish_process_log(
+            acc_log_id,
+            acc_t0,
+            status='ERROR',
+            rows_affected=0,
+            details=f"Account fetch failed: {str(e)}",
+        )
         print(f"❌ [accounts] Sync Failed: {e}")

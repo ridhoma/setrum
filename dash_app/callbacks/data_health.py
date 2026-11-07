@@ -266,6 +266,146 @@ def _render_tables_overview_table(tables: list[dict]) -> html.Table:
     )
 
 
+def _format_duration(duration_ms: int | None) -> str:
+    if duration_ms is None:
+        return "—"
+    if duration_ms < 1000:
+        return f"{duration_ms} ms"
+    return f"{duration_ms / 1000:.2f} s"
+
+
+def _format_log_ts(ts_str: str | None) -> str:
+    if not ts_str:
+        return "—"
+    try:
+        dt = datetime.datetime.fromisoformat(str(ts_str).replace(" ", "T"))
+        return dt.strftime("%d %b %Y %H:%M:%S")
+    except Exception:
+        return str(ts_str)[:19]
+
+
+def _render_process_run_logs(logs_data: dict) -> tuple[html.Component, str]:
+    """Renders the Backend Process & Pipeline Run Log table and retention badge text."""
+    logs = logs_data.get("logs", [])
+    summary = logs_data.get("summary", {})
+    total_retained = summary.get("total_retained", 0)
+    filtered_count = summary.get("filtered_count", 0)
+    retention_limit = summary.get("retention_limit", 100)
+
+    if filtered_count != total_retained:
+        badge_text = f"Showing {filtered_count} of {total_retained} / {retention_limit} max retained"
+    else:
+        badge_text = f"{total_retained} / {retention_limit} runs retained"
+
+    if not logs:
+        empty_div = html.Div(
+            "No backend process runs recorded matching this filter yet.",
+            className="text-muted p-4 text-center font-monospace small",
+        )
+        return empty_div, badge_text
+
+    rows = []
+    for item in logs:
+        raw_status = (item.get("status") or "UNKNOWN").upper()
+        if raw_status in ("SUCCESS", "COMPLETE"):
+            pill_cls = "dh-status-pill dh-status-pill--ok"
+            pill_label = "● Success"
+        elif raw_status == "SKIPPED":
+            pill_cls = "dh-status-pill dh-status-pill--neutral"
+            pill_label = "○ Up to date"
+        elif raw_status == "RUNNING":
+            pill_cls = "dh-status-pill dh-status-pill--warn"
+            pill_label = "↻ Running"
+        else:
+            pill_cls = "dh-status-pill dh-status-pill--err"
+            pill_label = "✕ Error"
+
+        cat_key = item.get("category_key", "orchestrator")
+        cat_badge = item.get("category_badge", "SYSTEM")
+        ts_display = _format_log_ts(item.get("finished_at") or item.get("started_at"))
+        trigger_src = item.get("trigger_source") or "System"
+        run_id = item.get("run_id") or ""
+        sub_meta = f"{trigger_src} • {run_id}" if run_id else trigger_src
+
+        ep_name = item.get("endpoint_name") or ""
+        target_tbl = item.get("target_table") or ""
+        ep_sub = f"{ep_name} → {target_tbl}" if target_tbl else ep_name
+
+        rows_affected = item.get("rows_affected") or 0
+        rows_str = f"{rows_affected:,}" if rows_affected > 0 else "—"
+        dur_str = _format_duration(item.get("duration_ms"))
+        details_str = item.get("details") or "—"
+        is_err = raw_status.startswith("ERROR")
+
+        rows.append(
+            html.Tr(
+                [
+                    html.Td(
+                        [
+                            html.Div(ts_display, className="dh-log-ts"),
+                            html.Div(sub_meta, className="dh-table-sub"),
+                        ],
+                        className="text-nowrap",
+                    ),
+                    html.Td(
+                        [
+                            html.Div(
+                                [
+                                    html.Span(
+                                        cat_badge,
+                                        className=f"dh-proc-badge dh-proc-badge--{cat_key}",
+                                    ),
+                                    html.Span(item.get("title", ep_name), className="dh-table-title"),
+                                ],
+                                className="d-flex align-items-center gap-2 flex-wrap",
+                            ),
+                            html.Div(ep_sub, className="dh-table-sub text-truncate", style={"maxWidth": "340px"}, title=ep_sub),
+                        ]
+                    ),
+                    html.Td(
+                        html.Div(
+                            details_str,
+                            className="dh-log-details" + (" dh-log-details--err" if is_err else ""),
+                        )
+                    ),
+                    html.Td(
+                        rows_str,
+                        className="text-end fw-semibold text-nowrap",
+                    ),
+                    html.Td(
+                        dur_str,
+                        className="text-end text-muted text-nowrap",
+                    ),
+                    html.Td(
+                        html.Span(pill_label, className=pill_cls),
+                        className="text-end text-nowrap",
+                    ),
+                ],
+                className="dh-log-row--err" if is_err else "",
+            )
+        )
+
+    table = html.Table(
+        [
+            html.Thead(
+                html.Tr(
+                    [
+                        html.Th("Timestamp (UTC)"),
+                        html.Th("Backend Process & Target"),
+                        html.Th("Execution Log / Window"),
+                        html.Th("Records", className="text-end"),
+                        html.Th("Duration", className="text-end"),
+                        html.Th("Status", className="text-end"),
+                    ]
+                )
+            ),
+            html.Tbody(rows),
+        ],
+        className="dh-ledger-table dh-process-log-table",
+    )
+    return table, badge_text
+
+
 def _render_selection_inspector(
     days_list: list[dict],
     sel_start: str | None,
@@ -576,3 +716,25 @@ def on_start_backfill(
         )
 
     return new_version, alert, "", 0
+
+
+@callback(
+    output=[
+        Output("health-process-logs-container", "children"),
+        Output("health-log-retention-badge", "children"),
+    ],
+    inputs=[
+        Input(stores.DATA_VERSION, "data"),
+        Input("health-log-filter-select", "value"),
+        Input("health-log-refresh-btn", "n_clicks"),
+        Input("sync-poll-interval", "n_intervals"),
+    ],
+)
+def update_process_run_logs(
+    _data_version: int | None,
+    category: str | None,
+    _refresh_clicks: int | None,
+    _poll_intervals: int | None,
+):
+    logs_data = health_service.get_process_run_logs(category=category or "all", limit=100)
+    return _render_process_run_logs(logs_data)

@@ -9,7 +9,7 @@ def get_connection():
     db_dir = os.path.dirname(os.path.abspath(DB_NAME))
     if db_dir:
         os.makedirs(db_dir, exist_ok=True)
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_NAME, timeout=30.0)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     conn.row_factory = sqlite3.Row
@@ -232,6 +232,110 @@ def init_db():
                 UPDATE annotations SET updated_at = datetime('now') WHERE id = OLD.id;
             END
         ''')
+
+        # 9. Process Run Logs (Backend execution audit log, 100-run retention)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS process_run_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id TEXT,
+                trigger_source TEXT DEFAULT 'System',
+                process_type TEXT NOT NULL,
+                endpoint_name TEXT NOT NULL,
+                target_table TEXT,
+                status TEXT NOT NULL,
+                rows_affected INTEGER DEFAULT 0,
+                started_at TEXT NOT NULL,
+                finished_at TEXT,
+                duration_ms INTEGER,
+                details TEXT
+            )
+        ''')
+        cursor.execute(
+            'CREATE INDEX IF NOT EXISTS idx_process_run_logs_started_at '
+            'ON process_run_logs(started_at DESC, id DESC)'
+        )
+
+        # Seed initial history from job_runs if process_run_logs is empty
+        existing_logs_cnt = cursor.execute("SELECT COUNT(*) FROM process_run_logs").fetchone()[0]
+        if existing_logs_cnt == 0:
+            job_rows = cursor.execute(
+                "SELECT endpoint_name, status, last_successful_timestamp, "
+                "oldest_successful_timestamp, last_run_at, error_message "
+                "FROM job_runs WHERE last_run_at IS NOT NULL ORDER BY last_run_at ASC"
+            ).fetchall()
+            for jr in job_rows:
+                ep = jr["endpoint_name"]
+                raw_status = jr["status"] or "UNKNOWN"
+                if raw_status in ("COMPLETE", "SUCCESS"):
+                    norm_status = "SUCCESS"
+                elif raw_status.startswith("ERROR"):
+                    norm_status = "ERROR"
+                else:
+                    norm_status = raw_status
+
+                if ep == "_sync":
+                    p_type = "SYNC"
+                    t_table = "All Tables"
+                    det = jr["error_message"] or "Completed delta synchronization pipeline"
+                elif ep == "accounts":
+                    p_type = "FETCH_ACCOUNTS"
+                    t_table = "source_accounts, source_electricity_meters, source_electricity_agreements"
+                    det = "Synchronized Octopus account, meter points, and tariff agreements"
+                elif ep.startswith("consumptions_"):
+                    p_type = "FETCH_CONSUMPTIONS"
+                    t_table = "source_consumptions"
+                    parts = ep.replace("consumptions_", "").split("_", 1)
+                    mpan_str = parts[0] if parts else ep
+                    sn_str = parts[1] if len(parts) > 1 else ""
+                    span = ""
+                    if jr["oldest_successful_timestamp"] or jr["last_successful_timestamp"]:
+                        o_ts = (jr["oldest_successful_timestamp"] or "")[:10]
+                        l_ts = (jr["last_successful_timestamp"] or "")[:10]
+                        span = f" ({o_ts} → {l_ts})"
+                    det = f"Synced half-hourly consumption for MPAN {mpan_str} / SN {sn_str}{span}"
+                elif ep.startswith("product_"):
+                    p_type = "FETCH_PRODUCT"
+                    t_table = "source_products"
+                    prod_code = ep.replace("product_", "")
+                    det = f"Synchronized Octopus product catalog metadata ({prod_code})"
+                elif ep.startswith("unit_rates_"):
+                    p_type = "FETCH_UNIT_RATES"
+                    t_table = "source_electricity_standard_unit_rates"
+                    t_code = ep.replace("unit_rates_", "")
+                    det = raw_status if raw_status.startswith("ERROR") else f"Synced standard unit rates for tariff {t_code}"
+                elif ep.startswith("standing_charges_"):
+                    p_type = "FETCH_STANDING_CHARGES"
+                    t_table = "source_electricity_standing_charges"
+                    t_code = ep.replace("standing_charges_", "")
+                    det = raw_status if raw_status.startswith("ERROR") else f"Synced standing charges for tariff {t_code}"
+                else:
+                    p_type = "SYSTEM"
+                    t_table = "job_runs"
+                    det = jr["error_message"] or f"Executed {ep}"
+
+                ts = jr["last_run_at"]
+                cursor.execute(
+                    """
+                    INSERT INTO process_run_logs (
+                        run_id, trigger_source, process_type, endpoint_name,
+                        target_table, status, rows_affected, started_at,
+                        finished_at, duration_ms, details
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        f"seed-{ts[:10]}" if ts else "seed-init",
+                        "Sync",
+                        p_type,
+                        ep,
+                        t_table,
+                        norm_status,
+                        0,
+                        ts,
+                        ts,
+                        None,
+                        det,
+                    ),
+                )
 
         conn.commit()
     print("Schema Initialization Complete.")

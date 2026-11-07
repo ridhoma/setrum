@@ -64,7 +64,7 @@ def _is_actively_running(max_age_minutes: int = 5, conn: sqlite3.Connection | No
         return False
 
 
-def run_sync(progress_cb: Optional[ProgressCb] = None) -> dict:
+def run_sync(progress_cb: Optional[ProgressCb] = None, trigger_source: str = "Manual Sync") -> dict:
     """Run a forward-fill sync.
 
     Returns `{"status": "COMPLETE" | "ERROR", "error": str | None}`. Never
@@ -79,7 +79,7 @@ def run_sync(progress_cb: Optional[ProgressCb] = None) -> dict:
 
     with _sync_lock:
         try:
-            orchestrator.auto_catch_up(progress_cb=progress_cb)
+            orchestrator.auto_catch_up(progress_cb=progress_cb, trigger_source=trigger_source)
             return {"status": "COMPLETE", "error": None}
         except Exception as e:
             return {"status": "ERROR", "error": str(e)}
@@ -157,12 +157,12 @@ def start_background_scheduler(
     def _loop() -> None:
         if run_on_startup:
             logger.info("Auto-sync scheduler: running initial sync on app startup...")
-            res = run_sync()
+            res = run_sync(trigger_source="Auto Sync")
             logger.info("Auto-sync scheduler: startup sync finished (%s)", res.get("status"))
         while True:
             time.sleep(interval_secs)
             logger.info("Auto-sync scheduler: running periodic %.1fh sync...", interval_hours)
-            res = run_sync()
+            res = run_sync(trigger_source="Auto Sync")
             logger.info("Auto-sync scheduler: periodic sync finished (%s)", res.get("status"))
 
     t = threading.Thread(target=_loop, name="setrum-auto-sync", daemon=True)

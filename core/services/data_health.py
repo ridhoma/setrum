@@ -15,6 +15,7 @@ import pandas as pd
 
 from core import orchestrator
 from core.database import get_connection
+from core.queries import PROCESS_LOG_RETENTION_LIMIT, _ensure_process_logs_table
 
 ProgressCb = Callable[[str, int, int], None]
 
@@ -366,3 +367,77 @@ def run_chunked_backfill(
         return {"status": "COMPLETE", "error": None}
     except Exception as e:
         return {"status": "ERROR", "error": str(e)}
+
+
+_PROCESS_META = {
+    "SYNC": ("Delta Sync Pipeline", "SYNC PIPELINE", "orchestrator"),
+    "BACKFILL": ("Historical Chunked Backfill", "BACKFILL", "orchestrator"),
+    "FETCH_ACCOUNTS": ("Octopus Account & Meters Fetch", "OCTOPUS API", "fetch"),
+    "FETCH_CONSUMPTIONS": ("Smart Meter Consumption Fetch", "OCTOPUS API", "fetch"),
+    "FETCH_PRODUCT": ("Product Catalog Fetch", "OCTOPUS API", "fetch"),
+    "FETCH_UNIT_RATES": ("Standard Unit Rates Fetch", "OCTOPUS API", "fetch"),
+    "FETCH_STANDING_CHARGES": ("Standing Charges Fetch", "OCTOPUS API", "fetch"),
+    "FETCH_API": ("Octopus API Fetch", "OCTOPUS API", "fetch"),
+    "ELT_TRANSFORM": ("Analytics Mart Materialization (ELT)", "ELT MART", "elt"),
+}
+
+
+def get_process_run_logs(
+    category: str = "all",
+    limit: int = PROCESS_LOG_RETENTION_LIMIT,
+    conn: sqlite3.Connection | None = None,
+) -> dict:
+    """Return recent backend process execution logs (retained up to `PROCESS_LOG_RETENTION_LIMIT` = 100 runs)."""
+    with _conn(conn) as c:
+        cursor = c.cursor()
+        _ensure_process_logs_table(cursor)
+        rows = cursor.execute(
+            """
+            SELECT id, run_id, trigger_source, process_type, endpoint_name,
+                   target_table, status, rows_affected, started_at,
+                   finished_at, duration_ms, details
+            FROM process_run_logs
+            ORDER BY COALESCE(finished_at, started_at) DESC,
+                     CASE WHEN process_type IN ('SYNC', 'BACKFILL') AND status != 'RUNNING' THEN 1 ELSE 0 END DESC,
+                     id DESC
+            LIMIT ?
+            """,
+            (int(limit),),
+        ).fetchall()
+
+    all_logs = []
+    error_count = 0
+    for r in rows:
+        d = dict(r)
+        p_type = d.get("process_type") or "SYSTEM"
+        title, cat_badge, cat_key = _PROCESS_META.get(
+            p_type, (p_type.replace("_", " ").title(), "SYSTEM", "orchestrator")
+        )
+        d["title"] = title
+        d["category_badge"] = cat_badge
+        d["category_key"] = cat_key
+        if (d.get("status") or "").upper().startswith("ERROR"):
+            error_count += 1
+        all_logs.append(d)
+
+    cat = (category or "all").lower()
+    if cat == "fetch":
+        filtered = [item for item in all_logs if item["category_key"] == "fetch"]
+    elif cat == "elt":
+        filtered = [item for item in all_logs if item["category_key"] == "elt"]
+    elif cat == "orchestrator":
+        filtered = [item for item in all_logs if item["category_key"] == "orchestrator"]
+    elif cat == "error":
+        filtered = [item for item in all_logs if (item.get("status") or "").upper().startswith("ERROR")]
+    else:
+        filtered = all_logs
+
+    return {
+        "logs": filtered,
+        "summary": {
+            "total_retained": len(all_logs),
+            "filtered_count": len(filtered),
+            "error_count": error_count,
+            "retention_limit": PROCESS_LOG_RETENTION_LIMIT,
+        },
+    }
