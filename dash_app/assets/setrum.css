@@ -1984,10 +1984,19 @@ body {
 }
 
 /* ── 24-Hour Profile Preset Headers & Dropdown Buttons ──────────── */
-.hourly-th-preset,
-.hourly-th-delta {
+.hourly-th-preset {
     padding: 4px 6px !important;
     vertical-align: middle;
+}
+
+.hourly-th-delta {
+    padding: 6px 8px !important;
+    vertical-align: middle;
+    font-size: 9.5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    color: var(--setrum-ink-700) !important;
 }
 
 .hourly-th-btn-wrap {
@@ -2035,39 +2044,44 @@ body {
     margin-left: 1px;
 }
 
-.hourly-th-delta-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-}
-
-.hourly-th-title {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--setrum-ink-900);
-    text-transform: uppercase;
-}
-
-.hourly-th-sub {
-    font-size: 8.5px;
-    color: var(--setrum-ink-500);
-    font-weight: 600;
-}
-
-/* ── Delta Column & Inline Bars ───────────────────────────────────── */
+/* ── Delta Column & Zero-Centered Inline Bars ────────────────────── */
 .hourly-col-delta {
     font-weight: 600;
 }
 
+.hourly-cell-track--delta {
+    position: relative;
+    overflow: hidden;
+}
+
+.hourly-delta-center-line {
+    position: absolute;
+    left: 50%;
+    top: 2px;
+    bottom: 2px;
+    width: 1px;
+    background: rgba(43, 37, 35, 0.22);
+    z-index: 1;
+}
+
 .hourly-bar-fill--delta-pos {
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
     background: rgba(217, 93, 57, 0.22);
     border-right: 1px solid rgba(217, 93, 57, 0.45);
+    z-index: 0;
+    transition: width 160ms ease;
 }
 
 .hourly-bar-fill--delta-neg {
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
     background: rgba(22, 105, 122, 0.20);
-    border-right: 1px solid rgba(22, 105, 122, 0.40);
+    border-left: 1px solid rgba(22, 105, 122, 0.40);
+    z-index: 0;
+    transition: width 160ms ease;
 }
 
 .hourly-text--delta-pos {
@@ -2080,14 +2094,56 @@ body {
     font-weight: 600;
 }
 
-/* ── Preset Selection Dropdown Modal ─────────────────────────────── */
-.hourly-preset-modal .modal-content {
+/* ── Inline Preset Selection Dropdown Menu ──────────────────────── */
+.hourly-preset-dropdown-menu {
+    position: absolute;
+    top: 36px;
+    z-index: 1050;
     background: var(--setrum-bg-surface);
     border: 1px solid var(--setrum-border-strong);
     border-radius: var(--setrum-radius-md);
     box-shadow: var(--setrum-shadow-float);
+    width: 480px;
     overflow: hidden;
-    max-width: 580px;
+}
+
+.hourly-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--setrum-rule);
+    background: var(--setrum-bg-surface-alt);
+}
+
+.hourly-dropdown-title {
+    font-family: var(--setrum-font-display);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--setrum-ink-900);
+}
+
+.hourly-dropdown-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 11px;
+    color: var(--setrum-ink-500);
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.hourly-dropdown-close-btn:hover {
+    color: var(--setrum-ink-900);
+}
+
+.hourly-dropdown-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 8px 12px;
+    border-top: 1px solid var(--setrum-rule);
+    background: var(--setrum-bg-surface-alt);
 }
 
 .hourly-modal-layout {

@@ -1,4 +1,4 @@
-"""Callbacks for 24-Hour Profile table and Preset / Calendar modal."""
+"""Callbacks for 24-Hour Profile table and inline Preset / Calendar dropdown."""
 
 from __future__ import annotations
 
@@ -109,15 +109,16 @@ def render_hourly_profile_table(
 
 
 @callback(
-    Output("hourly-preset-modal", "is_open"),
-    Output("hourly-modal-title", "children"),
+    Output("hourly-preset-dropdown", "style"),
+    Output("hourly-dropdown-title", "children"),
     Output(stores.HOURLY_MODAL_STATE, "data"),
     Output(stores.HOURLY_PRESET_1, "data", allow_duplicate=True),
     Output(stores.HOURLY_PRESET_2, "data", allow_duplicate=True),
     Input("hourly-preset-1-btn", "n_clicks"),
     Input("hourly-preset-2-btn", "n_clicks"),
-    Input("hourly-modal-cancel-btn", "n_clicks"),
-    Input("hourly-modal-apply-btn", "n_clicks"),
+    Input("hourly-dropdown-close-btn", "n_clicks"),
+    Input("hourly-dropdown-cancel-btn", "n_clicks"),
+    Input("hourly-dropdown-apply-btn", "n_clicks"),
     Input("hourly-opt-7D", "n_clicks"),
     Input("hourly-opt-14D", "n_clicks"),
     Input("hourly-opt-30D", "n_clicks"),
@@ -126,20 +127,21 @@ def render_hourly_profile_table(
     Input("hourly-cal-prev-btn", "n_clicks"),
     Input("hourly-cal-next-btn", "n_clicks"),
     Input({"type": "hourly-cal-day", "date": ALL}, "n_clicks"),
+    State("hourly-preset-dropdown", "style"),
     State("hourly-cal-input-start", "value"),
     State("hourly-cal-input-end", "value"),
-    State("hourly-preset-modal", "is_open"),
     State(stores.HOURLY_MODAL_STATE, "data"),
     State(stores.HOURLY_PRESET_1, "data"),
     State(stores.HOURLY_PRESET_2, "data"),
     State(stores.ACTIVE_ACCOUNT_ID, "data"),
     prevent_initial_call=True,
 )
-def manage_hourly_preset_modal(
+def manage_hourly_preset_dropdown(
     p1_clicks: int | None,
     p2_clicks: int | None,
-    cancel_clicks: int | None,
-    apply_clicks: int | None,
+    _close_clicks: int | None,
+    _cancel_clicks: int | None,
+    _apply_clicks: int | None,
     _opt_7d: int | None,
     _opt_14d: int | None,
     _opt_30d: int | None,
@@ -148,9 +150,9 @@ def manage_hourly_preset_modal(
     _prev_clicks: int | None,
     _next_clicks: int | None,
     _day_clicks: list[int | None],
+    current_style: dict | None,
     start_val: str | None,
     end_val: str | None,
-    is_open: bool,
     modal_state: dict | None,
     stored_p1: dict | None,
     stored_p2: dict | None,
@@ -166,10 +168,15 @@ def manage_hourly_preset_modal(
     min_d = str(hh_min)[:10] if hh_min else None
     max_d = str(hh_max)[:10] if hh_max else datetime.date.today().isoformat()
 
-    # Open modal for Preset 1
+    is_currently_open = (current_style or {}).get("display") == "block"
+
+    # Open / Toggle Preset 1 Dropdown
     if trig == "hourly-preset-1-btn":
         if not p1_clicks:
             return no_update, no_update, no_update, no_update, no_update
+        if is_currently_open and (modal_state or {}).get("target") == "p1":
+            return {"display": "none"}, no_update, no_update, no_update, no_update
+
         cur_p1 = stored_p1 or {}
         p = cur_p1.get("preset", "7D")
         s = cur_p1.get("start_date")
@@ -188,12 +195,15 @@ def manage_hourly_preset_modal(
             "max_date": max_d,
             "selecting_end": False,
         }
-        return True, "Configure Preset 1 Period", state, no_update, no_update
+        return {"display": "block", "left": "13%"}, "Preset 1 Period", state, no_update, no_update
 
-    # Open modal for Preset 2
+    # Open / Toggle Preset 2 Dropdown
     if trig == "hourly-preset-2-btn":
         if not p2_clicks:
             return no_update, no_update, no_update, no_update, no_update
+        if is_currently_open and (modal_state or {}).get("target") == "p2":
+            return {"display": "none"}, no_update, no_update, no_update, no_update
+
         cur_p2 = stored_p2 or {}
         p = cur_p2.get("preset", "30D")
         s = cur_p2.get("start_date")
@@ -212,16 +222,16 @@ def manage_hourly_preset_modal(
             "max_date": max_d,
             "selecting_end": False,
         }
-        return True, "Configure Preset 2 Period", state, no_update, no_update
+        return {"display": "block", "right": "12%"}, "Preset 2 Period", state, no_update, no_update
 
-    # Cancel button
-    if trig == "hourly-modal-cancel-btn":
-        return False, no_update, no_update, no_update, no_update
+    # Close / Cancel button
+    if trig in ("hourly-dropdown-close-btn", "hourly-dropdown-cancel-btn"):
+        return {"display": "none"}, no_update, no_update, no_update, no_update
 
     # Apply button
-    if trig == "hourly-modal-apply-btn":
+    if trig == "hourly-dropdown-apply-btn":
         if not modal_state:
-            return False, no_update, no_update, no_update, no_update
+            return {"display": "none"}, no_update, no_update, no_update, no_update
         target = modal_state.get("target", "p1")
         preset = modal_state.get("preset", "custom")
         s = modal_state.get("start_date") or max_d
@@ -245,9 +255,9 @@ def manage_hourly_preset_modal(
             "label": label,
         }
         if target == "p1":
-            return False, no_update, no_update, new_data, no_update
+            return {"display": "none"}, no_update, no_update, new_data, no_update
         else:
-            return False, no_update, no_update, no_update, new_data
+            return {"display": "none"}, no_update, no_update, no_update, new_data
 
     # Preset shortcut options (7D, 14D, 30D, 90D)
     if isinstance(trig, str) and trig.startswith("hourly-opt-") and trig != "hourly-opt-custom":
@@ -264,13 +274,13 @@ def manage_hourly_preset_modal(
                 "selecting_end": False,
             }
         )
-        return True, no_update, new_state, no_update, no_update
+        return no_update, no_update, new_state, no_update, no_update
 
     # Custom preset button
     if trig == "hourly-opt-custom":
         new_state = dict(modal_state or {})
         new_state.update({"preset": "custom", "selecting_end": False})
-        return True, no_update, new_state, no_update, no_update
+        return no_update, no_update, new_state, no_update, no_update
 
     # Month navigation: Previous
     if trig == "hourly-cal-prev-btn":
@@ -282,7 +292,7 @@ def manage_hourly_preset_modal(
             prev_ym = cur_ym
         new_state = dict(modal_state or {})
         new_state["current_month"] = prev_ym
-        return True, no_update, new_state, no_update, no_update
+        return no_update, no_update, new_state, no_update, no_update
 
     # Month navigation: Next
     if trig == "hourly-cal-next-btn":
@@ -294,7 +304,7 @@ def manage_hourly_preset_modal(
             next_ym = cur_ym
         new_state = dict(modal_state or {})
         new_state["current_month"] = next_ym
-        return True, no_update, new_state, no_update, no_update
+        return no_update, no_update, new_state, no_update, no_update
 
     # Calendar day clicked
     if isinstance(trig, dict) and trig.get("type") == "hourly-cal-day":
@@ -317,7 +327,7 @@ def manage_hourly_preset_modal(
             new_state["start_date"] = clicked_date
             new_state["end_date"] = clicked_date
             new_state["selecting_end"] = True
-        return True, no_update, new_state, no_update, no_update
+        return no_update, no_update, new_state, no_update, no_update
 
     return no_update, no_update, no_update, no_update, no_update
 

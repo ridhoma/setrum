@@ -3,9 +3,9 @@
 Compares hourly kWh across two user-configurable presets:
   - Preset 1 (defaults to Last 7D)
   - Preset 2 (defaults to Last 30D)
-  - Delta (Preset 1 − Preset 2)
+  - Delta P1 - P2 (zero-centered directional bar)
 
-Each preset header is a dropdown trigger that opens a selection modal:
+Each preset header is a dropdown trigger that opens an inline dropdown menu:
 Left: Quick presets (Last 7D, Last 14D, Last 30D, Last 90D, Custom)
 Right: Calendar showing the selected period with interactive date selection.
 """
@@ -15,7 +15,6 @@ from __future__ import annotations
 import calendar
 import datetime
 
-import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 
@@ -97,50 +96,57 @@ def _bar_cell(
 
 
 def _delta_cell(val: float | None, max_abs_delta: float) -> html.Td:
-    """Render a Delta cell with signed kWh text and directional color/bar fill."""
+    """Render a Delta cell with signed kWh text and a zero-centered directional bar."""
     if val is None:
         return html.Td(
             html.Div(
                 html.Span("—", className="hourly-cell-text text-muted"),
-                className="hourly-cell-track",
+                className="hourly-cell-track justify-content-end",
             ),
             className="hourly-col-val hourly-col-delta",
         )
 
-    pct = 0.0
+    # Scale bar to span at most 50% from the center
+    half_pct = 0.0
     if max_abs_delta > 0:
-        pct = min(100.0, max(0.0, (abs(val) / max_abs_delta) * 100.0))
+        half_pct = min(50.0, max(0.0, (abs(val) / max_abs_delta) * 50.0))
+
+    center_line = html.Div(className="hourly-delta-center-line")
 
     if val > 0.0001:
         text = f"+{val:.3f}"
         text_cls = "hourly-cell-text hourly-text--delta-pos"
-        bar_cls = "hourly-bar-fill hourly-bar-fill--delta-pos"
+        bar = html.Div(
+            className="hourly-bar-fill hourly-bar-fill--delta-pos",
+            style={"left": "50%", "width": f"{half_pct:.1f}%"},
+        )
     elif val < -0.0001:
         text = f"{val:.3f}"
         text_cls = "hourly-cell-text hourly-text--delta-neg"
-        bar_cls = "hourly-bar-fill hourly-bar-fill--delta-neg"
+        bar = html.Div(
+            className="hourly-bar-fill hourly-bar-fill--delta-neg",
+            style={"right": "50%", "width": f"{half_pct:.1f}%"},
+        )
     else:
         text = "0.000"
         text_cls = "hourly-cell-text text-muted"
-        bar_cls = "hourly-bar-fill"
+        bar = html.Div(className="hourly-bar-fill", style={"width": "0%"})
 
     return html.Td(
         html.Div(
             [
-                html.Div(
-                    className=bar_cls,
-                    style={"width": f"{pct:.1f}%"},
-                ),
+                center_line,
+                bar,
                 html.Span(text, className=text_cls),
             ],
-            className="hourly-cell-track",
+            className="hourly-cell-track hourly-cell-track--delta",
         ),
         className="hourly-col-val hourly-col-delta",
     )
 
 
 def render_rows_and_footer(profile: dict) -> tuple[list, list]:
-    """Render rows and footer for Preset 1, Preset 2, and Delta (1 - 2)."""
+    """Render rows and footer for Preset 1, Preset 2, and Delta P1 - P2."""
     rows = profile.get("rows") or []
 
     # Shared scale for Preset 1 and Preset 2 bars
@@ -152,7 +158,7 @@ def render_rows_and_footer(profile: dict) -> tuple[list, list]:
     ]
     x_max = max(all_p_vals) if all_p_vals else 1.0
 
-    # Scale for Delta bars
+    # Scale for zero-centered Delta bars
     all_deltas = [
         abs(float(r["delta_kwh"]))
         for r in rows
@@ -280,95 +286,92 @@ def render_calendar_grid(
     return html.Table([thead, html.Tbody(tbody_trs)], className="hourly-cal-table")
 
 
-def render_preset_modal() -> dbc.Modal:
-    """Render the dropdown modal for preset & calendar period selection."""
-    return dbc.Modal(
+def render_preset_dropdown() -> html.Div:
+    """Render the inline dropdown menu card for preset & calendar period selection."""
+    return html.Div(
         [
-            dbc.ModalHeader(
-                dbc.ModalTitle("Select Preset Period", id="hourly-modal-title"),
-                close_button=True,
-                className="modal-header",
-            ),
-            dbc.ModalBody(
-                html.Div(
-                    [
-                        # Left: Presets Sidebar
-                        html.Div(
-                            [
-                                html.Div("Presets", className="hourly-sidebar-heading"),
-                                html.Div(
-                                    [
-                                        html.Button("Last 7D", id="hourly-opt-7D", className="hourly-preset-opt", type="button"),
-                                        html.Button("Last 14D", id="hourly-opt-14D", className="hourly-preset-opt", type="button"),
-                                        html.Button("Last 30D", id="hourly-opt-30D", className="hourly-preset-opt", type="button"),
-                                        html.Button("Last 90D", id="hourly-opt-90D", className="hourly-preset-opt", type="button"),
-                                        html.Button("Custom", id="hourly-opt-custom", className="hourly-preset-opt", type="button"),
-                                    ],
-                                    className="hourly-preset-opt-list",
-                                ),
-                            ],
-                            className="hourly-modal-sidebar",
-                        ),
-                        # Right: Calendar Pane
-                        html.Div(
-                            [
-                                html.Div(
-                                    [
-                                        html.Button("◀", id="hourly-cal-prev-btn", className="hourly-cal-nav-btn", type="button"),
-                                        html.Div(id="hourly-cal-month-heading", className="hourly-cal-month-heading"),
-                                        html.Button("▶", id="hourly-cal-next-btn", className="hourly-cal-nav-btn", type="button"),
-                                    ],
-                                    className="hourly-cal-nav",
-                                ),
-                                html.Div(id="hourly-cal-grid", className="hourly-cal-grid"),
-                                html.Div(
-                                    [
-                                        html.Div(id="hourly-cal-summary", className="hourly-cal-summary"),
-                                        html.Div(
-                                            [
-                                                html.Span("From:", className="hourly-input-label"),
-                                                dcc.Input(
-                                                    id="hourly-cal-input-start",
-                                                    type="text",
-                                                    placeholder="YYYY-MM-DD",
-                                                    className="hourly-date-input",
-                                                    debounce=True,
-                                                ),
-                                                html.Span("To:", className="hourly-input-label ms-2"),
-                                                dcc.Input(
-                                                    id="hourly-cal-input-end",
-                                                    type="text",
-                                                    placeholder="YYYY-MM-DD",
-                                                    className="hourly-date-input",
-                                                    debounce=True,
-                                                ),
-                                            ],
-                                            className="hourly-cal-inputs-wrap",
-                                        ),
-                                    ],
-                                    className="hourly-cal-bottom-bar",
-                                ),
-                            ],
-                            className="hourly-modal-cal-pane",
-                        ),
-                    ],
-                    className="hourly-modal-layout",
-                ),
-                className="p-0",
-            ),
-            dbc.ModalFooter(
+            html.Div(
                 [
-                    dbc.Button("Cancel", id="hourly-modal-cancel-btn", className="btn-secondary-editorial me-2", size="sm"),
-                    dbc.Button("Apply Period", id="hourly-modal-apply-btn", className="btn-primary-editorial", size="sm"),
+                    html.Div("Select Period", id="hourly-dropdown-title", className="hourly-dropdown-title"),
+                    html.Button("✕", id="hourly-dropdown-close-btn", className="hourly-dropdown-close-btn", type="button", title="Close"),
                 ],
-                className="modal-footer",
+                className="hourly-dropdown-header",
+            ),
+            html.Div(
+                [
+                    # Left: Presets Sidebar
+                    html.Div(
+                        [
+                            html.Div("Presets", className="hourly-sidebar-heading"),
+                            html.Div(
+                                [
+                                    html.Button("Last 7D", id="hourly-opt-7D", className="hourly-preset-opt", type="button"),
+                                    html.Button("Last 14D", id="hourly-opt-14D", className="hourly-preset-opt", type="button"),
+                                    html.Button("Last 30D", id="hourly-opt-30D", className="hourly-preset-opt", type="button"),
+                                    html.Button("Last 90D", id="hourly-opt-90D", className="hourly-preset-opt", type="button"),
+                                    html.Button("Custom", id="hourly-opt-custom", className="hourly-preset-opt", type="button"),
+                                ],
+                                className="hourly-preset-opt-list",
+                            ),
+                        ],
+                        className="hourly-modal-sidebar",
+                    ),
+                    # Right: Calendar Pane
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.Button("◀", id="hourly-cal-prev-btn", className="hourly-cal-nav-btn", type="button"),
+                                    html.Div(id="hourly-cal-month-heading", className="hourly-cal-month-heading"),
+                                    html.Button("▶", id="hourly-cal-next-btn", className="hourly-cal-nav-btn", type="button"),
+                                ],
+                                className="hourly-cal-nav",
+                            ),
+                            html.Div(id="hourly-cal-grid", className="hourly-cal-grid"),
+                            html.Div(
+                                [
+                                    html.Div(id="hourly-cal-summary", className="hourly-cal-summary"),
+                                    html.Div(
+                                        [
+                                            html.Span("From:", className="hourly-input-label"),
+                                            dcc.Input(
+                                                id="hourly-cal-input-start",
+                                                type="text",
+                                                placeholder="YYYY-MM-DD",
+                                                className="hourly-date-input",
+                                                debounce=True,
+                                            ),
+                                            html.Span("To:", className="hourly-input-label ms-2"),
+                                            dcc.Input(
+                                                id="hourly-cal-input-end",
+                                                type="text",
+                                                placeholder="YYYY-MM-DD",
+                                                className="hourly-date-input",
+                                                debounce=True,
+                                            ),
+                                        ],
+                                        className="hourly-cal-inputs-wrap",
+                                    ),
+                                ],
+                                className="hourly-cal-bottom-bar",
+                            ),
+                        ],
+                        className="hourly-modal-cal-pane",
+                    ),
+                ],
+                className="hourly-modal-layout",
+            ),
+            html.Div(
+                [
+                    html.Button("Cancel", id="hourly-dropdown-cancel-btn", className="btn-secondary-editorial me-2 btn-sm", type="button"),
+                    html.Button("Apply Period", id="hourly-dropdown-apply-btn", className="btn-primary-editorial btn-sm", type="button"),
+                ],
+                className="hourly-dropdown-footer",
             ),
         ],
-        id="hourly-preset-modal",
-        is_open=False,
-        centered=True,
-        size="lg",
-        className="hourly-preset-modal",
+        id="hourly-preset-dropdown",
+        className="hourly-preset-dropdown-menu",
+        style={"display": "none"},
     )
 
 
@@ -407,14 +410,6 @@ def render() -> html.Div:
         className="hourly-th-btn-wrap",
     )
 
-    delta_header = html.Div(
-        [
-            html.Div("Delta (1 - 2)", className="hourly-th-title"),
-            html.Div("P1 − P2", className="hourly-th-sub"),
-        ],
-        className="hourly-th-delta-wrap",
-    )
-
     table = html.Table(
         [
             html.Thead(
@@ -430,7 +425,7 @@ def render() -> html.Div:
                             className="hourly-col-val hourly-th-preset",
                         ),
                         html.Th(
-                            delta_header,
+                            "Delta P1 - P2",
                             className="hourly-col-val hourly-th-delta",
                         ),
                     ]
@@ -459,8 +454,14 @@ def render() -> html.Div:
                 ],
                 className="chart-card-header",
             ),
-            html.Div(table, className="hourly-table-scroll"),
-            render_preset_modal(),
+            html.Div(
+                [
+                    table,
+                    render_preset_dropdown(),
+                ],
+                className="hourly-table-scroll",
+                style={"position": "relative"},
+            ),
         ],
         className="chart-card hourly-card-wrap h-100 mb-0",
     )
