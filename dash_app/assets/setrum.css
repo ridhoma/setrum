@@ -2070,6 +2070,10 @@ body {
     bottom: 1px;
     background: rgba(217, 93, 57, 0.22);
     border-right: 1px solid rgba(217, 93, 57, 0.45);
+    border-top-right-radius: 2px;
+    border-bottom-right-radius: 2px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
     z-index: 0;
     transition: width 160ms ease;
 }
@@ -2080,8 +2084,12 @@ body {
     bottom: 1px;
     background: rgba(22, 105, 122, 0.20);
     border-left: 1px solid rgba(22, 105, 122, 0.40);
+    border-top-left-radius: 2px;
+    border-bottom-left-radius: 2px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
     z-index: 0;
-    transition: width 160ms ease;
+    transition: width 160ms ease, left 160ms ease;
 }
 
 .hourly-text--delta-pos {

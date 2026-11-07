@@ -125,7 +125,7 @@ def _delta_cell(val: float | None, max_abs_delta: float) -> html.Td:
         text_cls = "hourly-cell-text hourly-text--delta-neg"
         bar = html.Div(
             className="hourly-bar-fill hourly-bar-fill--delta-neg",
-            style={"right": "50%", "width": f"{half_pct:.1f}%"},
+            style={"left": f"{50.0 - half_pct:.1f}%", "width": f"{half_pct:.1f}%"},
         )
     else:
         text = "0.000"
