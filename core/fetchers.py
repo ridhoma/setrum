@@ -222,6 +222,14 @@ def fetch_tariff_pricing(start_date, end_date, tariff_code):
         else:
             df['interval_end'] = None
         df['tariff_code'] = tariff_code
+        # Raw rates ingestion from Octopus Energy:
+        # Note on UK Domestic Electricity VAT:
+        # - Temporary 0% VAT applies across Great Britain from 2026-10-01 to 2027-06-30
+        #   (Value Added Tax (Domestic Electricity) (Zero-Rating) Order 2026).
+        # - Outside that window, statutory domestic VAT is 5% (Value Added Tax Act 1994).
+        # - Rather than perturbing raw API source rows whose intervals can span across
+        #   the 1 Oct 2026 boundary, core/transformations.py computes interval-level
+        #   VAT and net rates dynamically based on the exact consumption timestamp.
         return df[['interval_start', 'interval_end', 'value_inc_vat', 'value_exc_vat', 'tariff_code']]
         
     rates_url = f"{BASE_URL}/products/{product_code}/electricity-tariffs/{tariff_code}/standard-unit-rates/"

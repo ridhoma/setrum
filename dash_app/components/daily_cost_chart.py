@@ -305,7 +305,11 @@ def _build_kwh_figure(
     return fig
 
 
-def legend_items(view: str = "cost", show_pins: bool = True) -> list:
+def legend_items(
+    view: str = "cost",
+    show_pins: bool = True,
+    df: pd.DataFrame | None = None,
+) -> list:
     items = []
     if view == "kwh":
         items.append(
@@ -315,6 +319,21 @@ def legend_items(view: str = "cost", show_pins: bool = True) -> list:
             )
         )
     else:
+        vat_label = "VAT (5%)"
+        vat_title = "UK domestic electricity standard reduced rate: 5% VAT"
+        if df is not None and not df.empty and "total_pence_vat" in df.columns:
+            has_vat = (df["total_pence_vat"] > 0.001).any()
+            has_zero_vat = (df["total_pence_vat"] <= 0.001).any()
+            if has_zero_vat and not has_vat:
+                vat_label = "VAT (0% Gov Zero-Rate)"
+                vat_title = "Temporary 0% VAT applies across Great Britain from 1 Oct 2026 to 30 Jun 2027 (Gov.uk Domestic Electricity Relief)"
+            elif has_zero_vat and has_vat:
+                vat_label = "VAT (0% / 5%)"
+                vat_title = "Selected window spans both 5% standard rate (< 1 Oct 2026) and 0% Gov temporary zero-rate period (>= 1 Oct 2026)"
+            else:
+                vat_label = "VAT (5%)"
+                vat_title = "UK domestic electricity standard reduced rate: 5% VAT"
+
         items.extend(
             [
                 html.Span(
@@ -326,8 +345,9 @@ def legend_items(view: str = "cost", show_pins: bool = True) -> list:
                     className="legend-item",
                 ),
                 html.Span(
-                    [html.Span(className="legend-swatch", style={"background": theme.PEACH}), "VAT (5%)"],
+                    [html.Span(className="legend-swatch", style={"background": theme.PEACH}), vat_label],
                     className="legend-item",
+                    title=vat_title,
                 ),
             ]
         )
