@@ -1914,9 +1914,6 @@ body {
 }
 
 .hourly-profile-table tfoot td {
-    position: sticky;
-    bottom: 0;
-    z-index: 2;
     background: var(--setrum-bg-surface-alt);
     border-top: 1.5px solid var(--setrum-ink-900);
     font-weight: 700;
