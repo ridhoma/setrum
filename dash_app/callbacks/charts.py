@@ -13,7 +13,7 @@ from dash import Input, Output, State, callback, no_update
 from core.services import annotations as annotations_service
 from core.services import consumption as consumption_service
 from dash_app import stores
-from dash_app.components import daily_cost_chart, hh_chart, hourly_profile_table
+from dash_app.components import daily_cost_chart, hh_chart
 
 
 def _hh_window(start_date: str, end_date: str) -> tuple[str, str]:
@@ -105,42 +105,3 @@ def render_hh_chart(_dv: int, _av: int, resolved: dict | None, account_id: int |
     else:
         overlays = None
     return hh_chart.build_consumption_figure(df, annotations_df=overlays)
-
-
-@callback(
-    Output("hourly-profile-date-picker", "min_date_allowed"),
-    Output("hourly-profile-date-picker", "max_date_allowed"),
-    Output("hourly-profile-date-picker", "initial_visible_month"),
-    Output("hourly-profile-date-picker", "date"),
-    Input(stores.DATA_VERSION, "data"),
-    Input(stores.ACTIVE_ACCOUNT_ID, "data"),
-    State("hourly-profile-date-picker", "date"),
-)
-def init_hourly_profile_date_picker(_dv: int, account_id: int | None, current_date: str | None):
-    extent = consumption_service.get_data_extent(account_id=account_id)
-    hh_min = extent.get("hh_min")
-    hh_max = extent.get("hh_max")
-    min_d = str(hh_min)[:10] if hh_min else None
-    max_d = str(hh_max)[:10] if hh_max else None
-    if not max_d:
-        return None, None, None, None
-    chosen = str(current_date)[:10] if current_date else max_d
-    if min_d and chosen < min_d:
-        chosen = max_d
-    if chosen > max_d:
-        chosen = max_d
-    return min_d, max_d, chosen, chosen
-
-
-@callback(
-    Output("hourly-profile-tbody", "children"),
-    Output("hourly-profile-tfoot", "children"),
-    Input("hourly-profile-date-picker", "date"),
-    Input(stores.DATA_VERSION, "data"),
-    Input(stores.ACTIVE_ACCOUNT_ID, "data"),
-)
-def render_hourly_profile_table(selected_date: str | None, _dv: int, account_id: int | None):
-    profile = consumption_service.get_hourly_profile_comparison(
-        target_date=selected_date, account_id=account_id
-    )
-    return hourly_profile_table.render_rows_and_footer(profile)

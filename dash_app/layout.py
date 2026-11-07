@@ -36,6 +36,9 @@ def render() -> html.Div:
             dcc.Store(id=stores.ACTIVE_ACCOUNT_ID, data=None),
             dcc.Store(id=stores.SYNC_PROGRESS, data=None),
             dcc.Store(id=stores.SHOW_PINS, data=True),
+            dcc.Store(id=stores.HOURLY_PRESET_1, data=None, storage_type="session"),
+            dcc.Store(id=stores.HOURLY_PRESET_2, data=None, storage_type="session"),
+            dcc.Store(id=stores.HOURLY_MODAL_STATE, data=None),
             html.Div(id="page-root"),
         ],
     )

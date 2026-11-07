@@ -209,14 +209,18 @@ def get_data_extent(
 
 
 def get_hourly_profile_comparison(
+    p1_start: str | None = None,
+    p1_end: str | None = None,
+    p2_start: str | None = None,
+    p2_end: str | None = None,
     target_date: str | None = None,
     account_id: int | None = None,
     conn: sqlite3.Connection | None = None,
 ) -> dict:
-    """Return a 24-hour (00:00..23:00) kWh comparison table:
-      - selected_date's hourly kWh (defaults to latest_date)
-      - avg(prev 7 days before selected_date) hourly kWh
-      - avg(prev 30 days before selected_date) hourly kWh
+    """Return a 24-hour (00:00..23:00) kWh comparison table between two preset periods:
+      - Preset 1 hourly average kWh (defaults to Last 7D)
+      - Preset 2 hourly average kWh (defaults to Last 30D)
+      - Delta (Preset 1 - Preset 2) hourly kWh
     """
     extra, extra_params = _account_clause(account_id)
     hours = [f"{h:02d}:00" for h in range(24)]
@@ -235,30 +239,51 @@ def get_hourly_profile_comparison(
         max_d = row["max_d"] if row else None
         if not max_d:
             return {
-                "selected_date": None,
-                "latest_date": None,
+                "p1_start": None,
+                "p1_end": None,
+                "p2_start": None,
+                "p2_end": None,
                 "min_date": None,
                 "max_date": None,
                 "rows": [
-                    {"hour": h, "latest_kwh": None, "avg_7d_kwh": None, "avg_30d_kwh": None}
+                    {"hour": h, "p1_kwh": None, "p2_kwh": None, "delta_kwh": None}
                     for h in hours
                 ],
             }
 
-        sel_d = (str(target_date)[:10] if target_date else max_d)
         try:
-            sel_dt = datetime.date.fromisoformat(sel_d)
+            max_dt = datetime.date.fromisoformat(max_d)
         except ValueError:
-            sel_d = max_d
-            sel_dt = datetime.date.fromisoformat(max_d)
-        next_sel_d = (sel_dt + datetime.timedelta(days=1)).isoformat()
+            max_dt = datetime.date.today()
+            max_d = max_dt.isoformat()
 
-        # Dynamic trailing windows anchored to the selected date:
-        # Prev. 7 Days  = [sel_dt - 7d .. sel_dt - 1d] (fallback to sel_d if at dataset start)
-        # Prev. 30 Days = [sel_dt - 30d .. sel_dt - 1d]
-        d_30 = (sel_dt - datetime.timedelta(days=30)).isoformat()
-        d_7 = (sel_dt - datetime.timedelta(days=7)).isoformat()
-        prev_d = (sel_dt - datetime.timedelta(days=1)).isoformat()
+        # Handle backward-compatibility if target_date was passed
+        if target_date and not p1_start and not p1_end:
+            p1_start = str(target_date)[:10]
+            p1_end = str(target_date)[:10]
+
+        # Preset 1 default: Last 7D (inclusive: max_d - 6d .. max_d)
+        if not p1_start or not p1_end:
+            p1_start = (max_dt - datetime.timedelta(days=6)).isoformat()
+            p1_end = max_d
+
+        # Preset 2 default: Last 30D (inclusive: max_d - 29d .. max_d)
+        if not p2_start or not p2_end:
+            p2_start = (max_dt - datetime.timedelta(days=29)).isoformat()
+            p2_end = max_d
+
+        # Clamp ordering if inverted
+        if p1_start > p1_end:
+            p1_start, p1_end = p1_end, p1_start
+        if p2_start > p2_end:
+            p2_start, p2_end = p2_end, p2_start
+
+        min_bound = min(p1_start, p2_start)
+        try:
+            max_end_dt = datetime.date.fromisoformat(max(p1_end, p2_end))
+        except ValueError:
+            max_end_dt = max_dt
+        max_bound = (max_end_dt + datetime.timedelta(days=1)).isoformat()
 
         query = f"""
             WITH daily_hourly AS (
@@ -273,15 +298,8 @@ def get_hourly_profile_comparison(
             )
             SELECT
                 hour_slot,
-                MAX(CASE WHEN d = ? THEN hourly_kwh END) AS latest_kwh,
-                COALESCE(
-                    AVG(CASE WHEN d >= ? AND d <= ? THEN hourly_kwh END),
-                    AVG(CASE WHEN d >= ? AND d <= ? THEN hourly_kwh END)
-                ) AS avg_7d_kwh,
-                COALESCE(
-                    AVG(CASE WHEN d >= ? AND d <= ? THEN hourly_kwh END),
-                    AVG(CASE WHEN d >= ? AND d <= ? THEN hourly_kwh END)
-                ) AS avg_30d_kwh
+                AVG(CASE WHEN d >= ? AND d <= ? THEN hourly_kwh END) AS p1_kwh,
+                AVG(CASE WHEN d >= ? AND d <= ? THEN hourly_kwh END) AS p2_kwh
             FROM daily_hourly
             GROUP BY hour_slot
             ORDER BY hour_slot ASC
@@ -289,20 +307,16 @@ def get_hourly_profile_comparison(
         cur = c.execute(
             query,
             [
-                d_30, next_sel_d,
+                min_bound, max_bound,
                 *extra_params,
-                sel_d,
-                d_7, prev_d,
-                d_7, sel_d,
-                d_30, prev_d,
-                d_30, sel_d,
+                p1_start, p1_end,
+                p2_start, p2_end,
             ],
         )
         by_hour = {
             r["hour_slot"]: {
-                "latest_kwh": float(r["latest_kwh"]) if r["latest_kwh"] is not None else None,
-                "avg_7d_kwh": float(r["avg_7d_kwh"]) if r["avg_7d_kwh"] is not None else None,
-                "avg_30d_kwh": float(r["avg_30d_kwh"]) if r["avg_30d_kwh"] is not None else None,
+                "p1_kwh": float(r["p1_kwh"]) if r["p1_kwh"] is not None else None,
+                "p2_kwh": float(r["p2_kwh"]) if r["p2_kwh"] is not None else None,
             }
             for r in cur.fetchall()
         }
@@ -310,17 +324,22 @@ def get_hourly_profile_comparison(
     rows = []
     for h in hours:
         vals = by_hour.get(h, {})
+        p1 = vals.get("p1_kwh")
+        p2 = vals.get("p2_kwh")
+        delta = (p1 - p2) if (p1 is not None and p2 is not None) else None
         rows.append(
             {
                 "hour": h,
-                "latest_kwh": vals.get("latest_kwh"),
-                "avg_7d_kwh": vals.get("avg_7d_kwh"),
-                "avg_30d_kwh": vals.get("avg_30d_kwh"),
+                "p1_kwh": p1,
+                "p2_kwh": p2,
+                "delta_kwh": delta,
             }
         )
     return {
-        "selected_date": sel_d,
-        "latest_date": max_d,
+        "p1_start": p1_start,
+        "p1_end": p1_end,
+        "p2_start": p2_start,
+        "p2_end": p2_end,
         "min_date": min_d,
         "max_date": max_d,
         "rows": rows,

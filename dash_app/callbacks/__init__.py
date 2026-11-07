@@ -10,6 +10,7 @@ from dash_app.callbacks import (  # noqa: F401
     charts,
     data_health,
     date_filters,
+    hourly_profile,
     router,
     selection,
     summary,
