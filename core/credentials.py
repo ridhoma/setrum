@@ -8,6 +8,7 @@ import sys
 from dotenv import load_dotenv
 
 load_dotenv()
+load_dotenv(os.path.expanduser("~/.setrum/.env"))
 
 
 def get_credential(key: str, service: str = "setrum") -> str | None:

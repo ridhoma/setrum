@@ -10,6 +10,8 @@ services:
     volumes:
       - ~/.setrum/data:/app/data
     env_file:
+      - path: ~/.setrum/.env
+        required: false
       - path: .env
         required: false
     environment:
