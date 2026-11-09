@@ -39,6 +39,41 @@ def _monday_shapes(dates: pd.Series) -> list[dict]:
     return [theme.day_separator_shape(d) for d in mondays]
 
 
+def _monthly_xaxis_kwargs(m_df: pd.DataFrame, offset_ms: int, month_ms: int) -> dict:
+    tick_centers = m_df["month"] + pd.Timedelta(milliseconds=offset_ms + month_ms / 2)
+    date_fmt = "%b %Y" if len(m_df) <= 14 else "%b '%y"
+    tick_labels = m_df["month"].dt.strftime(date_fmt)
+    return theme.xaxis_style(
+        tickmode="array",
+        tickvals=tick_centers.tolist(),
+        ticktext=tick_labels.tolist(),
+    )
+
+
+def _daily_xaxis_kwargs(df: pd.DataFrame) -> dict:
+    unique_dates = df["date"].drop_duplicates().sort_values()
+    n_days = len(unique_dates)
+    if n_days <= 10:
+        step = 1
+    elif n_days <= 21:
+        step = 2
+    elif n_days <= 45:
+        step = 3
+    elif n_days <= 100:
+        step = 7
+    else:
+        step = max(7, n_days // 12)
+
+    tick_dates = unique_dates.iloc[::-step].iloc[::-1]
+    tick_centers = tick_dates + pd.Timedelta(hours=12)
+    tick_labels = tick_dates.dt.strftime("%b %d")
+    return theme.xaxis_style(
+        tickmode="array",
+        tickvals=tick_centers.tolist(),
+        ticktext=tick_labels.tolist(),
+    )
+
+
 def _annotation_shapes(annotations_df: pd.DataFrame | None) -> list[dict]:
     if annotations_df is None or annotations_df.empty:
         return []
@@ -270,7 +305,7 @@ def _build_cost_figure(
             selectdirection="h",
             clickmode="event+select",
         ))
-        fig.update_xaxes(**theme.xaxis_style(tickformat="%b %Y"))
+        fig.update_xaxes(**_monthly_xaxis_kwargs(m_df, offset_ms, month_ms))
         fig.update_yaxes(**theme.yaxis_style(tickprefix="£"))
 
         total_max = float(m_df["Total"].max() or 0)
@@ -324,7 +359,7 @@ def _build_cost_figure(
         selectdirection="h",
         clickmode="event+select",
     ))
-    fig.update_xaxes(**theme.xaxis_style(tickformat="%b %d"))
+    fig.update_xaxes(**_daily_xaxis_kwargs(df))
     fig.update_yaxes(**theme.yaxis_style(tickprefix="£"))
 
     daily_total = df["Total"].max()
@@ -426,7 +461,7 @@ def _build_kwh_figure(
             selectdirection="h",
             clickmode="event+select",
         ))
-        fig.update_xaxes(**theme.xaxis_style(tickformat="%b %Y"))
+        fig.update_xaxes(**_monthly_xaxis_kwargs(m_df, offset_ms, month_ms))
         fig.update_yaxes(**theme.yaxis_style())
         total_max = float(m_df["consumption_kwh"].max() or 0)
         if fc is not None:
@@ -465,7 +500,7 @@ def _build_kwh_figure(
         selectdirection="h",
         clickmode="event+select",
     ))
-    fig.update_xaxes(**theme.xaxis_style(tickformat="%b %d"))
+    fig.update_xaxes(**_daily_xaxis_kwargs(df))
     fig.update_yaxes(**theme.yaxis_style())
     y_max = float(df["consumption_kwh"].max() or 0) * 1.05 or 1.0
     for trace in _annotation_icon_traces(annotations_df, y_max):

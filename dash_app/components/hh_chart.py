@@ -47,6 +47,31 @@ def _annotation_icon_traces(annotations_df: pd.DataFrame | None, y_at: float) ->
     return traces
 
 
+def _hh_xaxis_kwargs(df: pd.DataFrame) -> dict:
+    n_bars = len(df)
+    if n_bars <= 48:
+        stride_hours = 2
+    elif n_bars <= 144:
+        stride_hours = 6
+    elif n_bars <= 336:
+        stride_hours = 12
+    else:
+        stride_hours = 24
+
+    mask = (df["interval_start_at_utc"].dt.hour % stride_hours == 0) & (df["interval_start_at_utc"].dt.minute == 0)
+    tick_bars = df.loc[mask, "interval_start_at_utc"].drop_duplicates()
+    if tick_bars.empty:
+        tick_bars = df["interval_start_at_utc"].drop_duplicates().iloc[::max(1, stride_hours * 2)]
+
+    tick_centers = tick_bars + pd.Timedelta(minutes=15)
+    tick_labels = tick_bars.dt.strftime("%b %d, %H:%M")
+    return theme.xaxis_style(
+        tickmode="array",
+        tickvals=tick_centers.tolist(),
+        ticktext=tick_labels.tolist(),
+    )
+
+
 def build_consumption_figure(
     hh_df: pd.DataFrame,
     annotations_df: pd.DataFrame | None = None,
@@ -115,7 +140,7 @@ def build_consumption_figure(
         selectdirection="h",
         clickmode="event+select",
     ))
-    fig.update_xaxes(**theme.xaxis_style(tickformat="%b %d, %H:%M"))
+    fig.update_xaxes(**_hh_xaxis_kwargs(df))
     fig.update_yaxes(**theme.yaxis_style())
 
     # Clickable annotation icon at the top of each band.
