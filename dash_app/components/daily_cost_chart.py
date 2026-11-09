@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import calendar
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.graph_objects as go
@@ -94,6 +95,78 @@ def build_figure(
     return _build_cost_figure(daily_df, granularity, annotations_df)
 
 
+def _compute_month_forecast(df: pd.DataFrame) -> dict | None:
+    """Compute month-end projection for the latest month if it is incomplete.
+
+    Estimates remaining month consumption (kWh & £) by taking the last-30 days
+    daily average multiplied by remaining days of the month.
+    """
+    if df.empty:
+        return None
+
+    latest_date = df["date"].max()
+    year = latest_date.year
+    month = latest_date.month
+    total_days = calendar.monthrange(year, month)[1]
+
+    month_mask = (df["date"].dt.year == year) & (df["date"].dt.month == month)
+    month_df = df[month_mask]
+    recorded_days = len(month_df["date"].dt.date.unique())
+
+    if recorded_days >= total_days:
+        return None  # Month is fully recorded, no forecast needed
+
+    remaining_days = total_days - recorded_days
+    if remaining_days <= 0:
+        return None
+
+    # Compute 30-day daily averages from the latest available 30 days
+    last_30_df = df[df["date"] <= latest_date].tail(30)
+    if last_30_df.empty:
+        return None
+
+    avg_daily_kwh = float(last_30_df["consumption_kwh"].mean() or 0.0)
+
+    # Cost in £ (including VAT)
+    if "total_pence_inc_vat" in last_30_df.columns:
+        cost_series = last_30_df["total_pence_inc_vat"] / 100
+    elif "Total" in last_30_df.columns:
+        cost_series = last_30_df["Total"]
+    else:
+        cost_series = (last_30_df.get("consumption_pence_exc_vat", 0) + last_30_df.get("standing_charge_pence_exc_vat", 0)) / 100
+    avg_daily_cost = float(cost_series.mean() or 0.0)
+
+    current_kwh = float(month_df["consumption_kwh"].sum() or 0.0)
+    if "total_pence_inc_vat" in month_df.columns:
+        month_cost_series = month_df["total_pence_inc_vat"] / 100
+    elif "Total" in month_df.columns:
+        month_cost_series = month_df["Total"]
+    else:
+        month_cost_series = (month_df.get("consumption_pence_exc_vat", 0) + month_df.get("standing_charge_pence_exc_vat", 0)) / 100
+    current_cost = float(month_cost_series.sum() or 0.0)
+
+    forecast_kwh = avg_daily_kwh * remaining_days
+    forecast_cost = avg_daily_cost * remaining_days
+
+    date_series = latest_date.tz_localize(None) if latest_date.tz is not None else latest_date
+    month_ts = date_series.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    return {
+        "month_ts": month_ts,
+        "recorded_days": recorded_days,
+        "total_days": total_days,
+        "remaining_days": remaining_days,
+        "avg_daily_kwh": avg_daily_kwh,
+        "avg_daily_cost": avg_daily_cost,
+        "forecast_kwh": forecast_kwh,
+        "forecast_cost": forecast_cost,
+        "current_kwh": current_kwh,
+        "current_cost": current_cost,
+        "projected_kwh": current_kwh + forecast_kwh,
+        "projected_cost": current_cost + forecast_cost,
+    }
+
+
 def _build_cost_figure(
     daily_df: pd.DataFrame,
     granularity: str = "daily",
@@ -118,6 +191,8 @@ def _build_cost_figure(
         m_df["VAT"]               = m_df["total_pence_vat"] / 100
         m_df["Total"]             = m_df["Standing Charge"] + m_df["Consumption Usage"] + m_df["VAT"]
 
+        fc = _compute_month_forecast(df)
+
         fig = go.Figure()
         month_ms = 24 * 86400 * 1000
         offset_ms = 3 * 86400 * 1000
@@ -141,13 +216,55 @@ def _build_cost_figure(
                 ),
             )
 
+        forecast_shapes = []
+        if fc is not None:
+            fig.add_bar(
+                name="Forecast (Est.)",
+                x=[fc["month_ts"]],
+                y=[fc["forecast_cost"]],
+                offset=offset_ms,
+                width=month_ms,
+                marker=dict(
+                    color="rgba(217, 93, 57, 0.08)",
+                    line=dict(width=0),
+                ),
+                customdata=[[
+                    fc["current_cost"],
+                    fc["forecast_cost"],
+                    fc["projected_cost"],
+                    fc["recorded_days"],
+                    fc["remaining_days"],
+                    fc["avg_daily_cost"],
+                ]],
+                hovertemplate=(
+                    "<b>%{x|%B %Y} (Month-End Forecast)</b><br>"
+                    "Actual to Date (%{customdata[3]}d): £%{customdata[0]:.2f}<br>"
+                    "Projected Rest of Month (%{customdata[4]}d): +£%{customdata[1]:.2f}<br>"
+                    "<b>Est. Month Total: £%{customdata[2]:.2f}</b><br>"
+                    "<span style='color:#7D7367'>Based on 30D avg: £%{customdata[5]:.2f}/day</span><extra></extra>"
+                ),
+            )
+            x0 = fc["month_ts"] + pd.Timedelta(milliseconds=offset_ms)
+            x1 = fc["month_ts"] + pd.Timedelta(milliseconds=offset_ms + month_ms)
+            forecast_shapes.append(dict(
+                type="rect",
+                xref="x",
+                yref="y",
+                x0=x0,
+                x1=x1,
+                y0=fc["current_cost"],
+                y1=fc["projected_cost"],
+                line=dict(color=theme.ORANGE, width=1.5, dash="dash"),
+                fillcolor="rgba(217, 93, 57, 0.06)",
+            ))
+
         fig.update_layout(**theme.base_layout(
             height=320,
             xaxis_title="", yaxis_title="Cost (£)",
             barmode="stack",
             bargap=0.18,
             showlegend=False,
-            shapes=_annotation_shapes(annotations_df),
+            shapes=_annotation_shapes(annotations_df) + forecast_shapes,
             hovermode="closest",
             dragmode="select",
             selectdirection="h",
@@ -156,8 +273,10 @@ def _build_cost_figure(
         fig.update_xaxes(**theme.xaxis_style(tickformat="%b %Y"))
         fig.update_yaxes(**theme.yaxis_style(tickprefix="£"))
 
-        total_max = m_df["Total"].max()
-        y_max = float(total_max or 0) * 1.05 or 1.0
+        total_max = float(m_df["Total"].max() or 0)
+        if fc is not None:
+            total_max = max(total_max, fc["projected_cost"])
+        y_max = total_max * 1.05 or 1.0
         for trace in _annotation_icon_traces(annotations_df, y_max):
             fig.add_trace(trace)
         return fig
@@ -231,6 +350,8 @@ def _build_kwh_figure(
         df["month"] = date_series.dt.to_period("M").dt.to_timestamp()
         m_df = df.groupby("month", as_index=False).agg({"consumption_kwh": "sum"})
 
+        fc = _compute_month_forecast(df)
+
         month_ms = 24 * 86400 * 1000
         offset_ms = 3 * 86400 * 1000
         fig = go.Figure()
@@ -250,12 +371,56 @@ def _build_kwh_figure(
                 "Consumption: %{y:.2f} kWh<extra></extra>"
             ),
         )
+
+        forecast_shapes = []
+        if fc is not None:
+            fig.add_bar(
+                name="Forecast (Est.)",
+                x=[fc["month_ts"]],
+                y=[fc["forecast_kwh"]],
+                offset=offset_ms,
+                width=month_ms,
+                marker=dict(
+                    color="rgba(217, 93, 57, 0.08)",
+                    line=dict(width=0),
+                ),
+                customdata=[[
+                    fc["current_kwh"],
+                    fc["forecast_kwh"],
+                    fc["projected_kwh"],
+                    fc["recorded_days"],
+                    fc["remaining_days"],
+                    fc["avg_daily_kwh"],
+                ]],
+                hovertemplate=(
+                    "<b>%{x|%B %Y} (Month-End Forecast)</b><br>"
+                    "Actual to Date (%{customdata[3]}d): %{customdata[0]:.2f} kWh<br>"
+                    "Projected Rest of Month (%{customdata[4]}d): +%{customdata[1]:.2f} kWh<br>"
+                    "<b>Est. Month Total: %{customdata[2]:.2f} kWh</b><br>"
+                    "<span style='color:#7D7367'>Based on 30D avg: %{customdata[5]:.2f} kWh/day</span><extra></extra>"
+                ),
+            )
+            x0 = fc["month_ts"] + pd.Timedelta(milliseconds=offset_ms)
+            x1 = fc["month_ts"] + pd.Timedelta(milliseconds=offset_ms + month_ms)
+            forecast_shapes.append(dict(
+                type="rect",
+                xref="x",
+                yref="y",
+                x0=x0,
+                x1=x1,
+                y0=fc["current_kwh"],
+                y1=fc["projected_kwh"],
+                line=dict(color=theme.DATA_PRIMARY, width=1.5, dash="dash"),
+                fillcolor="rgba(217, 93, 57, 0.06)",
+            ))
+
         fig.update_layout(**theme.base_layout(
             height=320,
             xaxis_title="", yaxis_title="kWh",
+            barmode="stack",
             bargap=0.18,
             showlegend=False,
-            shapes=_annotation_shapes(annotations_df),
+            shapes=_annotation_shapes(annotations_df) + forecast_shapes,
             hovermode="closest",
             dragmode="select",
             selectdirection="h",
@@ -263,7 +428,10 @@ def _build_kwh_figure(
         ))
         fig.update_xaxes(**theme.xaxis_style(tickformat="%b %Y"))
         fig.update_yaxes(**theme.yaxis_style())
-        y_max = float(m_df["consumption_kwh"].max() or 0) * 1.05 or 1.0
+        total_max = float(m_df["consumption_kwh"].max() or 0)
+        if fc is not None:
+            total_max = max(total_max, fc["projected_kwh"])
+        y_max = total_max * 1.05 or 1.0
         for trace in _annotation_icon_traces(annotations_df, y_max):
             fig.add_trace(trace)
         return fig
@@ -309,6 +477,7 @@ def legend_items(
     view: str = "cost",
     show_pins: bool = True,
     df: pd.DataFrame | None = None,
+    granularity: str = "daily",
 ) -> list:
     items = []
     if view == "kwh":
@@ -318,6 +487,23 @@ def legend_items(
                 className="legend-item",
             )
         )
+        if granularity == "monthly":
+            items.append(
+                html.Span(
+                    [
+                        html.Span(
+                            className="legend-swatch",
+                            style={
+                                "background": "rgba(217, 93, 57, 0.15)",
+                                "border": f"1.5px dashed {theme.ORANGE}",
+                            },
+                        ),
+                        "Forecast (Est.)",
+                    ],
+                    className="legend-item",
+                    title="Month-end projection based on last 30-day daily average × remaining days",
+                )
+            )
     else:
         vat_label = "VAT (5%)"
         vat_title = "UK domestic electricity standard reduced rate: 5% VAT"
@@ -351,6 +537,23 @@ def legend_items(
                 ),
             ]
         )
+        if granularity == "monthly":
+            items.append(
+                html.Span(
+                    [
+                        html.Span(
+                            className="legend-swatch",
+                            style={
+                                "background": "rgba(217, 93, 57, 0.15)",
+                                "border": f"1.5px dashed {theme.ORANGE}",
+                            },
+                        ),
+                        "Forecast (Est.)",
+                    ],
+                    className="legend-item",
+                    title="Month-end projection based on last 30-day daily average × remaining days",
+                )
+            )
     if show_pins:
         items.append(
             html.Span(

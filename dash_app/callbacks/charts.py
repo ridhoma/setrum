@@ -52,7 +52,7 @@ def render_daily_cost(
     is_pins_visible = True if show_pins is None else show_pins
     title = "Cost & Consumption Over Time"
     if not resolved or not resolved.get("start_date") or not resolved.get("end_date"):
-        legend_content = daily_cost_chart.legend_items(view_mode, show_pins=is_pins_visible)
+        legend_content = daily_cost_chart.legend_items(view_mode, show_pins=is_pins_visible, granularity=granularity_mode)
         fig = daily_cost_chart.build_figure(
             consumption_service.get_daily_summary("1900-01-01", "1900-01-02"),
             view=view_mode,
@@ -62,7 +62,9 @@ def render_daily_cost(
     df = consumption_service.get_daily_summary(
         resolved["start_date"], resolved["end_date"], account_id=account_id
     )
-    legend_content = daily_cost_chart.legend_items(view_mode, show_pins=is_pins_visible, df=df)
+    legend_content = daily_cost_chart.legend_items(
+        view_mode, show_pins=is_pins_visible, df=df, granularity=granularity_mode
+    )
     if is_pins_visible:
         # Annotation overlays span the visible window; widen by 1 day on each side
         # so a band that started at 23:30 yesterday or ends at 00:30 tomorrow still
