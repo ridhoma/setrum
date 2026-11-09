@@ -216,12 +216,19 @@ def fetch_tariff_pricing(start_date, end_date, tariff_code):
     def format_rates(results):
         df = pd.DataFrame(results)
         if df.empty: return df
+
+        if 'payment_method' in df.columns:
+            filtered = df[df['payment_method'].isna() | (df['payment_method'] == 'DIRECT_DEBIT')]
+            if not filtered.empty:
+                df = filtered
+
         df['interval_start'] = pd.to_datetime(df['valid_from'], utc=True).dt.strftime('%Y-%m-%dT%H:%M:%SZ')
         if 'valid_to' in df.columns:
             df['interval_end'] = pd.to_datetime(df['valid_to'].fillna(pd.Timestamp('now', tz='UTC')), utc=True).dt.strftime('%Y-%m-%dT%H:%M:%SZ')
         else:
             df['interval_end'] = None
         df['tariff_code'] = tariff_code
+        df = df.drop_duplicates(subset=['interval_start', 'tariff_code'], keep='first')
         # Raw rates ingestion from Octopus Energy:
         # Note on UK Domestic Electricity VAT:
         # - Temporary 0% VAT applies across Great Britain from 2026-10-01 to 2027-06-30
@@ -275,11 +282,13 @@ def fetch_accounts():
         accounts_data, meters_data, agreements_data = [], [], []
         
         for prop in data.get('properties', []):
+            moved_in = prop.get('moved_in_at')
+            moved_out = prop.get('moved_out_at')
             accounts_data.append({
                 'account_number': account_number_val,
                 'account_id': prop.get('id'),
-                'moved_in_at': prop.get('moved_in_at'),
-                'moved_out_at': prop.get('moved_out_at'),
+                'moved_in_at': pd.to_datetime(moved_in, utc=True).strftime('%Y-%m-%dT%H:%M:%SZ') if moved_in else None,
+                'moved_out_at': pd.to_datetime(moved_out, utc=True).strftime('%Y-%m-%dT%H:%M:%SZ') if moved_out else None,
                 'address_line_1': prop.get('address_line_1'),
                 'town': prop.get('town'),
                 'postcode': prop.get('postcode')
@@ -296,13 +305,22 @@ def fetch_accounts():
                     })
                     
                 for agreement in emp.get('agreements', []):
+                    raw_vf = agreement.get('valid_from')
+                    raw_vt = agreement.get('valid_to')
+                    norm_vf = pd.to_datetime(raw_vf, utc=True).strftime('%Y-%m-%dT%H:%M:%SZ') if raw_vf else None
+                    norm_vt = pd.to_datetime(raw_vt, utc=True).strftime('%Y-%m-%dT%H:%M:%SZ') if raw_vt else None
+
+                    # Filter out zero-length superseded agreements where valid_from == valid_to
+                    if norm_vf and norm_vt and norm_vf == norm_vt:
+                        continue
+
                     agreements_data.append({
                         'account_number': account_number_val,
                         'account_id': prop.get('id'),
                         'mpan': mpan,
                         'tariff_code': agreement.get('tariff_code'),
-                        'valid_from': agreement.get('valid_from'),
-                        'valid_to': agreement.get('valid_to')
+                        'valid_from': norm_vf,
+                        'valid_to': norm_vt
                     })
         
         with get_connection() as conn:
